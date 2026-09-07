@@ -27,4 +27,10 @@ describe("ThemeSwitch", () => {
     expect(localStorage.getItem("flexora-theme")).toBe("light");
     expect(screen.getByRole("button", { name: labels.toDark })).toBeTruthy();
   });
+
+  it("sincroniza con el tema real del DOM al montar", () => {
+    document.documentElement.dataset.theme = "light";
+    render(<ThemeSwitch labels={labels} />);
+    expect(screen.getByRole("button", { name: labels.toDark })).toBeTruthy();
+  });
 });
