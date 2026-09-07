@@ -2,21 +2,29 @@ import type { ComponentProps, ReactNode } from "react";
 
 type Variant = "primary" | "secondary";
 
-type Props = {
-  variant?: Variant;
-  href?: string;
-  external?: boolean;
-  className?: string;
-  children: ReactNode;
-} & Omit<ComponentProps<"button">, "className" | "children">;
+type Common = { variant?: Variant; className?: string; children: ReactNode };
 
-export function Button({ variant = "primary", href, external, className = "", children, ...rest }: Props) {
+type LinkProps = Common & {
+  href: string;
+  external?: boolean;
+} & Omit<ComponentProps<"a">, "className" | "children" | "href" | "target" | "rel">;
+
+type ButtonProps = Common & {
+  href?: undefined;
+  external?: undefined;
+} & Omit<ComponentProps<"button">, "className" | "children" | "type">;
+
+export type Props = LinkProps | ButtonProps;
+
+export function Button(props: Props) {
+  const { variant = "primary", className = "", children, href, external, ...rest } = props;
   const classes = `btn btn-${variant} ${className}`.trim();
-  if (href) {
+  if (href !== undefined) {
     return (
       <a
         href={href}
         className={classes}
+        {...rest}
         {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       >
         {children}

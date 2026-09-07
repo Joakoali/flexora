@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { Button } from "@/components/ui/Button";
 
 describe("Button", () => {
@@ -20,5 +20,12 @@ describe("Button", () => {
     const a = screen.getByRole("link");
     expect(a.getAttribute("target")).toBe("_blank");
     expect(a.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+  it("dispara onClick cuando se hace click en un button", () => {
+    const onClick = vi.fn();
+    render(<Button onClick={onClick}>Clickear</Button>);
+    const button = screen.getByRole("button", { name: "Clickear" });
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledOnce();
   });
 });
