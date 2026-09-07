@@ -17,9 +17,12 @@ type ButtonProps = Common & {
 export type Props = LinkProps | ButtonProps;
 
 export function Button(props: Props) {
-  const { variant = "primary", className = "", children, href, external, ...rest } = props;
+  const variant = props.variant ?? "primary";
+  const className = props.className ?? "";
   const classes = `btn btn-${variant} ${className}`.trim();
-  if (href !== undefined) {
+  if (props.href !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { href, external, variant: _variant, className: _className, children, ...rest } = props;
     return (
       <a
         href={href}
@@ -31,6 +34,8 @@ export function Button(props: Props) {
       </a>
     );
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { href: _href, external: _external, variant: _variant, className: _className, children, ...rest } = props;
   return (
     <button type="button" className={classes} {...rest}>
       {children}
