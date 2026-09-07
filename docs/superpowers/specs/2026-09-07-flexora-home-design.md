@@ -13,7 +13,7 @@ Flexora es un emprendimiento de marketing y desarrollo web. Este repo es su siti
 - **Público:** mezcla de pymes, startups y marcas. Sin foco todavía. Tono claro, directo, sin jerga.
 - **Conversión:** escribir por WhatsApp. Toda la home empuja a esa acción.
 - **Idiomas:** español (voseo) e inglés (neutro), desde el día uno.
-- **Marca:** hay una idea de logo (ver `public/Flexora idea 1.jpeg`): wordmark en sans geométrica ancha, "FLE" y la X en violeta, "ORA" en blanco, sobre negro. Anclas confirmadas: fondo oscuro, violeta como único acento, tipografía ancha geométrica. La X como símbolo no es ancla: puede usarse, no debe dominar.
+- **Marca:** hay una idea de logo (ver `docs/brand/flexora-idea-1.jpeg`): wordmark en sans geométrica ancha, "FLE" y la X en violeta, "ORA" en blanco, sobre negro. Anclas confirmadas: fondo oscuro, violeta como único acento, tipografía ancha geométrica. La X como símbolo no es ancla: puede usarse, no debe dominar.
 - **Ambición:** cinematográfica. WebGL liviano, scroll que transforma, micro-interacciones en todo. Debe verse bien en un celular de gama media.
 - **Portfolio:** hay varios proyectos reales con imágenes.
 - **Equipo:** no aparece en la home.
@@ -226,4 +226,4 @@ No se hacen tests de snapshot visual automatizados ni tests del shader.
 
 - `~/.claude/skills/impeccable/` — new-work, typeset, animate, overdrive, craft-floor (este último se carga recién al implementar UI).
 - `~/.claude/skills/emil-design-eng/`, `animate`, `review-animations` — reglas de motion.
-- `public/Flexora idea 1.jpeg` — idea de logo.
+- `docs/brand/flexora-idea-1.jpeg` — idea de logo.
