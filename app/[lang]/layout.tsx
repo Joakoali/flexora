@@ -3,6 +3,7 @@ import { anybody, geistMono, geistSans } from "@/lib/fonts";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { locales } from "@/lib/i18n";
 import { Header } from "@/components/site/Header";
+import { Footer } from "@/components/site/Footer";
 import { whatsappHref } from "@/lib/whatsapp";
 import { getDictionary, getLocale } from "./dictionaries";
 import "../globals.css";
@@ -53,6 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
           whatsappHref={whatsappHref(dict.hero.whatsappMessage)}
         />
         {children}
+        <Footer t={dict.footer} locale={locale} />
       </body>
     </html>
   );

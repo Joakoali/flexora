@@ -327,3 +327,48 @@ html.theme-changing *::after {
     font-size: 0.875rem;
   }
 }
+
+/* ---------- Process ---------- */
+.process__title {
+  margin-top: 0.75rem;
+  max-width: 18ch;
+}
+.process__steps {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  display: grid;
+  gap: 2rem;
+  list-style: none;
+  padding: 0;
+}
+.process__step {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+.process__desc {
+  color: var(--fg-muted);
+  max-width: 34ch;
+}
+@media (min-width: 900px) {
+  .process__steps {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  margin-top: auto;
+  padding-block: 2rem;
+}
+.site-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.site-footer__logo {
+  color: var(--fg);
+  display: inline-flex;
+}
