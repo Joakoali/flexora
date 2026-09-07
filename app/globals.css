@@ -243,3 +243,21 @@ html.theme-changing *::after {
     transform: none;
   }
 }
+
+/* ---------- ThemeSwitch ---------- */
+.theme-switch {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  color: var(--fg);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.theme-switch:active {
+  transform: scale(0.97);
+}
+.theme-switch svg {
+  display: block;
+  will-change: transform;
+}

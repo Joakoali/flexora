@@ -1,3 +1,6 @@
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
 if (typeof window !== "undefined" && !window.matchMedia) {
   window.matchMedia = ((query: string) =>
     ({
@@ -11,3 +14,7 @@ if (typeof window !== "undefined" && !window.matchMedia) {
       dispatchEvent: () => false,
     }) as unknown as MediaQueryList) as typeof window.matchMedia;
 }
+
+afterEach(() => {
+  cleanup();
+});
