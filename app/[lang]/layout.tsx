@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { anybody, geistMono, geistSans } from "@/lib/fonts";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { locales } from "@/lib/i18n";
+import { Header } from "@/components/site/Header";
+import { whatsappHref } from "@/lib/whatsapp";
 import { getDictionary, getLocale } from "./dictionaries";
 import "../globals.css";
 
@@ -33,6 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
   const locale = await getLocale();
+  const dict = await getDictionary();
   return (
     <html
       lang={locale}
@@ -43,7 +46,14 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-dvh flex flex-col">{children}</body>
+      <body className="min-h-dvh flex flex-col">
+        <Header
+          locale={locale}
+          labels={{ nav: dict.nav, theme: dict.theme, lang: dict.lang }}
+          whatsappHref={whatsappHref(dict.hero.whatsappMessage)}
+        />
+        {children}
+      </body>
     </html>
   );
 }
