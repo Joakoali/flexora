@@ -275,8 +275,7 @@ html.theme-changing *::after {
     border-color var(--dur-base) var(--ease-out);
 }
 .site-header[data-scrolled="true"] {
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: saturate(140%) blur(8px);
+  background: var(--bg);
   border-bottom-color: var(--border);
 }
 .site-header__inner {
