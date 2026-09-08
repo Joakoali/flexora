@@ -518,3 +518,51 @@ body:has(#hero) {
      var(--logo-opacity, 1) de .site-header__logo. */
   body:has(#hero) { --logo-opacity: 1; }
 }
+
+/* ---------- Marquee ---------- */
+.marquee {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+  padding-block: clamp(1.25rem, 3vw, 2.5rem);
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+}
+.marquee:active { cursor: grabbing; }
+.marquee__track { will-change: transform; }
+.marquee__scroller {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+.marquee__row {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding-inline-end: clamp(1rem, 3vw, 2.5rem);
+  font-size: clamp(2rem, 6vw, 5.5rem);
+  font-variation-settings: "wdth" 130;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.marquee__dot {
+  width: 0.35em;
+  height: 0.35em;
+  border-radius: 999px; /* único círculo permitido: es un punto, no un botón */
+  background: var(--accent);
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee__scroller { animation: none; }
+}
