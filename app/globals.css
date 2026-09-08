@@ -566,3 +566,56 @@ body:has(#hero) {
 @media (prefers-reduced-motion: reduce) {
   .marquee__scroller { animation: none; }
 }
+
+/* ---------- Services ---------- */
+.services__title {
+  margin-top: 0.75rem;
+  max-width: 16ch;
+}
+.services__list {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+}
+.service {
+  padding-block: clamp(2rem, 4vw, 3.5rem);
+}
+.service__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+.service__desc {
+  color: var(--fg-muted);
+  margin-top: 0.75rem;
+  max-width: 44ch;
+}
+.service__deliverables {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  font-size: 0.9375rem;
+}
+.service__deliverables li::before {
+  content: "—";
+  color: var(--accent);
+  margin-right: 0.5rem;
+}
+.svis {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.svis__chev {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+[data-reveal] .svis__chev--a { transform: translateX(-24px); }
+[data-reveal] .svis__chev--b { transform: translateX(24px); }
+[data-reveal][data-visible] .svis__chev--a,
+[data-reveal][data-visible] .svis__chev--b { transform: none; }
+@media (min-width: 900px) {
+  .service__grid {
+    grid-template-columns: 160px 1fr minmax(280px, 420px);
+    align-items: start;
+    gap: 3rem;
+  }
+}
