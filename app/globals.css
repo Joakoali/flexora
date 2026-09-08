@@ -410,7 +410,12 @@ html.theme-changing *::after {
   --wm-scale: 0.2;
   --wm-x: 0px;
   --wm-y: 0px;
-  /* El logo del header aparece en el último 15% del viaje. */
+}
+
+/* El logo del header aparece en el último 15% del viaje. Sólo en páginas con
+   hero: sin :has() (o sin #hero) no se define y gana el var(--logo-opacity, 1)
+   de .site-header__logo, así que el logo se ve normal en cualquier otra ruta. */
+body:has(#hero) {
   --logo-opacity: clamp(0, (var(--hero-p) - 0.85) * 6.67, 1);
 }
 
@@ -469,6 +474,10 @@ html.theme-changing *::after {
   gap: 1.5rem;
   opacity: clamp(0, 1 - var(--hero-p) * 2.5, 1);
   transform: translateY(calc(var(--hero-p) * 40px));
+}
+/* Ya invisible: no intercepta clics ni recibe foco por tabulación. */
+.hero__copy--faded {
+  pointer-events: none;
 }
 .hero__tagline {
   font-size: clamp(1.125rem, 1.6vw, 1.5rem);

@@ -52,6 +52,10 @@ export function HeroProgress({ heroId = "hero" }: { heroId?: string }) {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end end"] });
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     if (!supportsTimeline && !reduced) document.documentElement.style.setProperty("--hero-p", p.toFixed(4));
+    // El copy llega a opacidad 0 en p = 0.4 pero el hero sigue ocupando el
+    // viewport: sin esto sus links seguirían recibiendo clics y foco invisibles.
+    // Se hace en los dos caminos (CSS y fallback), no sólo en el fallback.
+    document.querySelector(".hero__copy")?.classList.toggle("hero__copy--faded", p > 0.4);
   });
 
   return null;
