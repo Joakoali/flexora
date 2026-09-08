@@ -568,6 +568,11 @@ body:has(#hero) {
 }
 
 /* ---------- Services ---------- */
+#services {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+}
 .services__title {
   margin-top: 0.75rem;
   max-width: 16ch;
