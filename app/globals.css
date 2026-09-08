@@ -475,9 +475,11 @@ body:has(#hero) {
   opacity: clamp(0, 1 - var(--hero-p) * 2.5, 1);
   transform: translateY(calc(var(--hero-p) * 40px));
 }
-/* Ya invisible: no intercepta clics ni recibe foco por tabulación. */
+/* Ya invisible (opacidad 0 desde --hero-p 0.4): no intercepta clics, y visibility
+   lo saca además del orden de tabulación. No hay transition propia que cortar. */
 .hero__copy--faded {
   pointer-events: none;
+  visibility: hidden;
 }
 .hero__tagline {
   font-size: clamp(1.125rem, 1.6vw, 1.5rem);
