@@ -30,7 +30,6 @@
     "items": ["Web development", "Marketing & ads", "Branding"]
   },
   "services": {
-    "label": "Services",
     "title": "Three disciplines, one team.",
     "items": [
       {
@@ -57,12 +56,10 @@
     ]
   },
   "work": {
-    "label": "Work",
     "title": "What we did, with results.",
     "viewCase": "View case"
   },
   "process": {
-    "label": "How we work",
     "title": "Simple from start to finish.",
     "steps": [
       { "title": "We listen", "description": "A conversation to understand what you need, who you talk to and what has to happen." },

@@ -10,7 +10,7 @@ export function Footer({ t, locale }: { t: Dictionary["footer"]; locale: Locale 
         <a href={`/${locale}`} className="site-footer__logo">
           <Logo id="footer-logo" title="Flexora" />
         </a>
-        <p className="label">
+        <p className="site-footer__legal">
           © {year} Flexora. {t.rights} {t.madeIn}
         </p>
       </div>

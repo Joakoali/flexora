@@ -10,6 +10,10 @@
   --border: rgb(255 255 255 / 0.08);
   --accent: #7a3bff;
   --accent-soft: #b79cff;
+  /* Violeta para texto chico: el token que llega a AA sobre --bg en cada tema
+     (spec 3.1 pide contraste AA y reserva --accent-soft a rings y texto chico).
+     Oscuro: --accent sobre --bg da 3.69:1, --accent-soft da 8.73:1. */
+  --accent-text: var(--accent-soft);
   --switch-half: #09090b;
 
   --header-h: 72px;
@@ -41,6 +45,8 @@
   --border: rgb(0 0 0 / 0.08);
   --accent: #6a2bf2;
   --accent-soft: #8a5cff;
+  /* Claro: --accent da 5.97:1 y --accent-soft sólo 3.83:1, así que se invierte. */
+  --accent-text: var(--accent);
   --switch-half: #f6f5fa;
 }
 
@@ -52,6 +58,7 @@
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
   --font-display: var(--font-anybody);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -159,7 +166,10 @@ html.theme-changing *::after {
   justify-content: center;
   gap: 0.5rem;
   min-height: 48px;
-  padding: 0 1.25rem;
+  /* El alto lo sigue fijando min-height (10+10+25.6 = 45.6 < 48): el padding
+     vertical está declarado para que el texto nunca quede contra el borde si
+     el botón crece o el texto se envuelve. */
+  padding: 0.625rem 1.25rem;
   border-radius: var(--radius-md);
   font-weight: 500;
   text-decoration: none;
@@ -176,7 +186,10 @@ html.theme-changing *::after {
   color: #fff;
 }
 .btn-primary:hover {
-  background: var(--accent-soft);
+  /* No se usa --accent-soft: el spec lo reserva a focus rings y texto violeta
+     chico, y blanco sobre él no llega a AA (2.28:1 oscuro, 4.15:1 claro).
+     Oscurecer el acento sube el contraste con el texto blanco en los dos temas. */
+  background: color-mix(in oklab, var(--accent) 88%, #000);
 }
 .btn-secondary {
   background: transparent;
@@ -291,6 +304,13 @@ html.theme-changing *::after {
   /* El wordmark del hero "aterriza" acá: opacidad ligada a --hero-p (Task 10). */
   opacity: var(--logo-opacity, 1);
 }
+/* El logo es la única pieza elástica del header: los otros dos bloques (idioma,
+   tema, CTA) tienen ancho mínimo propio. A 24px el SVG mide 175px y con el CTA
+   la fila pedía 430px en un viewport de 390 — el botón "Hablemos" quedaba
+   cortado contra el borde. Con este clamp la fila entra desde 360px. */
+.site-header__logo .logo {
+  height: clamp(16px, 4.6vw, 24px);
+}
 .site-header__nav {
   display: none;
   justify-content: center;
@@ -321,6 +341,15 @@ html.theme-changing *::after {
   }
 }
 @media (max-width: 640px) {
+  .site-header__inner {
+    gap: 0.75rem;
+  }
+  .site-header__tools {
+    gap: 0.5rem;
+  }
+  .lang-switch {
+    gap: 0.375rem;
+  }
   .site-header__cta {
     min-height: 40px;
     padding-inline: 0.875rem;
@@ -330,7 +359,6 @@ html.theme-changing *::after {
 
 /* ---------- Process ---------- */
 .process__title {
-  margin-top: 0.75rem;
   max-width: 18ch;
 }
 .process__steps {
@@ -371,6 +399,13 @@ html.theme-changing *::after {
 .site-footer__logo {
   color: var(--fg);
   display: inline-flex;
+}
+/* El copyright es una frase, no un rótulo: mono en mayúsculas con tracking
+   amplio lo vuelve ilegible a 66 caracteres (spec 3.3 reserva el mono a
+   rótulos cortos, metadata y pasos). */
+.site-footer__legal {
+  font-size: 0.875rem;
+  color: var(--fg-muted);
 }
 
 /* ---------- FlexField ---------- */
@@ -574,7 +609,6 @@ body:has(#hero) {
   background: var(--bg);
 }
 .services__title {
-  margin-top: 0.75rem;
   max-width: 16ch;
 }
 .services__list {
@@ -627,7 +661,6 @@ body:has(#hero) {
 
 /* ---------- Work ---------- */
 .work__title {
-  margin-top: 0.75rem;
   max-width: 16ch;
 }
 .work__grid {
@@ -669,7 +702,8 @@ body:has(#hero) {
   gap: 0.375rem;
 }
 .work-card__result {
-  color: var(--accent);
+  /* Texto violeta chico: --accent sobre --bg en oscuro sólo da 3.69:1. */
+  color: var(--accent-text);
   font-weight: 500;
 }
 @media (min-width: 900px) {
@@ -683,6 +717,9 @@ body:has(#hero) {
   overflow: hidden;
   min-height: 80vh;
   display: grid;
+  /* minmax(0,·): sin esto la columna implícita crece al max-content del título
+     y el contenido (con su párrafo) se sale del viewport. */
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
   border-top: 1px solid var(--border);
 }
@@ -694,7 +731,12 @@ body:has(#hero) {
   gap: 1.5rem;
 }
 .closing__title {
-  font-size: clamp(3.5rem, 14vw, 13rem);
+  /* Medido: "HABLEMOS" en Anybody wdth 140 mide 7.96× el font-size ("LET'S TALK"
+     7.70×). Es una sola palabra: no puede envolver, así que el tamaño tiene que
+     entrar entre los gutters. Con gutter 4vw el ancho útil es 92vw, y
+     92 / 7.96 = 11.5vw; 11.2vw deja margen. El techo (10rem = 160px) es el
+     máximo de display que fija el spec 3.3 y entra en el container de 1440. */
+  font-size: clamp(2.25rem, 11.2vw, 10rem);
 }
 .closing__desc {
   font-size: clamp(1.125rem, 1.6vw, 1.5rem);

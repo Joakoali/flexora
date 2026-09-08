@@ -30,7 +30,6 @@
     "items": ["Desarrollo web", "Marketing y ads", "Branding"]
   },
   "services": {
-    "label": "Servicios",
     "title": "Tres disciplinas, un solo equipo.",
     "items": [
       {
@@ -57,12 +56,10 @@
     ]
   },
   "work": {
-    "label": "Trabajos",
     "title": "Lo que hicimos, con resultados.",
     "viewCase": "Ver caso"
   },
   "process": {
-    "label": "Cómo trabajamos",
     "title": "Simple de principio a fin.",
     "steps": [
       { "title": "Escuchamos", "description": "Una charla para entender qué necesitás, a quién le hablás y qué tiene que pasar." },

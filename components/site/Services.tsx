@@ -9,7 +9,6 @@ export function Services({ t }: { t: Dictionary["services"] }) {
   return (
     <section id="services" className="section" aria-labelledby="services-title">
       <Reveal className="container-site">
-        <Label as="p">{t.label}</Label>
         <h2 id="services-title" className="h2 services__title">{t.title}</h2>
       </Reveal>
       <div className="services__list">
