@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Renderer } from "ogl";
 import { canUseWebGL, clampDpr, cssVarToRgb, isCoarsePointer, prefersReducedMotion } from "@/lib/gl";
 import { FLEX_FIELD_FRAGMENT, FLEX_FIELD_VERTEX } from "./flex-field.shaders";
 
@@ -34,12 +35,16 @@ export function FlexField({ variant, className = "" }: Props) {
     const start = async () => {
       if (started || disposed) return;
       started = true;
+      let renderer: Renderer | undefined;
+      let ro: ResizeObserver | undefined;
+      let mo: MutationObserver | undefined;
       try {
         const { Renderer, Program, Mesh, Triangle } = await import("ogl");
         if (disposed) return;
         const coarse = isCoarsePointer();
-        const renderer = new Renderer({ canvas, dpr: clampDpr(window.devicePixelRatio || 1, coarse), alpha: false, antialias: false });
-        const gl = renderer.gl;
+        renderer = new Renderer({ canvas, dpr: clampDpr(window.devicePixelRatio || 1, coarse), alpha: false, antialias: false });
+        const rendererInstance = renderer;
+        const gl = rendererInstance.gl;
         const geometry = new Triangle(gl);
         const program = new Program(gl, {
           vertex: FLEX_FIELD_VERTEX,
@@ -58,11 +63,11 @@ export function FlexField({ variant, className = "" }: Props) {
 
         const resize = () => {
           const { width, height } = root.getBoundingClientRect();
-          renderer.setSize(Math.max(1, width), Math.max(1, height));
+          rendererInstance.setSize(Math.max(1, width), Math.max(1, height));
           program.uniforms.uRes.value = [gl.canvas.width, gl.canvas.height];
         };
         resize();
-        const ro = new ResizeObserver(resize);
+        ro = new ResizeObserver(resize);
         ro.observe(root);
 
         // Puntero objetivo y puntero suavizado (spring crítico por exp decay).
@@ -83,7 +88,7 @@ export function FlexField({ variant, className = "" }: Props) {
         }
 
         // Tema: releer colores cuando cambia data-theme.
-        const mo = new MutationObserver(() => {
+        mo = new MutationObserver(() => {
           program.uniforms.uAccent.value = cssVarToRgb("--accent");
           program.uniforms.uBg.value = cssVarToRgb("--bg");
           program.uniforms.uIntensity.value = document.documentElement.dataset.theme === "light" ? 0.55 : 1;
@@ -110,20 +115,23 @@ export function FlexField({ variant, className = "" }: Props) {
           program.uniforms.uTime.value = now / 1000;
           program.uniforms.uPointer.value = [current.x, current.y];
           program.uniforms.uPointerForce.value = current.force;
-          renderer.render({ scene: mesh });
+          rendererInstance.render({ scene: mesh });
         };
         raf = requestAnimationFrame(loop);
 
         cleanupGl = () => {
           cancelAnimationFrame(raf);
-          ro.disconnect();
-          mo.disconnect();
+          ro?.disconnect();
+          mo?.disconnect();
           window.removeEventListener("pointermove", onMove);
           root.removeEventListener("pointerleave", onLeave);
           gl.getExtension("WEBGL_lose_context")?.loseContext();
         };
       } catch (err) {
         console.warn("[FlexField] WebGL falló, usando fallback", err);
+        ro?.disconnect();
+        mo?.disconnect();
+        renderer?.gl.getExtension("WEBGL_lose_context")?.loseContext();
         if (!disposed) setMode("fallback");
       }
     };
