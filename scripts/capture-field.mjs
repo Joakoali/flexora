@@ -7,6 +7,13 @@ for (const theme of ["dark", "light"]) {
   await page.addInitScript((t) => localStorage.setItem("flexora-theme", t), theme);
   await page.goto(`${base}/es`, { waitUntil: "networkidle" });
   await page.mouse.move(1000, 380);
+  await page.evaluate(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      .site-header, .hero__content { visibility: hidden !important; }
+    `;
+    document.head.appendChild(style);
+  });
   await page.waitForTimeout(1500);
   const canvas = page.locator('[data-variant="hero"] canvas');
   await canvas.screenshot({ path: `public/field-fallback-${theme}.jpg`, type: "jpeg", quality: 82 });

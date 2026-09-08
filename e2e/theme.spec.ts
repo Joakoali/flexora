@@ -1,13 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("el switch cambia el tema y persiste tras recargar", async ({ page }) => {
-  await page.goto("/es");
-  const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-theme", "dark");
-  await page.locator("[data-theme-switch]").click();
-  await expect(html).toHaveAttribute("data-theme", "light");
-  await page.reload();
-  await expect(html).toHaveAttribute("data-theme", "light");
+test.describe(() => {
+  test.use({ colorScheme: "dark" });
+  test("el switch cambia el tema y persiste tras recargar", async ({ page }) => {
+    await page.goto("/es");
+    const html = page.locator("html");
+    await expect(html).toHaveAttribute("data-theme", "dark");
+    await page.locator("[data-theme-switch]").click();
+    await expect(html).toHaveAttribute("data-theme", "light");
+    await page.reload();
+    await expect(html).toHaveAttribute("data-theme", "light");
+  });
 });
 
 test("sin elección guardada respeta el sistema", async ({ browser }) => {
