@@ -12,7 +12,8 @@ export function Reveal<T extends ElementType = "div">({ as, children, ...rest }:
     const el = ref.current;
     if (!el || visible) return;
     if (typeof IntersectionObserver === "undefined") {
-      setTimeout(() => setVisible(true), 0);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setVisible(true);
       return;
     }
     const io = new IntersectionObserver(
@@ -28,12 +29,10 @@ export function Reveal<T extends ElementType = "div">({ as, children, ...rest }:
     return () => io.disconnect();
   }, [visible]);
 
-  const props = {
-    ref,
-    "data-reveal": "",
-    ...(visible ? { "data-visible": "" } : {}),
-    ...rest,
-  };
-
-  return createElement(as ?? "div", props, children);
+  return createElement(
+    as ?? "div",
+    // eslint-disable-next-line react-hooks/refs
+    { ref, "data-reveal": "", ...(visible ? { "data-visible": "" } : {}), ...rest },
+    children,
+  );
 }
