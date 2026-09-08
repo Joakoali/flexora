@@ -513,5 +513,8 @@ body:has(#hero) {
   }
   .hero__copy { opacity: 1; transform: none; }
   html { animation: none; }
-  :root { --logo-opacity: 1; }
+  /* Mismo selector que la declaración base: un valor propio de body no se pisa
+     desde :root. Sin hero (o sin :has()) no hay declaración y gana el
+     var(--logo-opacity, 1) de .site-header__logo. */
+  body:has(#hero) { --logo-opacity: 1; }
 }
