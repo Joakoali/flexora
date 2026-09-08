@@ -397,3 +397,110 @@ html.theme-changing *::after {
 [data-theme="light"] .flex-field__fallback {
   background-image: url("/field-fallback-light.jpg");
 }
+
+/* ---------- Hero ---------- */
+@property --hero-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  --hero-p: 0;
+  --wm-scale: 0.2;
+  --wm-x: 0px;
+  --wm-y: 0px;
+  /* El logo del header aparece en el último 15% del viaje. */
+  --logo-opacity: clamp(0, (var(--hero-p) - 0.85) * 6.67, 1);
+}
+
+/* Camino CSS: la variable la anima el scroll del documento en los primeros 100vh. */
+@supports (animation-timeline: scroll()) {
+  html {
+    animation: hero-progress linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 100vh;
+  }
+  @keyframes hero-progress {
+    from { --hero-p: 0; }
+    to { --hero-p: 1; }
+  }
+}
+
+.hero {
+  position: relative;
+  height: 200vh; /* 100vh de viaje + 100vh de escena sticky */
+}
+.hero__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+.hero__content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: grid;
+  /* minmax(0,·): la columna no puede crecer al max-content del wordmark. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  padding-top: var(--header-h);
+  padding-bottom: clamp(2rem, 6vh, 5rem);
+}
+.hero__wordmark {
+  align-self: center;
+  width: 100%;
+  text-align: center;
+  /* Medido: "FLEXORA" en Anybody mide 6.89× el font-size en wdth 150 (el máximo
+     que alcanza el puntero). Con este clamp entra entre los gutters sin recortarse. */
+  font-size: clamp(3rem, 13.2vw, 11.9rem);
+  color: var(--fg);
+  transform-origin: center;
+  transform:
+    translate(calc(var(--wm-x) * var(--hero-p)), calc(var(--wm-y) * var(--hero-p)))
+    scale(calc(1 + (var(--wm-scale) - 1) * var(--hero-p)));
+  opacity: clamp(0, 1 - (var(--hero-p) - 0.85) * 6.67, 1);
+  will-change: transform, opacity;
+}
+.hero__copy {
+  display: grid;
+  gap: 1.5rem;
+  opacity: clamp(0, 1 - var(--hero-p) * 2.5, 1);
+  transform: translateY(calc(var(--hero-p) * 40px));
+}
+.hero__tagline {
+  font-size: clamp(1.125rem, 1.6vw, 1.5rem);
+  line-height: 1.4;
+  color: var(--fg);
+}
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Sin puntero: el wordmark respira solo entre 125 y 150. */
+@media (hover: none) {
+  .hero__wordmark {
+    animation: breathe 6s var(--ease-in-out) infinite alternate;
+  }
+  @keyframes breathe {
+    from { font-variation-settings: "wdth" 125; }
+    to { font-variation-settings: "wdth" 150; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero { height: 100vh; height: 100dvh; }
+  .hero__wordmark {
+    animation: none;
+    transform: none;
+    opacity: 1;
+    font-variation-settings: "wdth" 140 !important;
+  }
+  .hero__copy { opacity: 1; transform: none; }
+  html { animation: none; }
+  :root { --logo-opacity: 1; }
+}
