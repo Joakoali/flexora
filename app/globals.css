@@ -671,3 +671,35 @@ body:has(#hero) {
   .work__grid { grid-template-columns: 1fr 1fr; }
   .work-card:nth-child(even) { transform: translateY(clamp(2rem, 6vw, 5rem)); }
 }
+
+/* ---------- Closing ---------- */
+.closing {
+  position: relative;
+  overflow: hidden;
+  min-height: 80vh;
+  display: grid;
+  align-items: end;
+  border-top: 1px solid var(--border);
+}
+.closing__content {
+  position: relative;
+  z-index: 1;
+  padding-block: clamp(4rem, 10vw, 8rem);
+  display: grid;
+  gap: 1.5rem;
+}
+.closing__title {
+  font-size: clamp(3.5rem, 14vw, 13rem);
+}
+.closing__desc {
+  font-size: clamp(1.125rem, 1.6vw, 1.5rem);
+}
+.closing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+.closing__email {
+  color: var(--fg-muted);
+}
