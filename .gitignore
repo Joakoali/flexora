@@ -47,3 +47,6 @@ next-env.d.ts
 /.superpowers
 
 /.impeccable
+
+# design canvas — bundle compilado (se regenera desde *.dc.html + canvas.json)
+/design/hero-cosmico/flexora-hero-cosmico.html

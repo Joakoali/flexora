@@ -1,0 +1,24 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Hero — desktop (clickable)", "is_interactive": true },
+    { "file": "Mobile.dc.html", "x": 1560, "y": 0, "w": 390, "h": 844, "title": "Hero — mobile" },
+    { "file": "Cascade.dc.html", "x": 0, "y": 1040, "w": 1440, "h": 2560, "title": "Cómo cascadea (marquee · servicios · cierre)", "print": "flow" }
+  ],
+  "annotations": [
+    {
+      "id": "nota-hero",
+      "x": -380,
+      "y": 40,
+      "w": 320,
+      "text": "MERGE DE LAS DOS HOJAS\n\nEscena cósmica dominante (planeta, campo de estrellas, terreno, astronauta) + mensaje al frente, marca chica arriba.\n\nEl índice 01/02/03 de los mockups pasa a ser un rotador de titulares: se auto-avanza cada 6s (pausa al pasar el mouse) y también con las flechas o los puntos.\n\nBotón sol/luna arriba a la derecha: cambia a tema claro (variante 02 de los refs).\n\nLos números entre corchetes [+50] [+3M] [98%] son placeholders: reemplazar por datos reales."
+    },
+    {
+      "id": "nota-cascade",
+      "x": -380,
+      "y": 1120,
+      "w": 320,
+      "text": "El mismo lenguaje bajando al resto de la home: label mono + número de sección en cada bloque, rail vertical de conceptos a la derecha, y el campo cósmico reaparece detrás del cierre HABLEMOS.\n\nCopy y servicios reales del sitio actual (Desarrollo / Marketing / Branding), no los 4 servicios ficticios de los mockups."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
