@@ -16,9 +16,11 @@ export default async function HomePage() {
       <Hero t={dict.hero} whatsappHref={wa} />
       <Marquee items={dict.marquee.items} label={dict.nav.services} />
       <Services t={dict.services} />
-      <Work t={dict.work} locale={locale} />
+
+      {/*  <Work t={dict.work} locale={locale} />
       <Process t={dict.process} />
       <Closing t={dict.closing} whatsappHref={wa} />
+    */}
     </main>
   );
 }

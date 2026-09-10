@@ -16,6 +16,7 @@
     .page {
       --bg:#09090b; --surface:#111114; --fg:#f4f3f8; --fg-muted:#a1a0ac; --border:rgba(255,255,255,0.08);
       --accent:#7a3bff; --accent-text:#b79cff;
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       --font-display:"Anybody","Arial Narrow",system-ui,sans-serif;
       --font-sans:"Geist",system-ui,-apple-system,sans-serif;
       --font-mono:"Geist Mono",ui-monospace,"SF Mono",monospace;
@@ -27,18 +28,30 @@
     .display { font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 140;
       text-transform: uppercase; line-height: 0.9; letter-spacing: -0.02em; }
 
-    /* ---------- Marquee ---------- */
-    .marquee { position: relative; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-      padding: 34px 0; overflow: hidden;
-      -webkit-mask-image: linear-gradient(90deg, #000 84%, transparent);
-      mask-image: linear-gradient(90deg, #000 84%, transparent); }
-    .marquee .tag { position: absolute; left: 64px; top: 12px; }
-    .marquee__row { display: flex; gap: 48px; white-space: nowrap; padding-left: 64px; align-items: center; }
-    .marquee__row span { font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 130;
-      font-size: 68px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: -0.01em; }
-    .marquee__row i { width: 12px; height: 12px; border-radius: 999px; background: var(--accent); flex: none; }
+    /* ---------- Reveal (las secciones ceden al entrar) ---------- */
+    .reveal { opacity: 0; transform: translateY(18px);
+      transition: opacity 640ms var(--ease-out), transform 640ms var(--ease-out); }
+    .reveal.in { opacity: 1; transform: none; }
+    .reveal.d1 { transition-delay: 60ms; }
+    .reveal.d2 { transition-delay: 120ms; }
 
-    /* ---------- Services ---------- */
+    /* ---------- Marquee (se estira al arrastrar y vuelve) ---------- */
+    .marquee { position: relative; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 34px 0; overflow: hidden; cursor: grab; touch-action: pan-y;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 84%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 8%, #000 84%, transparent); }
+    .marquee.dragging { cursor: grabbing; }
+    .marquee .tag { position: absolute; left: 64px; top: 12px; z-index: 2; }
+    .marquee__viewport { display: flex; width: max-content; will-change: transform; }
+    .marquee__track { display: flex; gap: 48px; padding-left: 48px; align-items: center; white-space: nowrap;
+      animation: marquee 34s linear infinite; }
+    .marquee.dragging .marquee__track { animation-play-state: paused; }
+    .marquee__track span { font-family: var(--font-display); font-weight: 800; font-variation-settings: "wdth" 130;
+      font-size: 68px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: -0.01em; }
+    .marquee__track i { width: 12px; height: 12px; border-radius: 999px; background: var(--accent); flex: none; }
+    @keyframes marquee { to { transform: translateX(-100%); } }
+
+    /* ---------- Servicios ---------- */
     .services { position: relative; padding: 120px 0 96px; }
     .services__head { display: grid; gap: 16px; max-width: 22ch; }
     .services__head h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-variation-settings: "wdth" 125;
@@ -56,12 +69,19 @@
     .srow li::before { content: "\2014"; color: var(--accent); margin-right: 8px; }
     .svis { width: 100%; height: 220px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden;
       background: radial-gradient(120% 140% at 80% 0%, rgba(122,59,255,0.22), transparent 60%), var(--surface); }
+    .svis svg { opacity: 0; transform: scale(0.965);
+      transition: opacity 720ms var(--ease-out) 140ms, transform 720ms var(--ease-out) 140ms; }
+    .srow.in .svis svg { opacity: 1; transform: none; }
+    .svis .draw { stroke-dasharray: 620; stroke-dashoffset: 620;
+      transition: stroke-dashoffset 1100ms var(--ease-out) 260ms; }
+    .srow.in .svis .draw { stroke-dashoffset: 0; }
 
-    /* ---------- Closing ---------- */
+    /* ---------- Cierre ---------- */
     .closing { position: relative; overflow: hidden; border-top: 1px solid var(--border); min-height: 560px;
       display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; padding: 96px 0; }
-    .closing .scene { position: absolute; inset: 0; pointer-events: none; }
+    .closing .scene { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
     .closing .planet { position: absolute; right: -160px; bottom: -260px; width: 620px; height: 620px; border-radius: 50%;
+      will-change: transform; animation: float-close 34s ease-in-out infinite;
       background: radial-gradient(circle at 35% 32%, #cdbcff 0%, #8a5cff 14%, #5a2fb4 32%, #2a1a5c 52%, #0d0a20 72%, #08070f 100%);
       box-shadow: inset -40px -30px 120px rgba(0,0,0,0.8), 0 0 160px 20px rgba(122,59,255,0.28); }
     .closing .stars { position: absolute; inset: 0;
@@ -79,8 +99,20 @@
     .closing__body p { margin: 0; font-size: 22px; max-width: 40ch; }
     .closing__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; }
     .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 12px 22px; border-radius: 8px;
-      background: var(--accent); color: #fff; font-weight: 500; font-size: 15px; text-decoration: none; }
+      background: var(--accent); color: #fff; font-weight: 500; font-size: 15px; text-decoration: none;
+      transition: transform 120ms var(--ease-out), background-color 200ms; }
+    .btn:active { transform: scale(0.97); }
+    .btn svg { transition: transform 200ms var(--ease-out); }
+    .btn:hover svg { transform: translateX(3px); }
     .coords { position: absolute; right: 64px; top: 40px; z-index: 1; text-align: right; display: grid; gap: 4px; }
+
+    @keyframes float-close { 0%, 100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-24px, 16px, 0); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .svis svg, .svis .draw { opacity: 1 !important; transform: none !important; stroke-dashoffset: 0 !important; transition: none !important; }
+      .marquee__track { animation: none !important; }
+      .closing .planet { animation: none !important; }
+    }
   </style>
 </helmet>
 
@@ -88,23 +120,35 @@
 
   <section class="marquee" aria-label="Lo que hacemos">
     <span class="label tag">02 &mdash; Lo que hacemos</span>
-    <div class="marquee__row" aria-hidden="true">
-      <span>Desarrollo web</span><i></i>
-      <span>Marketing y ads</span><i></i>
-      <span>Branding</span><i></i>
-      <span>Desarrollo web</span><i></i>
+    <div class="marquee__viewport" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Desarrollo web</span><i></i>
+        <span>Marketing y ads</span><i></i>
+        <span>Branding</span><i></i>
+        <span>Desarrollo web</span><i></i>
+        <span>Marketing y ads</span><i></i>
+        <span>Branding</span><i></i>
+      </div>
+      <div class="marquee__track">
+        <span>Desarrollo web</span><i></i>
+        <span>Marketing y ads</span><i></i>
+        <span>Branding</span><i></i>
+        <span>Desarrollo web</span><i></i>
+        <span>Marketing y ads</span><i></i>
+        <span>Branding</span><i></i>
+      </div>
     </div>
   </section>
 
   <section class="services">
     <div class="rail" aria-hidden="true"><span>TECNOLOG&Iacute;A</span><span>ESTRATEGIA</span><span>CREATIVIDAD</span><span>IMPACTO</span></div>
     <div class="wrap">
-      <div class="services__head">
+      <div class="services__head reveal">
         <span class="label">Servicios</span>
         <h2>Tres disciplinas, un solo equipo.</h2>
       </div>
 
-      <article class="srow">
+      <article class="srow reveal">
         <span class="label">01 / Desarrollo</span>
         <div>
           <h3>Desarrollo web</h3>
@@ -117,13 +161,13 @@
             <rect x="24" y="58" width="220" height="9" rx="3" fill="#a1a0ac" opacity="0.5"/>
             <rect x="24" y="74" width="180" height="9" rx="3" fill="#a1a0ac" opacity="0.5"/>
             <rect x="24" y="104" width="110" height="34" rx="7" fill="#7a3bff"/>
-            <rect x="264" y="28" width="92" height="150" rx="8" fill="none" stroke="#7a3bff" stroke-dasharray="5 5"/>
+            <rect class="draw" x="264" y="28" width="92" height="150" rx="8" fill="none" stroke="#7a3bff" stroke-dasharray="5 5"/>
             <path d="M286 150 l12 30 5-12 12-5z" fill="#f4f3f8"/>
           </svg>
         </div>
       </article>
 
-      <article class="srow">
+      <article class="srow reveal">
         <span class="label">02 / Marketing</span>
         <div>
           <h3>Marketing y ads</h3>
@@ -135,14 +179,14 @@
             <line x1="24" y1="50" x2="356" y2="50" stroke="#ffffff" stroke-opacity="0.08"/>
             <line x1="24" y1="100" x2="356" y2="100" stroke="#ffffff" stroke-opacity="0.08"/>
             <line x1="24" y1="150" x2="356" y2="150" stroke="#ffffff" stroke-opacity="0.08"/>
-            <path d="M24 176 C 90 168, 130 150, 170 120 S 260 70, 300 56 S 340 40, 356 30" fill="none" stroke="#7a3bff" stroke-width="3" stroke-linecap="round"/>
+            <path class="draw" d="M24 176 C 90 168, 130 150, 170 120 S 260 70, 300 56 S 340 40, 356 30" fill="none" stroke="#7a3bff" stroke-width="3" stroke-linecap="round" stroke-dasharray="620"/>
             <circle cx="356" cy="30" r="5" fill="#7a3bff"/>
             <text x="356" y="20" text-anchor="end" font-family="Geist Mono, monospace" font-size="12" fill="#f4f3f8" font-weight="600">[+3.4x]</text>
           </svg>
         </div>
       </article>
 
-      <article class="srow">
+      <article class="srow reveal">
         <span class="label">03 / Branding</span>
         <div>
           <h3>Branding e identidad</h3>
@@ -171,7 +215,7 @@
       <span class="label">03 &mdash; Hablemos</span>
       <span class="label">34.6037&deg; S &nbsp; 58.3816&deg; W</span>
     </div>
-    <div class="wrap closing__body">
+    <div class="wrap closing__body reveal">
       <h2 class="display">Hablemos</h2>
       <p>Contanos qu&eacute; quer&eacute;s lograr. Te respondemos el mismo d&iacute;a.</p>
       <div class="closing__actions">
@@ -184,6 +228,95 @@
   </section>
 
 </div>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    this._reduced = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const items = Array.from(document.querySelectorAll('.reveal'));
+
+    if (this._reduced || typeof IntersectionObserver === 'undefined') {
+      items.forEach((el) => el.classList.add('in'));
+    } else {
+      this._io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) { e.target.classList.add('in'); this._io.unobserve(e.target); }
+        }
+      }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+      items.forEach((el) => this._io.observe(el));
+    }
+
+    if (this._reduced) return;
+
+    // Marquee: arrastrar estira, soltar vuelve con spring
+    const mq = document.querySelector('.marquee');
+    const vp = document.querySelector('.marquee__viewport');
+    if (mq && vp) {
+      let dragging = false, startX = 0, dx = 0;
+      const onDown = (e) => {
+        dragging = true; startX = e.clientX; dx = 0;
+        mq.classList.add('dragging');
+        if (mq.setPointerCapture && e.pointerId != null) { try { mq.setPointerCapture(e.pointerId); } catch (_) {} }
+      };
+      const onMove = (e) => {
+        if (!dragging) return;
+        dx = e.clientX - startX;
+        const sx = Math.min(1.12, 1 + Math.abs(dx) / 1600);
+        vp.style.transform = 'translateX(' + (dx * 0.35).toFixed(1) + 'px) scaleX(' + sx.toFixed(3) + ')';
+      };
+      const onUp = () => {
+        if (!dragging) return;
+        dragging = false;
+        mq.classList.remove('dragging');
+        const from = vp.style.transform || 'translateX(0px) scaleX(1)';
+        vp.style.transform = '';
+        if (vp.animate) {
+          vp.animate(
+            [{ transform: from }, { transform: 'translateX(0px) scaleX(1)' }],
+            { duration: 640, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+          );
+        }
+        dx = 0;
+      };
+      mq.addEventListener('pointerdown', onDown);
+      mq.addEventListener('pointermove', onMove);
+      mq.addEventListener('pointerup', onUp);
+      mq.addEventListener('pointercancel', onUp);
+      mq.addEventListener('pointerleave', onUp);
+      this._mqCleanup = () => {
+        mq.removeEventListener('pointerdown', onDown);
+        mq.removeEventListener('pointermove', onMove);
+        mq.removeEventListener('pointerup', onUp);
+        mq.removeEventListener('pointercancel', onUp);
+        mq.removeEventListener('pointerleave', onUp);
+      };
+    }
+
+    // Parallax del campo cósmico del cierre al scrollear
+    const scene = document.querySelector('.closing .scene');
+    if (scene) {
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const y = window.scrollY || window.pageYOffset || 0;
+          scene.style.transform = 'translate3d(0,' + (y * -0.05).toFixed(1) + 'px,0)';
+          ticking = false;
+        });
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      this._scrollCleanup = () => window.removeEventListener('scroll', onScroll);
+    }
+  }
+  componentWillUnmount() {
+    if (this._io) this._io.disconnect();
+    if (this._mqCleanup) this._mqCleanup();
+    if (this._scrollCleanup) this._scrollCleanup();
+  }
+}
+</script>
 </x-dc>
 </body>
 </html>

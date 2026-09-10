@@ -16,6 +16,7 @@
     .stage {
       --bg:#09090b; --surface:#111114; --fg:#f4f3f8; --fg-muted:#a1a0ac; --border:rgba(255,255,255,0.08);
       --accent:#7a3bff; --accent-text:#b79cff;
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       --font-display:"Anybody","Arial Narrow",system-ui,sans-serif;
       --font-sans:"Geist",system-ui,-apple-system,sans-serif;
       --font-mono:"Geist Mono",ui-monospace,"SF Mono",monospace;
@@ -26,10 +27,12 @@
     .scene { position: absolute; inset: 0; pointer-events: none; }
     .nebula { position: absolute; width: 420px; height: 420px; right: -140px; top: -160px; border-radius: 50%;
       background: radial-gradient(circle at 45% 40%, rgba(122,59,255,0.8), rgba(122,59,255,0) 66%);
-      filter: blur(54px); opacity: 0.6; }
+      filter: blur(54px); opacity: 0.6; will-change: transform;
+      animation: float-a 24s ease-in-out infinite; }
     .planet { position: absolute; right: -90px; top: -110px; width: 300px; height: 300px; border-radius: 50%;
       background: radial-gradient(circle at 33% 30%, #cdbcff 0%, #8a5cff 14%, #5a2fb4 30%, #2a1a5c 50%, #0d0a20 70%, #08070f 100%);
-      box-shadow: inset -24px -18px 70px rgba(0,0,0,0.8), 0 0 90px 12px rgba(122,59,255,0.3); }
+      box-shadow: inset -24px -18px 70px rgba(0,0,0,0.8), 0 0 90px 12px rgba(122,59,255,0.3);
+      will-change: transform; animation: float-b 30s ease-in-out infinite; }
     .stars { position: absolute; inset: 0;
       background-image:
         radial-gradient(1.4px 1.4px at 30px 50px,#fff,transparent),
@@ -39,15 +42,16 @@
         radial-gradient(1px 1px at 70px 200px,#b79cff,transparent);
       background-size: 380px 300px; background-repeat: repeat; opacity: 0.85; }
     .terrain { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; }
-    .astro { position: absolute; left: 60%; bottom: 60px; }
+    .astro { position: absolute; left: 60%; bottom: 60px; will-change: transform; animation: bob-m 7s ease-in-out infinite; }
     .astro svg { display: block; filter: drop-shadow(0 0 14px rgba(122,59,255,0.45)); }
     .scrim { position: absolute; inset: 0;
       background: linear-gradient(0deg, var(--bg) 8%, transparent 46%), linear-gradient(180deg, var(--bg) 4%, transparent 22%); }
 
     .header { position: absolute; inset: 0 0 auto 0; height: 56px; z-index: 5;
-      display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+      opacity: 0; animation: fade 600ms var(--ease-out) 80ms forwards; }
     .brand { font-family: var(--font-display); font-weight: 800; font-size: 18px; font-variation-settings: "wdth" 150;
-      text-transform: uppercase; letter-spacing: -0.02em; }
+      text-transform: uppercase; letter-spacing: -0.02em; animation: breathe-brand 7s ease-in-out infinite; }
     .brand b { color: var(--accent); }
     .tools { display: flex; align-items: center; gap: 8px; }
     .iconbtn { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 8px;
@@ -56,6 +60,13 @@
       background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; }
 
     .content { position: absolute; left: 20px; right: 20px; top: 96px; z-index: 5; display: grid; gap: 18px; }
+    .content > * { opacity: 0; animation: rise 560ms var(--ease-out) forwards; }
+    .content > *:nth-child(1) { animation-delay: 140ms; }
+    .content > *:nth-child(2) { animation-delay: 210ms; }
+    .content > *:nth-child(3) { animation-delay: 280ms; }
+    .content > *:nth-child(4) { animation-delay: 350ms; }
+    .content > *:nth-child(5) { animation-delay: 420ms; }
+    .content > *:nth-child(6) { animation-delay: 490ms; }
     .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-muted);
       display: flex; align-items: center; gap: 8px; }
     .eyebrow i { width: 20px; height: 1px; background: var(--accent); }
@@ -65,7 +76,9 @@
     .sub { margin: 0; color: var(--fg); font-size: 15px; }
     .actions { display: grid; gap: 10px; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px;
-      padding: 10px 18px; border-radius: 8px; font-weight: 500; font-size: 15px; text-decoration: none; }
+      padding: 10px 18px; border-radius: 8px; font-weight: 500; font-size: 15px; text-decoration: none;
+      transition: transform 120ms var(--ease-out); }
+    .btn:active { transform: scale(0.97); }
     .btn--primary { background: var(--accent); color: #fff; }
     .btn--ghost { border: 1px solid var(--border); color: var(--fg); }
 
@@ -81,7 +94,20 @@
     .chip svg { color: var(--accent); }
 
     .corner { position: absolute; right: 16px; bottom: 16px; z-index: 5; text-align: right;
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-muted); }
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-muted);
+      opacity: 0; animation: fade 600ms var(--ease-out) 620ms forwards; }
+
+    @keyframes fade { to { opacity: 1; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+    @keyframes breathe-brand { 0%, 100% { font-variation-settings: "wdth" 150; } 50% { font-variation-settings: "wdth" 132; } }
+    @keyframes float-a { 0%, 100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-16px, 13px, 0); } }
+    @keyframes float-b { 0%, 100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(11px, -9px, 0); } }
+    @keyframes bob-m { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .header, .content > *, .corner { opacity: 1 !important; animation: none !important; transform: none !important; }
+      .brand, .nebula, .planet, .astro { animation: none !important; }
+    }
   </style>
 </helmet>
 
