@@ -27,7 +27,7 @@ export function WorkCard({ item, locale, viewCase }: { item: WorkItem; locale: L
       </a>
       <div className="work-card__meta">
         <h3 className="h3">{item.client}</h3>
-        <p className="label">{item.description[locale]}</p>
+        <p className="work-card__desc">{item.description[locale]}</p>
         <ul className="work-card__tags">
           {item.tags.map((tag) => (
             <li key={tag}>{tag}</li>

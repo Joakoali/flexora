@@ -37,4 +37,11 @@ describe("WorkCard", () => {
     expect(document.querySelector(".distort")).toBeNull();
     expect(document.querySelector("canvas")).toBeNull();
   });
+
+  it("la descripción no usa la clase .label (reservada a rótulos cortos)", () => {
+    render(<WorkCard item={item} locale="es" viewCase="Ver sitio" />);
+    const desc = screen.getByText(item.description.es);
+    expect(desc.className).not.toContain("label");
+    expect(desc.className).toContain("work-card__desc");
+  });
 });

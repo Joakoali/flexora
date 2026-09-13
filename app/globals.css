@@ -660,6 +660,9 @@ body:has(#hero) {
 }
 
 /* ---------- Work ---------- */
+.work-card__desc {
+  color: var(--fg-muted);
+}
 .work__title {
   max-width: 16ch;
 }
