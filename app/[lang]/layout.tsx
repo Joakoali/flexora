@@ -3,6 +3,7 @@ import { anybody, geistMono, geistSans } from "@/lib/fonts";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { locales } from "@/lib/i18n";
 import { Header } from "@/components/site/Header";
+import { HeroScrollProvider } from "@/components/site/HeroScrollProvider";
 import { Footer } from "@/components/site/Footer";
 import { whatsappHref } from "@/lib/whatsapp";
 import { getDictionary, getLocale } from "./dictionaries";
@@ -48,12 +49,14 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-dvh flex flex-col">
-        <Header
-          locale={locale}
-          labels={{ nav: dict.nav, theme: dict.theme, lang: dict.lang }}
-          whatsappHref={whatsappHref(dict.hero.whatsappMessage)}
-        />
-        {children}
+        <HeroScrollProvider>
+          <Header
+            locale={locale}
+            labels={{ nav: dict.nav, theme: dict.theme, lang: dict.lang }}
+            whatsappHref={whatsappHref(dict.hero.whatsappMessage)}
+          />
+          {children}
+        </HeroScrollProvider>
         <Footer t={dict.footer} locale={locale} />
       </body>
     </html>
