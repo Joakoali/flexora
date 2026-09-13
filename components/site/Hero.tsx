@@ -12,7 +12,8 @@ export function Hero({ t, whatsappHref }: { t: Dictionary["hero"]; whatsappHref:
         <div className="hero__content container-site">
           <FlexWordmark text="FLEXORA" />
           <div className="hero__copy">
-            <p className="hero__tagline measure">{t.tagline}</p>
+            <p className="hero__tagline h2">{t.tagline}</p>
+            <p className="hero__subcopy">{t.subcopy}</p>
             <div className="hero__actions">
               <Button href={whatsappHref} external>{t.primary}</Button>
               <Button href="#work" variant="secondary">{t.secondary}</Button>

@@ -304,12 +304,28 @@ html.theme-changing *::after {
   /* El wordmark del hero "aterriza" acá: opacidad ligada a --hero-p (Task 10). */
   opacity: var(--logo-opacity, 1);
 }
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 24px; /* tamaño base (footer); el header lo pisa abajo */
+}
+.logo__mark {
+  height: 1em;
+  width: auto;
+  flex: none;
+}
+.logo__wordmark {
+  /* Proporción del pack de marca: cap height del wordmark = 0.43× el símbolo. */
+  height: 0.63em;
+  width: auto;
+  flex: none;
+}
 /* El logo es la única pieza elástica del header: los otros dos bloques (idioma,
-   tema, CTA) tienen ancho mínimo propio. A 24px el SVG mide 175px y con el CTA
-   la fila pedía 430px en un viewport de 390 — el botón "Hablemos" quedaba
-   cortado contra el borde. Con este clamp la fila entra desde 360px. */
+   tema, CTA) tienen ancho mínimo propio. Con este clamp la fila entra desde
+   360px sin que el botón "Hablemos" quede cortado contra el borde. */
 .site-header__logo .logo {
-  height: clamp(16px, 4.6vw, 24px);
+  font-size: clamp(16px, 4.6vw, 24px);
 }
 .site-header__nav {
   display: none;
@@ -454,12 +470,13 @@ body:has(#hero) {
   --logo-opacity: clamp(0, (var(--hero-p) - 0.85) * 6.67, 1);
 }
 
-/* Camino CSS: la variable la anima el scroll del documento en los primeros 100vh. */
+/* Camino CSS: la variable la anima el scroll del documento en los primeros 40vh
+   (viaje corto: la marca ya arranca cerca de su tamaño y posición finales). */
 @supports (animation-timeline: scroll()) {
   html {
     animation: hero-progress linear both;
     animation-timeline: scroll(root);
-    animation-range: 0 100vh;
+    animation-range: 0 40vh;
   }
   @keyframes hero-progress {
     from { --hero-p: 0; }
@@ -469,7 +486,7 @@ body:has(#hero) {
 
 .hero {
   position: relative;
-  height: 200vh; /* 100vh de viaje + 100vh de escena sticky */
+  height: 140vh; /* 40vh de viaje + 100vh de escena sticky */
 }
 .hero__sticky {
   position: sticky;
@@ -483,20 +500,21 @@ body:has(#hero) {
   z-index: 1;
   height: 100%;
   display: grid;
-  /* minmax(0,·): la columna no puede crecer al max-content del wordmark. */
+  /* minmax(0,·): la columna no puede crecer al max-content del titular. */
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
+  grid-template-rows: auto 1fr;
   padding-top: var(--header-h);
   padding-bottom: clamp(2rem, 6vh, 5rem);
 }
 .hero__wordmark {
-  align-self: center;
-  width: 100%;
-  text-align: center;
-  /* Medido: "FLEXORA" en Anybody mide 6.89× el font-size en wdth 150 (el máximo
-     que alcanza el puntero). Con este clamp entra entre los gutters sin recortarse. */
-  font-size: clamp(3rem, 13.2vw, 11.9rem);
-  color: var(--fg);
+  justify-self: start;
+  align-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32em;
+  /* Chica y arriba: es una firma, no el titular. Arranca cerca de su tamaño y
+     posición finales (el logo del header), así el viaje al scrollear es corto. */
+  font-size: clamp(1.5rem, 3.2vw, 2.75rem);
   transform-origin: center;
   transform:
     translate(calc(var(--wm-x) * var(--hero-p)), calc(var(--wm-y) * var(--hero-p)))
@@ -504,22 +522,34 @@ body:has(#hero) {
   opacity: clamp(0, 1 - (var(--hero-p) - 0.85) * 6.67, 1);
   will-change: transform, opacity;
 }
+.hero__wordmark-mark {
+  height: 0.82em;
+  width: auto;
+  flex: none;
+}
+.hero__wordmark-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1em;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
 .hero__copy {
+  align-self: center;
   display: grid;
   gap: 1.5rem;
-  opacity: clamp(0, 1 - var(--hero-p) * 2.5, 1);
-  transform: translateY(calc(var(--hero-p) * 40px));
-}
-/* Ya invisible (opacidad 0 desde --hero-p 0.4): no intercepta clics, y visibility
-   lo saca además del orden de tabulación. No hay transition propia que cortar. */
-.hero__copy--faded {
-  pointer-events: none;
-  visibility: hidden;
 }
 .hero__tagline {
-  font-size: clamp(1.125rem, 1.6vw, 1.5rem);
-  line-height: 1.4;
-  color: var(--fg);
+  max-width: 20ch;
+}
+.hero__subcopy {
+  max-width: 42ch;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--fg-muted);
 }
 .hero__actions {
   display: flex;
@@ -529,7 +559,7 @@ body:has(#hero) {
 
 /* Sin puntero: el wordmark respira solo entre 125 y 150. */
 @media (hover: none) {
-  .hero__wordmark {
+  .hero__wordmark-text {
     animation: breathe 6s var(--ease-in-out) infinite alternate;
   }
   @keyframes breathe {
@@ -544,6 +574,9 @@ body:has(#hero) {
     animation: none;
     transform: none;
     opacity: 1;
+  }
+  .hero__wordmark-text {
+    animation: none;
     font-variation-settings: "wdth" 140 !important;
   }
   .hero__copy { opacity: 1; transform: none; }
