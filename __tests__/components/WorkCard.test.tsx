@@ -24,4 +24,17 @@ describe("WorkCard", () => {
       expect(screen.getByText(tag)).toBeTruthy();
     }
   });
+
+  it("se puede revelar individualmente (data-reveal en su propio elemento raíz)", () => {
+    const { container } = render(<WorkCard item={item} locale="es" viewCase="Ver sitio" />);
+    const article = container.querySelector("article.work-card");
+    expect(article?.hasAttribute("data-reveal")).toBe(true);
+  });
+
+  it("muestra un frame de navegador con el host del sitio, sin WebGL", () => {
+    render(<WorkCard item={item} locale="es" viewCase="Ver sitio" />);
+    expect(screen.getByText("ggpropiedades.com")).toBeTruthy();
+    expect(document.querySelector(".distort")).toBeNull();
+    expect(document.querySelector("canvas")).toBeNull();
+  });
 });

@@ -678,37 +678,85 @@ body:has(#hero) {
   overflow: hidden;
   border: 1px solid var(--border);
 }
-.distort {
+.work-card__frame {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.work-card__dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 999px;
+  flex: none;
+}
+/* Colores fijos de macOS: son decorativos, no forman parte de la paleta temable de Flexora. */
+.work-card__dot--red { background: #ff5f57; }
+.work-card__dot--yellow { background: #febc2e; }
+.work-card__dot--green { background: #28c840; }
+.work-card__frame-url {
+  flex: 1;
+  margin: 0 0.5rem;
+  padding: 0.125rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--fg-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.work-card__window {
   position: relative;
-  aspect-ratio: 16 / 10;
+  height: 13rem;
+  overflow: hidden;
   background: var(--surface);
 }
-.distort__img,
-.distort__canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.work-card__window img {
   display: block;
+  width: 100%;
+  height: auto;
 }
-.distort__img { object-fit: cover; }
-.distort__canvas {
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--dur-base) var(--ease-out);
+[data-reveal][data-visible] .work-card__window img {
+  animation: work-scroll 8s ease-in-out infinite alternate;
+}
+.work-card:hover .work-card__window img,
+.work-card:focus-within .work-card__window img {
+  animation-play-state: paused;
+}
+@keyframes work-scroll {
+  0%, 10% { transform: translateY(0); }
+  90%, 100% { transform: translateY(calc(-100% + 13rem)); }
+}
+.work-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin-top: 0.25rem;
+}
+.work-card__tags li {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
 }
 .work-card__meta {
   display: grid;
   gap: 0.375rem;
 }
-.work-card__result {
-  /* Texto violeta chico: --accent sobre --bg en oscuro sólo da 3.69:1. */
-  color: var(--accent-text);
-  font-weight: 500;
-}
 @media (min-width: 900px) {
   .work__grid { grid-template-columns: 1fr 1fr; }
   .work-card:nth-child(even) { transform: translateY(clamp(2rem, 6vw, 5rem)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .work-card__window img { animation: none; }
 }
 
 /* ---------- Closing ---------- */

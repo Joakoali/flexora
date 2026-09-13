@@ -10,11 +10,11 @@ export function Work({ t, locale }: { t: Dictionary["work"]; locale: Locale }) {
       <Reveal className="container-site">
         <h2 id="work-title" className="h2 work__title">{t.title}</h2>
       </Reveal>
-      <Reveal className="container-site work__grid">
+      <div className="container-site work__grid">
         {work.map((item) => (
           <WorkCard key={item.slug} item={item} locale={locale} viewCase={t.viewCase} />
         ))}
-      </Reveal>
+      </div>
     </section>
   );
 }

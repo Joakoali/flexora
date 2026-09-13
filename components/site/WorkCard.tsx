@@ -1,11 +1,12 @@
 import type { Locale } from "@/lib/i18n";
 import type { WorkItem } from "@/content/work";
-import { DistortImage } from "@/components/gl/DistortImage";
+import { Reveal } from "./Reveal";
 import { TextLink } from "@/components/ui/TextLink";
 
 export function WorkCard({ item, locale, viewCase }: { item: WorkItem; locale: Locale; viewCase: string }) {
+  const host = new URL(item.siteUrl).hostname;
   return (
-    <article className="work-card">
+    <Reveal as="article" className="work-card">
       <a
         href={item.siteUrl}
         target="_blank"
@@ -13,7 +14,16 @@ export function WorkCard({ item, locale, viewCase }: { item: WorkItem; locale: L
         className="work-card__cover"
         aria-label={`${viewCase}: ${item.client}`}
       >
-        <DistortImage src={item.cover} alt={item.coverAlt[locale]} />
+        <div className="work-card__frame" aria-hidden="true">
+          <span className="work-card__dot work-card__dot--red" />
+          <span className="work-card__dot work-card__dot--yellow" />
+          <span className="work-card__dot work-card__dot--green" />
+          <span className="work-card__frame-url">{host}</span>
+        </div>
+        <div className="work-card__window">
+          {/* eslint-disable-next-line @next/next/no-img-element -- captura completa animada por CSS, sin next/image */}
+          <img src={item.cover} alt={item.coverAlt[locale]} loading="lazy" decoding="async" />
+        </div>
       </a>
       <div className="work-card__meta">
         <h3 className="h3">{item.client}</h3>
@@ -27,6 +37,6 @@ export function WorkCard({ item, locale, viewCase }: { item: WorkItem; locale: L
           {viewCase}
         </TextLink>
       </div>
-    </article>
+    </Reveal>
   );
 }
