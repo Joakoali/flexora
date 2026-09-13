@@ -756,7 +756,7 @@ body:has(#hero) {
   .work-card:nth-child(even) { transform: translateY(clamp(2rem, 6vw, 5rem)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .work-card__window img { animation: none; }
+  [data-reveal][data-visible] .work-card__window img { animation: none; }
 }
 
 /* ---------- Closing ---------- */
