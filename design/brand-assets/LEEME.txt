@@ -1,0 +1,34 @@
+FLEXORA — Paquete de logo
+=========================
+
+Vectores (SVG, escalables, ideal para web/print)
+  flexora-lockup.svg            Símbolo gradiente + wordmark blanco (fondos oscuros)
+  flexora-lockup-darktext.svg   Símbolo gradiente + wordmark negro (fondos claros)
+  flexora-lockup-white.svg      Todo blanco (monocromo)
+  flexora-lockup-black.svg      Todo negro (monocromo)
+  flexora-mark.svg              Solo símbolo, gradiente
+  flexora-mark-white.svg        Solo símbolo, blanco
+  flexora-mark-black.svg        Solo símbolo, negro
+
+PNG con fondo transparente (png/)
+  flexora-lockup-2048.png             lockup, wordmark blanco
+  flexora-lockup-darktext-2048.png    lockup, wordmark negro
+  flexora-lockup-white-2048.png       lockup monocromo blanco
+  flexora-lockup-black-2048.png       lockup monocromo negro
+  flexora-mark-1024.png               símbolo gradiente
+  flexora-mark-512.png                símbolo gradiente (app icon / favicon)
+  flexora-mark-white-1024.png         símbolo blanco
+
+Color
+  Azul     #4878FF
+  Violeta  #6C4FFA
+  Magenta  #A848EC
+  Tinta    #0A0A12
+  Gradiente: linear-gradient(60deg, #4878FF 0%, #6C4FFA 55%, #A848EC 100%)
+
+Uso
+  Altura de mayúsculas del wordmark = 0.43x la altura del símbolo.
+  Separación símbolo - wordmark = 0.35x la altura del símbolo.
+  Aire libre alrededor del logo = la mitad de la altura del símbolo.
+  Tamaño mínimo: símbolo 20 px; lockup 96 px de ancho.
+  El wordmark está convertido a curvas: no requiere instalar ninguna tipografía.
