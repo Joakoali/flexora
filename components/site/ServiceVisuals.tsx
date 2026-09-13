@@ -1,3 +1,5 @@
+import { FlexMark } from "./FlexMark";
+
 /** Un fragmento de interfaz: barra, bloques de layout y un cursor. */
 export function DevVisual() {
   return (
@@ -33,17 +35,16 @@ export function AdsVisual() {
   );
 }
 
-/** La X de Flexora construyéndose: dos chevrones en blanco y violeta. */
+/** El FlexMark armándose: sus dos paths deslizan hacia el centro con el reveal. */
 export function BrandVisual() {
   return (
     <svg className="svis" viewBox="0 0 320 200" aria-hidden="true">
       <rect x="0.5" y="0.5" width="319" height="199" rx="8" fill="var(--surface)" stroke="var(--border)" />
-      <g transform="translate(160 100)">
-        <path className="svis__chev svis__chev--a" d="M-56 -50 h30 l30 50 -30 50 h-30 l30 -50z" fill="var(--fg)" />
-        <path className="svis__chev svis__chev--b" d="M56 -50 h-30 l-30 50 30 50 h30 l-30 -50z" fill="var(--accent)" />
+      <g transform="translate(111 34) scale(1.2)">
+        <FlexMark classNameTop="svis__chev svis__chev--a" classNameBottom="svis__chev svis__chev--b" />
       </g>
       <line x1="20" x2="300" y1="176" y2="176" stroke="var(--border)" />
-      <text x="20" y="190" fontFamily="var(--font-geist-mono)" fontSize="9" fill="var(--fg-muted)" letterSpacing="1">X · 01</text>
+      <text x="20" y="190" fontFamily="var(--font-geist-mono)" fontSize="9" fill="var(--fg-muted)" letterSpacing="1">F · 03</text>
     </svg>
   );
 }
