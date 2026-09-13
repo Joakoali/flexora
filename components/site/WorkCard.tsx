@@ -6,14 +6,26 @@ import { TextLink } from "@/components/ui/TextLink";
 export function WorkCard({ item, locale, viewCase }: { item: WorkItem; locale: Locale; viewCase: string }) {
   return (
     <article className="work-card">
-      <a href={`/${locale}/trabajos/${item.slug}`} className="work-card__cover" aria-label={`${viewCase}: ${item.client}`}>
+      <a
+        href={item.siteUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="work-card__cover"
+        aria-label={`${viewCase}: ${item.client}`}
+      >
         <DistortImage src={item.cover} alt={item.coverAlt[locale]} />
       </a>
       <div className="work-card__meta">
         <h3 className="h3">{item.client}</h3>
-        <p className="label">{item.services[locale]}</p>
-        <p className="work-card__result">{item.result[locale]}</p>
-        <TextLink href={`/${locale}/trabajos/${item.slug}`}>{viewCase}</TextLink>
+        <p className="label">{item.description[locale]}</p>
+        <ul className="work-card__tags">
+          {item.tags.map((tag) => (
+            <li key={tag}>{tag}</li>
+          ))}
+        </ul>
+        <TextLink href={item.siteUrl} target="_blank" rel="noopener noreferrer">
+          {viewCase}
+        </TextLink>
       </div>
     </article>
   );

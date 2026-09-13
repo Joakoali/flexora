@@ -5,41 +5,55 @@ export type WorkItem = {
   client: string;
   cover: string;
   coverAlt: Record<Locale, string>;
-  services: Record<Locale, string>;
-  result: Record<Locale, string>;
+  description: Record<Locale, string>;
+  tags: string[];
+  siteUrl: string;
 };
 
 export const work: WorkItem[] = [
   {
-    slug: "norte-cafe",
-    client: "Norte Café",
-    cover: "/covers/01.svg",
-    coverAlt: { es: "Home del e-commerce de Norte Café", en: "Norte Café e-commerce home" },
-    services: { es: "E-commerce + campañas", en: "E-commerce + campaigns" },
-    result: { es: "+140% ventas online en 3 meses", en: "+140% online sales in 3 months" },
+    slug: "gg-propiedades",
+    client: "GG Propiedades",
+    cover: "/work/gg-propiedades.webp",
+    coverAlt: {
+      es: "Captura de ggpropiedades.com",
+      en: "Screenshot of ggpropiedades.com",
+    },
+    description: {
+      es: "Plataforma inmobiliaria con buscador avanzado y gestión de propiedades.",
+      en: "Real estate platform with advanced search and property management.",
+    },
+    tags: ["Next.js", "React", "TypeScript", "Tailwind", "Prisma", "Supabase", "NextAuth", "Cloudflare"],
+    siteUrl: "https://ggpropiedades.com",
   },
   {
-    slug: "clinica-vera",
-    client: "Clínica Vera",
-    cover: "/covers/02.svg",
-    coverAlt: { es: "Sitio institucional de Clínica Vera", en: "Clínica Vera corporate site" },
-    services: { es: "Sitio + identidad", en: "Site + identity" },
-    result: { es: "3x turnos reservados online", en: "3x appointments booked online" },
+    slug: "adocmat",
+    client: "Adocmat",
+    cover: "/work/adocmat.webp",
+    coverAlt: {
+      es: "Captura de Adocmat",
+      en: "Screenshot of Adocmat",
+    },
+    description: {
+      es: "Landing institucional con panel de administración y formulario de contacto.",
+      en: "Institutional landing page with an admin panel and contact form.",
+    },
+    tags: ["React", "TypeScript", "Vite", "Supabase", "Tailwind", "EmailJS"],
+    siteUrl: "https://adocmat.com",
   },
   {
-    slug: "andar-outdoor",
-    client: "Andar Outdoor",
-    cover: "/covers/03.svg",
-    coverAlt: { es: "Landing de lanzamiento de Andar Outdoor", en: "Andar Outdoor launch landing" },
-    services: { es: "Landing + ads", en: "Landing + ads" },
-    result: { es: "ROAS 4.2 en el lanzamiento", en: "4.2 ROAS at launch" },
-  },
-  {
-    slug: "studio-lumen",
-    client: "Studio Lumen",
-    cover: "/covers/04.svg",
-    coverAlt: { es: "Sistema de marca de Studio Lumen", en: "Studio Lumen brand system" },
-    services: { es: "Branding completo", en: "Full branding" },
-    result: { es: "Marca lista en 5 semanas", en: "Brand shipped in 5 weeks" },
+    slug: "control-gastos",
+    client: "Control Gastos",
+    cover: "/work/control-gastos.webp",
+    coverAlt: {
+      es: "Captura de Control Gastos",
+      en: "Screenshot of Control Gastos",
+    },
+    description: {
+      es: "App de control de gastos con gráficos y categorías.",
+      en: "Expense tracking app with charts and categories.",
+    },
+    tags: ["React", "TypeScript", "Vite", "Tailwind", "Firebase"],
+    siteUrl: "https://control-gastos-nine-zeta.vercel.app",
   },
 ];
