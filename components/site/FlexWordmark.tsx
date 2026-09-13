@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMotionValue, useMotionValueEvent, useReducedMotion, useSpring } from "motion/react";
 import { SPRING_FOLLOW } from "@/lib/motion";
+import { FlexMark } from "./FlexMark";
 
 const WDTH_MIN = 110;
 const WDTH_MAX = 150;
@@ -34,13 +35,16 @@ export function FlexWordmark({ text }: { text: string }) {
   });
 
   return (
-    <h1
-      ref={ref}
-      className="hero__wordmark display"
-      data-wdth={display}
-      style={{ fontVariationSettings: `"wdth" ${WDTH_REST}` }}
-    >
-      {text}
-    </h1>
+    <div className="hero__wordmark">
+      <FlexMark className="hero__wordmark-mark" />
+      <h1
+        ref={ref}
+        className="hero__wordmark-text"
+        data-wdth={display}
+        style={{ fontVariationSettings: `"wdth" ${WDTH_REST}` }}
+      >
+        {text}
+      </h1>
+    </div>
   );
 }

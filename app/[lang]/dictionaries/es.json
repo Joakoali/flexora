@@ -22,12 +22,13 @@
   },
   "hero": {
     "tagline": "Webs, marketing y marca para negocios que quieren crecer.",
+    "subcopy": "Diseño, desarrollo y marketing digital trabajando juntos, no por separado, para que cada pieza sume a tus resultados.",
     "primary": "Hablemos",
     "secondary": "Ver trabajos",
     "whatsappMessage": "Hola Flexora, quiero hablar sobre un proyecto."
   },
-  "marquee": {
-    "items": ["Desarrollo web", "Marketing y ads", "Branding"]
+  "clients": {
+    "label": "Ya confiaron en nosotros"
   },
   "services": {
     "title": "Tres disciplinas, un solo equipo.",

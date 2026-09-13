@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
+import { useEffect } from "react";
+import { useMotionValueEvent, useReducedMotion } from "motion/react";
+import { useHeroScrollProgress } from "./HeroScrollProvider";
 
 /**
  * Mide dónde tiene que "aterrizar" el wordmark (el logo del header) y publica
@@ -9,12 +10,10 @@ import { useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
  * animations, publica también --hero-p desde el scroll con Motion.
  */
 export function HeroProgress({ heroId = "hero" }: { heroId?: string }) {
-  const heroRef = useRef<HTMLElement | null>(null);
   const reduced = useReducedMotion();
   const supportsTimeline = typeof CSS !== "undefined" && CSS.supports("animation-timeline: scroll()");
 
   useEffect(() => {
-    heroRef.current = document.getElementById(heroId);
     const html = document.documentElement;
 
     const measure = () => {
@@ -49,13 +48,9 @@ export function HeroProgress({ heroId = "hero" }: { heroId?: string }) {
     return () => ro.disconnect();
   }, [heroId]);
 
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end end"] });
+  const { scrollYProgress } = useHeroScrollProgress();
   useMotionValueEvent(scrollYProgress, "change", (p) => {
     if (!supportsTimeline && !reduced) document.documentElement.style.setProperty("--hero-p", p.toFixed(4));
-    // El copy llega a opacidad 0 en p = 0.4 pero el hero sigue ocupando el
-    // viewport: sin esto sus links seguirían recibiendo clics y foco invisibles.
-    // Se hace en los dos caminos (CSS y fallback), no sólo en el fallback.
-    document.querySelector(".hero__copy")?.classList.toggle("hero__copy--faded", p > 0.4);
   });
 
   return null;

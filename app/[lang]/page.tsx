@@ -1,6 +1,7 @@
 import { getDictionary, getLocale } from "./dictionaries";
 import { Hero } from "@/components/site/Hero";
 import { Marquee } from "@/components/site/Marquee";
+import { clients } from "@/content/clients";
 import { Services } from "@/components/site/Services";
 import { Work } from "@/components/site/Work";
 import { Process } from "@/components/site/Process";
@@ -14,13 +15,12 @@ export default async function HomePage() {
   return (
     <main id="main">
       <Hero t={dict.hero} whatsappHref={wa} />
-      <Marquee items={dict.marquee.items} label={dict.nav.services} />
+      <Marquee items={clients.map((c) => c.name)} label={dict.clients.label} />
       <Services t={dict.services} />
 
-      {/*  <Work t={dict.work} locale={locale} />
+      <Work t={dict.work} locale={locale} />
       <Process t={dict.process} />
       <Closing t={dict.closing} whatsappHref={wa} />
-    */}
     </main>
   );
 }

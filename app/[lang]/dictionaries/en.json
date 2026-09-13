@@ -22,12 +22,13 @@
   },
   "hero": {
     "tagline": "Web, marketing and brand for businesses that want to grow.",
+    "subcopy": "Design, development, and digital marketing working together, not apart, so every piece adds to your results.",
     "primary": "Let's talk",
     "secondary": "See work",
     "whatsappMessage": "Hi Flexora, I'd like to talk about a project."
   },
-  "marquee": {
-    "items": ["Web development", "Marketing & ads", "Branding"]
+  "clients": {
+    "label": "Already trusted by"
   },
   "services": {
     "title": "Three disciplines, one team.",
