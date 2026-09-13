@@ -14,8 +14,16 @@ export function FlexMark({ className = "", classNameTop = "", classNameBottom = 
     <svg
       className={`flex-mark ${className}`.trim()}
       viewBox="0 0 81 110"
+      // Fixed (not percentage) so the mark keeps its intrinsic 81x110 size when embedded
+      // inside another <svg> (e.g. ServiceVisuals' BrandVisual), instead of rescaling to
+      // fit whatever outer viewport it's nested in.
       width="81"
       height="110"
+      // A nested <svg> clips to its own viewport by default (UA stylesheet overflow: hidden).
+      // The parent (BrandVisual) applies a reveal slide-in transform to this SVG's paths, which
+      // moves them outside that tight viewport during the animation — overflow="visible" lets
+      // them paint outside it instead of being clipped mid-slide.
+      overflow="visible"
       aria-hidden="true"
     >
       <defs>

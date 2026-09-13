@@ -40,6 +40,9 @@ export function BrandVisual() {
   return (
     <svg className="svis" viewBox="0 0 320 200" aria-hidden="true">
       <rect x="0.5" y="0.5" width="319" height="199" rx="8" fill="var(--surface)" stroke="var(--border)" />
+      {/* Centers the 81x110 mark (scaled x1.2 to 97.2x132) at the frame's center point
+          (159.6, 100), matching where the old hand-drawn chevrons were centered (160, 100)
+          so the visual doesn't shift. */}
       <g transform="translate(111 34) scale(1.2)">
         <FlexMark classNameTop="svis__chev svis__chev--a" classNameBottom="svis__chev svis__chev--b" />
       </g>
