@@ -10,4 +10,13 @@ describe("whatsappHref", () => {
   it("usa el número por defecto si no hay env", () => {
     expect(whatsappHref("hi")).toMatch(/^https:\/\/wa\.me\/\d+\?text=hi$/);
   });
+  it("cae al número por defecto si la env var está definida pero vacía", () => {
+    const prev = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = "";
+    try {
+      expect(whatsappHref("hi")).toMatch(/^https:\/\/wa\.me\/\d+\?text=hi$/);
+    } finally {
+      process.env.NEXT_PUBLIC_WHATSAPP_NUMBER = prev;
+    }
+  });
 });
