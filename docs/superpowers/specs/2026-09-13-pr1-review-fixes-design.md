@@ -108,8 +108,19 @@ sirve públicamente. Verificado con `git check-ignore -v
 public/ideas/.DS_Store`: `.DS_Store` ya está cubierto por la regla global
 en `.gitignore:24`, no hace falta tocar `.gitignore`.
 
-**Fix:** borrar los 3 archivos de `public/ideas/` (screenshot personal y
-zip de trabajo no son parte del sitio).
+Además, `public/ideas/assets/` (no mencionado por el review original, que
+solo listó 3 archivos) contiene el contenido descomprimido de ese mismo
+zip: logos exportados (`flexora-mark*.svg/png`, `flexora-lockup*.svg/png`
+en variantes black/white/darktext) sin ninguna referencia en el código.
+Decisión: no se borran (son assets de marca potencialmente útiles), pero
+tampoco quedan servibles públicamente sin uso — se mueven fuera de
+`public/`.
+
+**Fix:**
+- Borrar `public/ideas/.DS_Store`, `public/ideas/WhatsApp Image 2026-09-08
+  at 18.10.58.jpeg` y `public/ideas/Extracción de logo en vector.zip`.
+- Mover `public/ideas/assets/` a `design/brand-assets/` (raíz del repo,
+  fuera de `public/`).
 
 ## Fuera de alcance
 
@@ -129,3 +140,4 @@ zip de trabajo no son parte del sitio).
 - `app/[lang]/layout.tsx` (envuelve con el provider)
 - `components/site/Header.tsx`, `components/site/HeroProgress.tsx` (consumen el contexto)
 - Baja de `public/ideas/.DS_Store`, `public/ideas/WhatsApp Image 2026-09-08 at 18.10.58.jpeg`, `public/ideas/Extracción de logo en vector.zip`
+- `public/ideas/assets/*` → movido a `design/brand-assets/*`
