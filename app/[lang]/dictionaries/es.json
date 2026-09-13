@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "title": "Flexora — Webs, marketing y marca",
+    "description": "Estudio de desarrollo web, marketing digital y branding. Hacemos que tu negocio se vea y venda como merece."
+  },
+  "nav": {
+    "services": "Servicios",
+    "work": "Trabajos",
+    "contact": "Contacto",
+    "cta": "Hablemos",
+    "home": "Ir al inicio",
+    "primary": "Navegación principal"
+  },
+  "theme": {
+    "toLight": "Cambiar a tema claro",
+    "toDark": "Cambiar a tema oscuro"
+  },
+  "lang": {
+    "label": "Idioma",
+    "es": "Español",
+    "en": "English"
+  },
+  "hero": {
+    "tagline": "Webs, marketing y marca para negocios que quieren crecer.",
+    "primary": "Hablemos",
+    "secondary": "Ver trabajos",
+    "whatsappMessage": "Hola Flexora, quiero hablar sobre un proyecto."
+  },
+  "marquee": {
+    "items": ["Desarrollo web", "Marketing y ads", "Branding"]
+  },
+  "services": {
+    "title": "Tres disciplinas, un solo equipo.",
+    "items": [
+      {
+        "index": "01",
+        "label": "Desarrollo",
+        "title": "Desarrollo web",
+        "description": "Sitios, landings y e-commerce hechos a medida. Rápidos, medibles y fáciles de mantener.",
+        "deliverables": ["Sitios institucionales", "Landings de campaña", "E-commerce", "Apps web a medida"]
+      },
+      {
+        "index": "02",
+        "label": "Marketing",
+        "title": "Marketing y ads",
+        "description": "Campañas en Meta y Google con embudos que convierten. Decidimos con datos, no con corazonadas.",
+        "deliverables": ["Campañas pagas", "Embudos y landings", "Medición y reportes", "Optimización continua"]
+      },
+      {
+        "index": "03",
+        "label": "Branding",
+        "title": "Branding e identidad",
+        "description": "Marcas con carácter propio: logo, sistema visual y tono de voz que se reconocen en cualquier canal.",
+        "deliverables": ["Identidad visual", "Logo y sistema", "Manual de marca", "Piezas de lanzamiento"]
+      }
+    ]
+  },
+  "work": {
+    "title": "Proyectos reales, en producción.",
+    "viewCase": "Ver sitio"
+  },
+  "process": {
+    "title": "Simple de principio a fin.",
+    "steps": [
+      { "title": "Escuchamos", "description": "Una charla para entender qué necesitás, a quién le hablás y qué tiene que pasar." },
+      { "title": "Proponemos", "description": "Un plan concreto con alcance, tiempos y costo. Sin letra chica." },
+      { "title": "Construimos", "description": "Diseño y desarrollo en ciclos cortos. Ves avances reales cada semana." },
+      { "title": "Medimos", "description": "Lanzamos, medimos y ajustamos. El trabajo termina cuando funciona." }
+    ]
+  },
+  "closing": {
+    "title": "Hablemos",
+    "description": "Contanos qué querés lograr. Te respondemos el mismo día.",
+    "primary": "Escribir por WhatsApp",
+    "emailLabel": "o por mail a",
+    "email": "hola@flexora.com.ar"
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados.",
+    "madeIn": "Hecho en Argentina."
+  }
+}
