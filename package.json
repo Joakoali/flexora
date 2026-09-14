@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "typegen": "next typegen"
+    "typegen": "next typegen",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.8.13",

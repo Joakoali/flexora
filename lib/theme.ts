@@ -1,5 +1,6 @@
 export type Theme = "dark" | "light";
 export const THEME_KEY = "flexora-theme";
+const THEME_CHANGE_EVENT = "flexora:theme-change";
 
 export function resolveTheme(stored: string | null, prefersLight: boolean): Theme {
   if (stored === "light" || stored === "dark") return stored;
@@ -25,9 +26,16 @@ export function applyTheme(theme: Theme): void {
   }
   clearTimeout(changingTimer);
   changingTimer = setTimeout(() => html.classList.remove("theme-changing"), 250);
+  document.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
 
 export function readTheme(): Theme {
   const current = document.documentElement.dataset.theme;
   return current === "light" ? "light" : "dark";
+}
+
+/** Notifica a los suscriptores (p. ej. useSyncExternalStore) cuando applyTheme muta el DOM. */
+export function subscribeToTheme(onChange: () => void): () => void {
+  document.addEventListener(THEME_CHANGE_EVENT, onChange);
+  return () => document.removeEventListener(THEME_CHANGE_EVENT, onChange);
 }

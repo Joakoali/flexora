@@ -1,25 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Renderer } from "ogl";
 import { canUseWebGL, clampDpr, cssVarToRgb, isCoarsePointer, prefersReducedMotion } from "@/lib/gl";
 import { FLEX_FIELD_FRAGMENT, FLEX_FIELD_VERTEX } from "./flex-field.shaders";
 
-type Mode = "pending" | "gl" | "fallback";
+type Mode = "gl" | "fallback";
 type Props = { variant: "hero" | "closing"; className?: string };
+
+function decideMode(): Mode {
+  return !prefersReducedMotion() && canUseWebGL() ? "gl" : "fallback";
+}
+
+function subscribeToReducedMotionChange(onChange: () => void): () => void {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+const getServerMode = (): Mode => "fallback";
 
 export function FlexField({ variant, className = "" }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mode, setMode] = useState<Mode>("pending");
+  // SSR no puede saber si el navegador soporta WebGL (siempre "fallback" en
+  // el HTML inicial); useSyncExternalStore resuelve el valor real del
+  // cliente antes del primer paint, sin el flash de un efecto post-montaje.
+  const capableMode = useSyncExternalStore(subscribeToReducedMotionChange, decideMode, getServerMode);
+  // Solo se activa si la inicialización de WebGL falla en tiempo de ejecución
+  // (p. ej. contexto perdido); no es el flag que decide el modo inicial.
+  const [runtimeFailed, setRuntimeFailed] = useState(false);
+  const mode: Mode = runtimeFailed ? "fallback" : capableMode;
 
-  // 1. Decidir modo tras montar (SSR siempre "pending" → sin canvas en HTML).
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMode(!prefersReducedMotion() && canUseWebGL() ? "gl" : "fallback");
-  }, []);
-
-  // 2. Inicializar OGL solo cuando el canvas exista y esté en viewport.
+  // Inicializar OGL solo cuando el canvas exista y esté en viewport.
   useEffect(() => {
     if (mode !== "gl") return;
     const root = rootRef.current;
@@ -132,7 +145,7 @@ export function FlexField({ variant, className = "" }: Props) {
         ro?.disconnect();
         mo?.disconnect();
         renderer?.gl.getExtension("WEBGL_lose_context")?.loseContext();
-        if (!disposed) setMode("fallback");
+        if (!disposed) setRuntimeFailed(true);
       }
     };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useScroll, type MotionValue } from "motion/react";
 
 type HeroScrollContextValue = { scrollYProgress: MotionValue<number> };
@@ -21,8 +21,9 @@ export function HeroScrollProvider({
   }, [heroId]);
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end end"] });
+  const value = useMemo(() => ({ scrollYProgress }), [scrollYProgress]);
 
-  return <HeroScrollContext.Provider value={{ scrollYProgress }}>{children}</HeroScrollContext.Provider>;
+  return <HeroScrollContext.Provider value={value}>{children}</HeroScrollContext.Provider>;
 }
 
 export function useHeroScrollProgress() {
