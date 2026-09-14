@@ -38,21 +38,36 @@
         "label": "Development",
         "title": "Web development",
         "description": "Custom sites, landings and e-commerce. Fast, measurable and easy to maintain.",
-        "deliverables": ["Corporate sites", "Campaign landings", "E-commerce", "Custom web apps"]
+        "deliverables": [
+          "Corporate sites",
+          "Campaign landings",
+          "E-commerce",
+          "Custom web apps"
+        ]
       },
       {
         "index": "02",
         "label": "Marketing",
         "title": "Marketing & ads",
         "description": "Meta and Google campaigns with funnels that convert. We decide with data, not hunches.",
-        "deliverables": ["Paid campaigns", "Funnels and landings", "Tracking and reports", "Continuous optimization"]
+        "deliverables": [
+          "Paid campaigns",
+          "Funnels and landings",
+          "Tracking and reports",
+          "Continuous optimization"
+        ]
       },
       {
         "index": "03",
         "label": "Branding",
         "title": "Branding & identity",
         "description": "Brands with a character of their own: logo, visual system and voice that stand out on any channel.",
-        "deliverables": ["Visual identity", "Logo and system", "Brand guidelines", "Launch assets"]
+        "deliverables": [
+          "Visual identity",
+          "Logo and system",
+          "Brand guidelines",
+          "Launch assets"
+        ]
       }
     ]
   },
@@ -63,10 +78,22 @@
   "process": {
     "title": "Simple from start to finish.",
     "steps": [
-      { "title": "We listen", "description": "A conversation to understand what you need, who you talk to and what has to happen." },
-      { "title": "We propose", "description": "A concrete plan with scope, timeline and cost. No fine print." },
-      { "title": "We build", "description": "Design and development in short cycles. You see real progress every week." },
-      { "title": "We measure", "description": "We launch, measure and adjust. The work is done when it works." }
+      {
+        "title": "We listen",
+        "description": "A conversation to understand what you need, who you talk to and what has to happen."
+      },
+      {
+        "title": "We propose",
+        "description": "A concrete plan with scope, timeline and cost. No fine print."
+      },
+      {
+        "title": "We build",
+        "description": "Design and development in short cycles. You see real progress every week."
+      },
+      {
+        "title": "We measure",
+        "description": "We launch, measure and adjust. The work is done when it works."
+      }
     ]
   },
   "closing": {
@@ -74,10 +101,10 @@
     "description": "Tell us what you want to achieve. We reply the same day.",
     "primary": "Message on WhatsApp",
     "emailLabel": "or email us at",
-    "email": "hola@flexora.com.ar"
+    "email": "info@flexoradesign.com"
   },
   "footer": {
     "rights": "All rights reserved.",
-    "madeIn": "Made in Argentina."
+    "madeIn": "Made in Argentina?"
   }
 }
