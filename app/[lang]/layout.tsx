@@ -13,12 +13,20 @@ export async function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
+const FALLBACK_SITE_URL = "http://localhost:3000";
+
+function safeSiteUrl(value: string | undefined): URL {
+  try {
+    return new URL(value ?? FALLBACK_SITE_URL);
+  } catch {
+    return new URL(FALLBACK_SITE_URL);
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale();
-  const dict = await getDictionary();
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const [locale, dict] = await Promise.all([getLocale(), getDictionary()]);
   return {
-    metadataBase: new URL(base),
+    metadataBase: safeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
     title: dict.meta.title,
     description: dict.meta.description,
     alternates: {
@@ -36,8 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
-  const locale = await getLocale();
-  const dict = await getDictionary();
+  const [locale, dict] = await Promise.all([getLocale(), getDictionary()]);
   return (
     <html
       lang={locale}

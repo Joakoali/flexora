@@ -9,8 +9,7 @@ import { Closing } from "@/components/site/Closing";
 import { whatsappHref } from "@/lib/whatsapp";
 
 export default async function HomePage() {
-  const dict = await getDictionary();
-  const locale = await getLocale();
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
   const wa = whatsappHref(dict.hero.whatsappMessage);
   return (
     <main id="main">
