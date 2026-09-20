@@ -17,7 +17,7 @@
   --switch-half: #09090b;
 
   --header-h: 72px;
-  --container-max: 1440px;
+  --container-max: clamp(1440px, 75vw, 2400px);
   --gutter: clamp(16px, 4vw, 64px);
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
