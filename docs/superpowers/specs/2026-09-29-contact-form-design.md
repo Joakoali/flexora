@@ -133,6 +133,9 @@ responsabilidades y el contrato (códigos, no textos) no.
 | `website` | text (honeypot) | debe venir vacío | — (bot) |
 | `startedAt` | hidden | ms epoch, seteado en el cliente | — (bot) |
 
+El whitespace interno del nombre (incluidos saltos de línea) se colapsa a un
+espacio, porque el nombre va al asunto del mail.
+
 Si hay varios errores en un campo, se reporta uno solo, en el orden de la
 tabla (`required` antes que `too_long`/`invalid`).
 
@@ -146,7 +149,8 @@ En el cliente solo se usa validación nativa (`required`, `type="email"`,
   `tabIndex={-1}` y `autoComplete="off"`. Si llega con contenido no vacío, es un bot.
 - **Tiempo mínimo:** `startedAt` se completa con `Date.now()` en un efecto al
   montar `ContactForm` en el cliente. No puede venir del render del servidor
-  porque la página se prerenderiza en el build. Si `now - startedAt < 2000`, es un bot.
+  porque la página se prerenderiza en el build. Si `0 <= now - startedAt < 2000`, es un bot. Un valor negativo
+  (reloj del cliente adelantado) no se puede juzgar y se acepta.
   Si `startedAt` falta o no es un número (usuario sin JS), **no se rechaza**:
   queda solo el honeypot. Es un compromiso deliberado para no romper el caso sin JS.
 
@@ -178,6 +182,7 @@ En el cliente solo se usa validación nativa (`required`, `type="email"`,
 - Request: `POST https://api.resend.com/emails`, headers
   `Authorization: Bearer ${RESEND_API_KEY}` y `Content-Type: application/json`,
   body `{ from, to: [to], reply_to: replyTo, subject, text }`.
+- Timeout de 10 s (`AbortSignal.timeout`): si Resend no responde, cuenta como fallo.
 - Respuesta 2xx → `{ ok: true }`. No-2xx o excepción de `fetch` →
   `console.error` (status y cuerpo de la respuesta, nunca la API key) y `{ ok: false }`.
 - **Modo sin red:** si `process.env.CONTACT_DRY_RUN === "1"`, no llama a
@@ -214,7 +219,8 @@ layout queda:
 - CSS BEM + variables en `globals.css`, como el resto del sitio (no Tailwind utilities).
 - Panel del formulario: fondo `--surface`, borde `1px solid var(--border)`,
   `--radius-md`, para asegurar legibilidad sobre el WebGL en ambos temas.
-- Inputs: borde 1px `--border`; foco visible con `--accent`.
+- Inputs y chips: borde 1px `--fg-muted` (no `--border`, que no llega al 3:1
+  de WCAG 1.4.11 para componentes); foco visible con `--accent`.
 - Chips: `<input type="checkbox">` nativos, visualmente ocultos, con un
   `<label>` estilizado como pastilla con borde. Checked: fondo `--accent` y
   texto de contraste. Foco visible sobre la pastilla (`:focus-visible` del input).
