@@ -101,7 +101,36 @@
     "description": "Contanos qué querés lograr. Te respondemos el mismo día.",
     "primary": "Escribir por WhatsApp",
     "emailLabel": "o por mail a",
-    "email": "info@flexoradesign.com"
+    "email": "info@flexoradesign.com",
+    "form": {
+      "formLabel": "Formulario de contacto",
+      "nameLabel": "Nombre",
+      "emailLabel": "Email",
+      "projectLegend": "¿Qué necesitás?",
+      "optional": "(opcional)",
+      "messageLabel": "Mensaje",
+      "messagePlaceholder": "Contanos un poco del proyecto",
+      "submit": "Enviar",
+      "sending": "Enviando…",
+      "successTitle": "¡Listo!",
+      "successBody": "Recibimos tu mensaje. Te respondemos en el día.",
+      "sendAnother": "Enviar otro mensaje",
+      "projectTypes": {
+        "website": "Sitio web",
+        "landing": "Landing page",
+        "ecommerce": "E-commerce",
+        "webapp": "Web app",
+        "mobile": "App móvil",
+        "other": "Otro"
+      },
+      "errors": {
+        "required": "Este campo es obligatorio.",
+        "invalid": "Ingresá un email válido.",
+        "too_long": "Es demasiado largo.",
+        "send_failed": "No pudimos enviarlo. Probá de nuevo o",
+        "sendFailedLink": "escribinos por WhatsApp."
+      }
+    }
   },
   "footer": {
     "rights": "Todos los derechos reservados.",

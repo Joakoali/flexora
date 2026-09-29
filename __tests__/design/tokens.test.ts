@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 const css = readFileSync("app/globals.css", "utf8");
 
-const SEMANTIC = ["--bg", "--surface", "--fg", "--fg-muted", "--border", "--accent", "--accent-soft", "--switch-half"];
+const SEMANTIC = ["--bg", "--surface", "--fg", "--fg-muted", "--border", "--accent", "--accent-soft", "--switch-half", "--danger"];
 
 describe("design tokens", () => {
   it("define cada token semántico en oscuro (:root) y en claro ([data-theme=light])", () => {

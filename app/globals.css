@@ -14,6 +14,8 @@
      (spec 3.1 pide contraste AA y reserva --accent-soft a rings y texto chico).
      Oscuro: --accent sobre --bg da 3.69:1, --accent-soft da 8.73:1. */
   --accent-text: var(--accent-soft);
+  /* Errores de formulario. Oscuro: 6.7:1 sobre --surface (#111114). */
+  --danger: #ff6b6b;
   --switch-half: #09090b;
 
   --header-h: 72px;
@@ -47,6 +49,8 @@
   --accent-soft: #8a5cff;
   /* Claro: --accent da 5.97:1 y --accent-soft sólo 3.83:1, así que se invierte. */
   --accent-text: var(--accent);
+  /* Claro: 5.8:1 sobre --surface (#ffffff). */
+  --danger: #c2253a;
   --switch-half: #f6f5fa;
 }
 
@@ -59,6 +63,7 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
+  --color-danger: var(--danger);
   --font-display: var(--font-anybody);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -833,4 +838,149 @@ body:has(#hero) {
 }
 .closing__email {
   color: var(--fg-muted);
+}
+
+/* ---------- Contact form ---------- */
+.contact-form {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+.contact-form__form {
+  display: grid;
+  gap: 1.25rem;
+}
+.contact-form__field {
+  display: grid;
+  gap: 0.5rem;
+}
+.contact-form__label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+.contact-form__optional {
+  font-weight: 400;
+  color: var(--fg-muted);
+}
+.contact-form__input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.625rem 0.875rem;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  /* --fg-muted y no --border: el borde de un input tiene que llegar a 3:1 (WCAG 1.4.11). */
+  border: 1px solid var(--fg-muted);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+.contact-form__input::placeholder {
+  color: var(--fg-muted);
+}
+.contact-form__input:hover {
+  border-color: var(--fg);
+}
+.contact-form__input:focus-visible {
+  border-color: var(--accent);
+}
+.contact-form__input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.contact-form__textarea {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+.contact-form__group {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.contact-form__group legend {
+  padding: 0;
+  margin-bottom: 0.75rem;
+}
+.contact-form__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.contact-form__chip {
+  position: relative;
+  display: inline-flex;
+}
+.contact-form__chip-input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.contact-form__chip-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.9375rem;
+  color: var(--fg);
+  border: 1px solid var(--fg-muted);
+  border-radius: 999px;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out);
+}
+.contact-form__chip-input:hover + .contact-form__chip-label {
+  border-color: var(--fg);
+}
+.contact-form__chip-input:checked + .contact-form__chip-label {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+/* El input es invisible (opacity 0): el anillo de foco global se dibuja en la pastilla. */
+.contact-form__chip-input:focus-visible + .contact-form__chip-label {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 3px;
+}
+.contact-form__error,
+.contact-form__form-error {
+  font-size: 0.875rem;
+  color: var(--danger);
+}
+.contact-form__form-error:empty {
+  display: none;
+}
+.contact-form__form-error .text-link {
+  color: var(--fg);
+}
+.contact-form__submit {
+  display: flex;
+  justify-content: flex-end;
+}
+.contact-form__hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.contact-form__success {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+.contact-form__success-body {
+  color: var(--fg-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-form__input,
+  .contact-form__chip-label {
+    transition: none;
+  }
 }

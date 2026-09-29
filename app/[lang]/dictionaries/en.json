@@ -101,7 +101,36 @@
     "description": "Tell us what you want to achieve. We reply the same day.",
     "primary": "Message on WhatsApp",
     "emailLabel": "or email us at",
-    "email": "info@flexoradesign.com"
+    "email": "info@flexoradesign.com",
+    "form": {
+      "formLabel": "Contact form",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "projectLegend": "What do you need?",
+      "optional": "(optional)",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Tell us a bit about the project",
+      "submit": "Send",
+      "sending": "Sending…",
+      "successTitle": "Done!",
+      "successBody": "We got your message. We'll reply the same day.",
+      "sendAnother": "Send another message",
+      "projectTypes": {
+        "website": "Website",
+        "landing": "Landing page",
+        "ecommerce": "E-commerce",
+        "webapp": "Web app",
+        "mobile": "Mobile app",
+        "other": "Other"
+      },
+      "errors": {
+        "required": "This field is required.",
+        "invalid": "Enter a valid email.",
+        "too_long": "This is too long.",
+        "send_failed": "We couldn't send it. Try again or",
+        "sendFailedLink": "message us on WhatsApp."
+      }
+    }
   },
   "footer": {
     "rights": "All rights reserved.",
