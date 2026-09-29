@@ -19,7 +19,7 @@ export default async function HomePage() {
 
       <Work t={dict.work} locale={locale} />
       <Process t={dict.process} />
-      <Closing t={dict.closing} whatsappHref={wa} />
+      <Closing t={dict.closing} whatsappHref={wa} locale={locale} />
     </main>
   );
 }

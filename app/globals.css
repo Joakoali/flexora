@@ -830,6 +830,22 @@ body:has(#hero) {
 .closing__desc {
   font-size: clamp(1.125rem, 1.6vw, 1.5rem);
 }
+.closing__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+.closing__intro {
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+}
+@media (min-width: 900px) {
+  .closing__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
 .closing__actions {
   display: flex;
   flex-wrap: wrap;
