@@ -12,6 +12,7 @@ type LinkProps = Common & {
 type ButtonProps = Common & {
   href?: undefined;
   external?: undefined;
+  type?: "button" | "submit";
 } & Omit<ComponentProps<"button">, "className" | "children" | "type">;
 
 export type Props = LinkProps | ButtonProps;
@@ -35,9 +36,9 @@ export function Button(props: Props) {
     );
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { href: _href, external: _external, variant: _variant, className: _className, children, ...rest } = props;
+  const { href: _href, external: _external, variant: _variant, className: _className, children, type = "button", ...rest } = props;
   return (
-    <button type="button" className={classes} {...rest}>
+    <button type={type} className={classes} {...rest}>
       {children}
     </button>
   );
