@@ -17,7 +17,9 @@ export function HeroScrollProvider({
   const heroRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    heroRef.current = document.getElementById(heroId);
+    // Sin #hero se sigue la página: Motion exige que el ref de target llegue a
+    // montarse, y los consumidores ya ignoran el progreso cuando no hay hero.
+    heroRef.current = document.getElementById(heroId) ?? document.documentElement;
   }, [heroId]);
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end end"] });
