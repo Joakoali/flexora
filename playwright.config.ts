@@ -4,6 +4,8 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 30_000,
   fullyParallel: true,
+  // El fondo WebGL se renderiza por software; con más de 2 workers la CPU se satura y los tests caen por timeout.
+  workers: 2,
   reporter: [["list"]],
   use: {
     baseURL: "http://localhost:3000",
