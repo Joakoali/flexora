@@ -3,9 +3,14 @@ export type EmailMessage = { from: string; to: string; replyTo: string; subject:
 const RESEND_URL = "https://api.resend.com/emails";
 export const RESEND_TIMEOUT_MS = 10_000;
 
+/** Modo de prueba: el form responde éxito sin llamar a Resend. */
+export function isDryRun(): boolean {
+  return process.env.CONTACT_DRY_RUN === "1";
+}
+
 /** Envía un mail por la API REST de Resend. Nunca lanza: devuelve { ok }. */
 export async function sendEmail(msg: EmailMessage): Promise<{ ok: boolean }> {
-  if (process.env.CONTACT_DRY_RUN === "1") {
+  if (isDryRun()) {
     console.info(`[contact] dry run, no se envía: ${msg.subject}`);
     return { ok: true };
   }

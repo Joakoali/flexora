@@ -1,7 +1,7 @@
 "use server";
 
 import { buildEmail, isLikelyBot, validateContact, type ContactState } from "@/lib/contact";
-import { sendEmail } from "@/lib/resend";
+import { isDryRun, sendEmail } from "@/lib/resend";
 
 export async function contactAction(_prev: ContactState, formData: FormData): Promise<ContactState> {
   // A un bot se le responde éxito para que no reintente con otra estrategia.
@@ -16,8 +16,7 @@ export async function contactAction(_prev: ContactState, formData: FormData): Pr
 
   const to = process.env.CONTACT_TO_EMAIL;
   const from = process.env.CONTACT_FROM_EMAIL;
-  const dryRun = process.env.CONTACT_DRY_RUN === "1";
-  if (!to || !from || (!dryRun && !process.env.RESEND_API_KEY)) {
+  if (!to || !from || (!isDryRun() && !process.env.RESEND_API_KEY)) {
     console.error("[contact] faltan variables de entorno: CONTACT_TO_EMAIL, CONTACT_FROM_EMAIL y/o RESEND_API_KEY");
     return failed;
   }

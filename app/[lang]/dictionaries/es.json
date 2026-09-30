@@ -115,6 +115,7 @@
       "successTitle": "¡Listo!",
       "successBody": "Recibimos tu mensaje. Te respondemos en el día.",
       "sendAnother": "Enviar otro mensaje",
+      "honeypotLabel": "Dejar vacío",
       "projectTypes": {
         "website": "Sitio web",
         "landing": "Landing page",

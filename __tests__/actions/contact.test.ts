@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sendEmail = vi.fn();
-vi.mock("@/lib/resend", () => ({ sendEmail: (...args: unknown[]) => sendEmail(...args) }));
+vi.mock("@/lib/resend", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/resend")>()),
+  sendEmail: (...args: unknown[]) => sendEmail(...args),
+}));
 
 import { contactAction } from "@/app/[lang]/actions/contact";
 

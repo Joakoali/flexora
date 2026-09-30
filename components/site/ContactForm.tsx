@@ -66,7 +66,7 @@ function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { o
           <input type="hidden" name="lang" value={locale} />
           <input ref={startedAtRef} type="hidden" name="startedAt" />
           <div className="contact-form__hp" aria-hidden="true">
-            <label htmlFor={`${id}-website`}>Leave empty</label>
+            <label htmlFor={`${id}-website`}>{t.honeypotLabel}</label>
             <input id={`${id}-website`} type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
           </div>
 
