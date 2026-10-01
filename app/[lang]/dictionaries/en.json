@@ -21,10 +21,15 @@
     "en": "English"
   },
   "hero": {
-    "tagline": "Web, marketing and brand for businesses that want to grow.",
-    "subcopy": "Design, development, and digital marketing working together, not apart, so every piece adds to your results.",
-    "primary": "Let's talk",
+    "eyebrow": "Digital studio · Barcelona",
+    "tagline": "Websites that sell. A brand that sticks.",
+    "subcopy": "Design, development and marketing in one team, so every piece works toward your results.",
+    "primary": "Tell us about your project",
+    "primaryNote": "We reply on WhatsApp the same day.",
     "secondary": "See work",
+    "disciplines": ["Development", "Marketing", "Brand"],
+    "disciplinesLabel": "Disciplines",
+    "projectsPrefix": "Built for",
     "whatsappMessage": "Hi Flexora, I'd like to talk about a project."
   },
   "clients": {

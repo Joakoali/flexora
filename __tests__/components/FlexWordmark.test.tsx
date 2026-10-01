@@ -25,4 +25,20 @@ describe("FlexWordmark", () => {
     act(() => { fireEvent.pointerMove(window, { clientX: 1000 }); });
     expect(h1.getAttribute("data-wdth")).toBe("150");
   });
+
+  it("separa FLEX del resto para pintarlo de acento al aterrizar en el header", () => {
+    render(<FlexWordmark text="FLEXORA" />);
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1.querySelector(".hero__wordmark-flex")?.textContent).toBe("FLEX");
+    expect(h1.textContent).toBe("FLEXORA");
+  });
+
+  it("publica el ancho en la variable --wdth (el CSS la mezcla con --hero-p)", () => {
+    Object.defineProperty(window, "innerWidth", { value: 1000, configurable: true });
+    render(<FlexWordmark text="FLEXORA" />);
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1.style.getPropertyValue("--wdth")).toBe("140");
+    act(() => { fireEvent.pointerMove(window, { clientX: 1000 }); });
+    expect(h1.style.getPropertyValue("--wdth")).toBe("150");
+  });
 });

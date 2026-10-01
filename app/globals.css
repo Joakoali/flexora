@@ -335,8 +335,24 @@ html.theme-changing *::after {
 .site-header__nav {
   display: none;
   justify-content: center;
-  gap: 2rem;
+  gap: 2.25rem;
   font-size: 0.9375rem;
+}
+.site-header__nav .text-link {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+/* Subrayado fino en el acento (en vez del color del texto), un poco separado. */
+.site-header__nav .text-link::after {
+  bottom: -4px;
+  background: var(--accent-text);
+}
+/* Al recorrer el nav, los demás links bajan para dejar al activo en foco. */
+@media (hover: hover) {
+  .site-header__nav:is(:hover, :focus-within) .text-link:not(:hover, :focus-visible) {
+    opacity: 0.55;
+  }
 }
 .site-header__tools {
   display: flex;
@@ -455,6 +471,11 @@ html.theme-changing *::after {
 }
 
 /* ---------- Hero ---------- */
+@property --wdth {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 140;
+}
 @property --hero-p {
   syntax: "<number>";
   inherits: true;
@@ -475,13 +496,13 @@ body:has(#hero) {
   --logo-opacity: clamp(0, (var(--hero-p) - 0.85) * 6.67, 1);
 }
 
-/* Camino CSS: la variable la anima el scroll del documento en los primeros 40vh
+/* Camino CSS: la variable la anima el scroll del documento en los primeros 20vh
    (viaje corto: la marca ya arranca cerca de su tamaño y posición finales). */
 @supports (animation-timeline: scroll()) {
   html {
     animation: hero-progress linear both;
     animation-timeline: scroll(root);
-    animation-range: 0 40vh;
+    animation-range: 0 20vh;
   }
   @keyframes hero-progress {
     from { --hero-p: 0; }
@@ -491,7 +512,7 @@ body:has(#hero) {
 
 .hero {
   position: relative;
-  height: 140vh; /* 40vh de viaje + 100vh de escena sticky */
+  height: 120vh; /* 20vh de viaje + 100vh de escena sticky */
 }
 .hero__sticky {
   position: sticky;
@@ -512,18 +533,24 @@ body:has(#hero) {
   padding-bottom: clamp(2rem, 6vh, 5rem);
 }
 .hero__wordmark {
+  /* El viaje y la convergencia (color, wdth, proporción) terminan al 85% de
+     --hero-p, donde empieza el crossfade con el logo del header: así, mientras
+     se cruzan, los dos están exactamente superpuestos y no hay doble imagen. */
+  --hero-q: clamp(0, calc(var(--hero-p) / 0.85), 1);
   justify-self: start;
   align-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 0.32em;
+  /* Gap y tamaño del texto convergen a la proporción del logo del header (gap
+     0.35 y texto 0.63 del símbolo, ver .logo): 0.32em -> 0.287em y 1em -> 0.517em. */
+  gap: calc(0.32em - 0.033em * var(--hero-q));
   /* Chica y arriba: es una firma, no el titular. Arranca cerca de su tamaño y
      posición finales (el logo del header), así el viaje al scrollear es corto. */
   font-size: clamp(1.5rem, 3.2vw, 2.75rem);
   transform-origin: center;
   transform:
-    translate(calc(var(--wm-x) * var(--hero-p)), calc(var(--wm-y) * var(--hero-p)))
-    scale(calc(1 + (var(--wm-scale) - 1) * var(--hero-p)));
+    translate(calc(var(--wm-x) * var(--hero-q)), calc(var(--wm-y) * var(--hero-q)))
+    scale(calc(1 + (var(--wm-scale) - 1) * var(--hero-q)));
   opacity: clamp(0, 1 - (var(--hero-p) - 0.85) * 6.67, 1);
   will-change: transform, opacity;
 }
@@ -536,16 +563,52 @@ body:has(#hero) {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1em;
+  /* --wdth lo mueve el puntero (FlexWordmark); al viajar al header converge a
+     wdth 150, el valor fijo del logo, para que el traspaso no cambie la forma. */
+  font-variation-settings: "wdth" calc(var(--wdth) + (150 - var(--wdth)) * var(--hero-q));
+  font-size: calc(1em - 0.483em * var(--hero-q));
+  /* La tinta del texto HTML asienta ~0.09em más arriba que la del SVG del logo
+     con la misma caja (línea base): se compensa al converger. */
+  transform: translateY(calc(0.088em * var(--hero-q)));
   line-height: 0.9;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: var(--fg);
 }
+.hero__wordmark-flex {
+  color: color-mix(in oklab, var(--fg), var(--accent) calc(var(--hero-q) * 100%));
+}
 .hero__copy {
+  position: relative;
+  isolation: isolate;
   align-self: center;
   display: grid;
-  gap: 1.5rem;
+  justify-items: start;
+  gap: clamp(1rem, 2.4vh, 1.5rem);
+}
+/* Velo suave detrás del texto: sube la legibilidad sin tapar el campo. */
+.hero__copy::before {
+  content: "";
+  position: absolute;
+  inset: -12% -8% -12% -12%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 70% at 30% 50%,
+    color-mix(in oklab, var(--bg) 55%, transparent),
+    transparent 75%
+  );
+}
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.hero__eyebrow::before {
+  content: "";
+  width: 1.5rem;
+  height: 1px;
+  background: var(--accent-text);
 }
 .hero__tagline {
   max-width: 20ch;
@@ -556,10 +619,64 @@ body:has(#hero) {
   line-height: 1.5;
   color: var(--fg-muted);
 }
+.hero__cta {
+  display: grid;
+  gap: 0.75rem;
+}
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+.hero__arrow {
+  flex: none;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.btn:hover .hero__arrow {
+  transform: translateX(3px);
+}
+.hero__note {
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+}
+.hero__proof {
+  display: grid;
+  gap: 0.75rem;
+}
+.hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hero__chip {
+  --chip-bg: color-mix(in oklab, var(--bg) 60%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(var(--chip-bg), var(--chip-bg)) padding-box,
+    linear-gradient(135deg, color-mix(in oklab, var(--accent) 70%, transparent), var(--border)) border-box;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 0.875rem;
+  color: var(--fg);
+}
+.hero__chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-text);
+}
+.hero__projects {
+  font-size: 0.875rem;
+  color: var(--fg-muted);
 }
 
 /* Sin puntero: el wordmark respira solo entre 125 y 150. */
@@ -568,8 +685,8 @@ body:has(#hero) {
     animation: breathe 6s var(--ease-in-out) infinite alternate;
   }
   @keyframes breathe {
-    from { font-variation-settings: "wdth" 125; }
-    to { font-variation-settings: "wdth" 150; }
+    from { --wdth: 125; }
+    to { --wdth: 150; }
   }
 }
 
@@ -582,6 +699,7 @@ body:has(#hero) {
   }
   .hero__wordmark-text {
     animation: none;
+    --wdth: 140 !important;
     font-variation-settings: "wdth" 140 !important;
   }
   .hero__copy { opacity: 1; transform: none; }

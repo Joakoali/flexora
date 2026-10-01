@@ -21,10 +21,15 @@
     "en": "English"
   },
   "hero": {
-    "tagline": "Webs, marketing y marca para negocios que quieren crecer.",
-    "subcopy": "Diseño, desarrollo y marketing digital trabajando juntos, no por separado, para que cada pieza sume a tus resultados.",
-    "primary": "Hablemos",
+    "eyebrow": "Estudio digital · Barcelona",
+    "tagline": "Webs que venden. Marca que se recuerda.",
+    "subcopy": "Diseño, desarrollo y marketing en un solo equipo, para que cada pieza trabaje por tus resultados.",
+    "primary": "Contanos tu proyecto",
+    "primaryNote": "Te respondemos por WhatsApp en el día.",
     "secondary": "Ver trabajos",
+    "disciplines": ["Desarrollo", "Marketing", "Marca"],
+    "disciplinesLabel": "Disciplinas",
+    "projectsPrefix": "Hecho para",
     "whatsappMessage": "Hola Flexora, quiero hablar sobre un proyecto."
   },
   "clients": {
