@@ -11,7 +11,10 @@ describe("Hero", () => {
 
   it("renderiza promesa, CTA a WhatsApp, disciplinas y proyectos reales", () => {
     render(<HeroScrollProvider><Hero t={es.hero} whatsappHref="https://wa.me/1?text=hola" /></HeroScrollProvider>);
-    expect(screen.getByText(es.hero.tagline)).toBeTruthy();
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1.textContent).toBe(es.hero.tagline);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByText(es.hero.subcopy).tagName).toBe("P");
     expect(screen.getByRole("link", { name: es.hero.primary }).getAttribute("href")).toBe("https://wa.me/1?text=hola");
     expect(screen.getByRole("link", { name: es.hero.secondary }).getAttribute("href")).toBe("#work");
     expect(screen.getByText(es.hero.primaryNote)).toBeTruthy();

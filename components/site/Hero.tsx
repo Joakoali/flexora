@@ -5,6 +5,7 @@ import { FlexField } from "@/components/gl/FlexField";
 import { work } from "@/content/work";
 import { FlexWordmark } from "./FlexWordmark";
 import { HeroProgress } from "./HeroProgress";
+import { HeroShowcase } from "./HeroShowcase";
 import { Reveal } from "./Reveal";
 
 export function Hero({ t, whatsappHref }: { t: Dictionary["hero"]; whatsappHref: string }) {
@@ -15,9 +16,10 @@ export function Hero({ t, whatsappHref }: { t: Dictionary["hero"]; whatsappHref:
         <FlexField variant="hero" />
         <div className="hero__content container-site">
           <FlexWordmark text="FLEXORA" />
+          <HeroShowcase items={work} />
           <Reveal className="hero__copy">
             <p className="hero__eyebrow label">{t.eyebrow}</p>
-            <p className="hero__tagline h2">{t.tagline}</p>
+            <h1 className="hero__tagline h2">{t.tagline}</h1>
             <p className="hero__subcopy">{t.subcopy}</p>
             <div className="hero__cta">
               <div className="hero__actions">

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/es" }));
 
@@ -35,5 +35,53 @@ describe("Header", () => {
       window.dispatchEvent(new Event("scroll"));
     });
     expect(header.getAttribute("data-scrolled")).toBe("true");
+  });
+
+  describe("menú mobile", () => {
+    const setup = () =>
+      render(
+        <HeroScrollProvider>
+          <Header locale="es" labels={labels} whatsappHref="https://wa.me/1?text=hola" />
+        </HeroScrollProvider>,
+      );
+
+    it("arranca cerrado, sin panel ni links duplicados", () => {
+      setup();
+      const btn = screen.getByRole("button", { name: es.nav.menu });
+      expect(btn.getAttribute("aria-expanded")).toBe("false");
+      expect(btn.getAttribute("aria-controls")).toBe("mobile-menu");
+      expect(document.getElementById("mobile-menu")).toBeNull();
+      expect(screen.getAllByRole("link", { name: "Servicios" })).toHaveLength(1);
+    });
+
+    it("abre el panel con los 3 links y el CTA, bloquea el scroll y cambia el nombre del botón", () => {
+      setup();
+      fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+      const panel = document.getElementById("mobile-menu")!;
+      expect(panel).toBeTruthy();
+      expect(panel.querySelectorAll("nav a")).toHaveLength(3);
+      expect(panel.querySelector(".mobile-menu__cta")?.getAttribute("href")).toBe("https://wa.me/1?text=hola");
+      const close = screen.getByRole("button", { name: es.nav.closeMenu });
+      expect(close.getAttribute("aria-expanded")).toBe("true");
+      expect(document.documentElement.style.overflow).toBe("hidden");
+      expect(screen.getByRole("banner").getAttribute("data-menu-open")).toBe("true");
+    });
+
+    it("Esc cierra, libera el scroll y devuelve el foco al botón", () => {
+      setup();
+      fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+      fireEvent.keyDown(document, { key: "Escape" });
+      expect(document.getElementById("mobile-menu")).toBeNull();
+      expect(document.documentElement.style.overflow).toBe("");
+      expect(document.activeElement).toBe(screen.getByRole("button", { name: es.nav.menu }));
+    });
+
+    it("tocar un link cierra el panel", () => {
+      setup();
+      fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+      const link = document.getElementById("mobile-menu")!.querySelector<HTMLAnchorElement>("nav a")!;
+      fireEvent.click(link);
+      expect(document.getElementById("mobile-menu")).toBeNull();
+    });
   });
 });

@@ -9,6 +9,8 @@
     "contact": "Contact",
     "cta": "Let's talk",
     "home": "Go to home",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
     "primary": "Main navigation"
   },
   "theme": {
@@ -22,8 +24,8 @@
   },
   "hero": {
     "eyebrow": "Digital studio · Barcelona",
-    "tagline": "Websites that sell. A brand that sticks.",
-    "subcopy": "Design, development and marketing in one team, so every piece works toward your results.",
+    "tagline": "Digital solutions to grow your business and your team.",
+    "subcopy": "We design and build websites, apps, internal tools and digital strategies so your business stands out, runs better and grows.",
     "primary": "Tell us about your project",
     "primaryNote": "We reply on WhatsApp the same day.",
     "secondary": "See work",

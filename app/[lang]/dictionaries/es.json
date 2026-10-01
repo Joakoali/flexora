@@ -9,6 +9,8 @@
     "contact": "Contacto",
     "cta": "Hablemos",
     "home": "Ir al inicio",
+    "menu": "Menú",
+    "closeMenu": "Cerrar menú",
     "primary": "Navegación principal"
   },
   "theme": {
@@ -22,8 +24,8 @@
   },
   "hero": {
     "eyebrow": "Estudio digital · Barcelona",
-    "tagline": "Webs que venden. Marca que se recuerda.",
-    "subcopy": "Diseño, desarrollo y marketing en un solo equipo, para que cada pieza trabaje por tus resultados.",
+    "tagline": "Soluciones digitales para hacer crecer tu negocio y tu equipo.",
+    "subcopy": "Diseñamos y desarrollamos webs, apps, herramientas internas y estrategias digitales para que tu negocio destaque, funcione mejor y crezca.",
     "primary": "Contanos tu proyecto",
     "primaryNote": "Te respondemos por WhatsApp en el día.",
     "secondary": "Ver trabajos",

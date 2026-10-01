@@ -12,7 +12,7 @@ const WDTH_REST = 140;
 const FLEX_LEN = 4;
 
 export function FlexWordmark({ text }: { text: string }) {
-  const ref = useRef<HTMLHeadingElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const raw = useMotionValue(WDTH_REST);
   const wdth = useSpring(raw, SPRING_FOLLOW);
@@ -39,7 +39,7 @@ export function FlexWordmark({ text }: { text: string }) {
   return (
     <div className="hero__wordmark">
       <FlexMark className="hero__wordmark-mark" />
-      <h1
+      <div
         ref={ref}
         className="hero__wordmark-text"
         data-wdth={display}
@@ -48,7 +48,7 @@ export function FlexWordmark({ text }: { text: string }) {
         {/* "FLEX" viaja de blanco a violeta con --hero-p: al aterrizar es idéntico al logo del header. */}
         <span className="hero__wordmark-flex">{text.slice(0, FLEX_LEN)}</span>
         {text.slice(FLEX_LEN)}
-      </h1>
+      </div>
     </div>
   );
 }
