@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { anybody, geistMono, geistSans } from "@/lib/fonts";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
-import { locales } from "@/lib/i18n";
+import { locales, type Locale } from "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { HeroScrollProvider } from "@/components/site/HeroScrollProvider";
 import { Footer } from "@/components/site/Footer";
@@ -12,6 +12,8 @@ import "../globals.css";
 export async function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
+
+const OG_LOCALE: Record<Locale, string> = { es: "es_AR", en: "en_US", ca: "ca_ES" };
 
 const FALLBACK_SITE_URL = "http://localhost:3000";
 
@@ -31,12 +33,12 @@ export async function generateMetadata(): Promise<Metadata> {
     description: dict.meta.description,
     alternates: {
       canonical: `/${locale}`,
-      languages: { es: "/es", en: "/en" },
+      languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])),
     },
     openGraph: {
       title: dict.meta.title,
       description: dict.meta.description,
-      locale: locale === "es" ? "es_AR" : "en_US",
+      locale: OG_LOCALE[locale],
       type: "website",
       images: [`/og-${locale}.png`],
     },

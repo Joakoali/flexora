@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-for (const lang of ["es", "en"] as const) {
+for (const lang of ["es", "en", "ca"] as const) {
   test(`axe sin violaciones en /${lang}`, async ({ page }) => {
     await page.goto(`/${lang}`);
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

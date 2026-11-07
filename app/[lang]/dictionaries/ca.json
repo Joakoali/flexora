@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "title": "Flexora — Webs, màrqueting i marca",
+    "description": "Estudi de desenvolupament web, màrqueting digital i branding. Fem que el teu negoci es vegi i vengui com es mereix."
+  },
+  "nav": {
+    "services": "Serveis",
+    "work": "Treballs",
+    "contact": "Contacte",
+    "cta": "Parlem",
+    "home": "Anar a l'inici",
+    "menu": "Menú",
+    "closeMenu": "Tancar el menú",
+    "primary": "Navegació principal"
+  },
+  "theme": {
+    "toLight": "Canviar a tema clar",
+    "toDark": "Canviar a tema fosc"
+  },
+  "lang": {
+    "label": "Idioma",
+    "es": "Español",
+    "en": "English",
+    "ca": "Català"
+  },
+  "hero": {
+    "eyebrow": "Estudi digital · Barcelona",
+    "tagline": "Solucions digitals per fer créixer el teu negoci i el teu equip.",
+    "subcopy": "Dissenyem i desenvolupem webs, apps, eines internes i estratègies digitals perquè el teu negoci destaqui, funcioni millor i creixi.",
+    "primary": "Explica'ns el teu projecte",
+    "primaryNote": "Et responem per WhatsApp durant el dia.",
+    "secondary": "Veure treballs",
+    "disciplines": ["Desenvolupament", "Màrqueting", "Marca"],
+    "disciplinesLabel": "Disciplines",
+    "projectsPrefix": "Fet per a",
+    "whatsappMessage": "Hola Flexora, vull parlar d'un projecte."
+  },
+  "clients": {
+    "label": "Ja han confiat en nosaltres"
+  },
+  "services": {
+    "title": "Tres disciplines, un sol equip.",
+    "items": [
+      {
+        "index": "01",
+        "label": "Desenvolupament",
+        "title": "Desenvolupament web",
+        "description": "Llocs web, landings i e-commerce fets a mida. Ràpids, mesurables i fàcils de mantenir.",
+        "deliverables": [
+          "Llocs institucionals",
+          "Landings de campanya",
+          "E-commerce",
+          "Apps web a mida"
+        ]
+      },
+      {
+        "index": "02",
+        "label": "Màrqueting",
+        "title": "Màrqueting i ads",
+        "description": "Campanyes a Meta i Google amb embuts que converteixen. Decidim amb dades, no amb pressentiments.",
+        "deliverables": [
+          "Campanyes de pagament",
+          "Embuts i landings",
+          "Mesurament i informes",
+          "Optimització contínua"
+        ]
+      },
+      {
+        "index": "03",
+        "label": "Branding",
+        "title": "Branding i identitat",
+        "description": "Marques amb caràcter propi: logotip, sistema visual i to de veu que es reconeixen en qualsevol canal.",
+        "deliverables": [
+          "Identitat visual",
+          "Logotip i sistema",
+          "Manual de marca",
+          "Peces de llançament"
+        ]
+      }
+    ]
+  },
+  "work": {
+    "title": "Projectes reals, en producció.",
+    "viewCase": "Veure el lloc"
+  },
+  "process": {
+    "title": "Senzill de principi a fi.",
+    "steps": [
+      {
+        "title": "Escoltem",
+        "description": "Una conversa per entendre què necessites, a qui t'adreces i què ha de passar."
+      },
+      {
+        "title": "Proposem",
+        "description": "Un pla concret amb abast, terminis i cost. Sense lletra petita."
+      },
+      {
+        "title": "Construïm",
+        "description": "Disseny i desenvolupament en cicles curts. Veus avenços reals cada setmana."
+      },
+      {
+        "title": "Mesurem",
+        "description": "Llancem, mesurem i ajustem. La feina acaba quan funciona."
+      }
+    ]
+  },
+  "closing": {
+    "title": "Parlem",
+    "description": "Explica'ns què vols aconseguir. Et responem el mateix dia.",
+    "primary": "Escriure per WhatsApp",
+    "emailLabel": "o per correu a",
+    "email": "info@flexoradesign.com",
+    "form": {
+      "formLabel": "Formulari de contacte",
+      "nameLabel": "Nom",
+      "emailLabel": "Correu electrònic",
+      "projectLegend": "Què necessites?",
+      "optional": "(opcional)",
+      "messageLabel": "Missatge",
+      "messagePlaceholder": "Explica'ns una mica el projecte",
+      "submit": "Enviar",
+      "sending": "Enviant…",
+      "successTitle": "Fet!",
+      "successBody": "Hem rebut el teu missatge. Et responem durant el dia.",
+      "sendAnother": "Enviar un altre missatge",
+      "honeypotLabel": "Deixar buit",
+      "projectTypes": {
+        "website": "Lloc web",
+        "landing": "Landing page",
+        "ecommerce": "E-commerce",
+        "webapp": "Web app",
+        "mobile": "App mòbil",
+        "other": "Altre"
+      },
+      "errors": {
+        "required": "Aquest camp és obligatori.",
+        "invalid": "Introdueix un correu electrònic vàlid.",
+        "too_long": "És massa llarg.",
+        "send_failed": "No hem pogut enviar-lo. Torna-ho a provar o",
+        "sendFailedLink": "escriu-nos per WhatsApp."
+      }
+    }
+  },
+  "footer": {
+    "rights": "Tots els drets reservats.",
+    "madeIn": "Fet a l'Argentina?"
+  }
+}

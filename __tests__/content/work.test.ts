@@ -10,6 +10,7 @@ describe("content/work", () => {
       expect(existsSync(`public${w.cover}`), w.cover).toBe(true);
       expect(w.description.es).not.toBe("");
       expect(w.description.en).not.toBe("");
+      expect(w.description.ca).not.toBe("");
       expect(w.tags.length).toBeGreaterThan(0);
       expect(w.siteUrl).toMatch(/^https:\/\//);
     }

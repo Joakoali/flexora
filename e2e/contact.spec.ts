@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 import es from "../app/[lang]/dictionaries/es.json";
 import en from "../app/[lang]/dictionaries/en.json";
+import ca from "../app/[lang]/dictionaries/ca.json";
 
-const DICTS = { es, en } as const;
+const DICTS = { es, en, ca } as const;
 
-for (const lang of ["es", "en"] as const) {
+for (const lang of ["es", "en", "ca"] as const) {
   const t = DICTS[lang].closing.form;
 
   test(`contacto ${lang}: envío correcto muestra el éxito y permite enviar otro`, async ({ page }) => {
