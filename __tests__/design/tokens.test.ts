@@ -41,6 +41,17 @@ describe("design tokens", () => {
     expect(rule(".closing__title")).not.toContain("font-size");
   });
 
+  it("la entrada del showcase sale de tokens y no de duraciones sueltas", () => {
+    expect(css).toContain("--dur-showcase: 900ms");
+    expect(css).toContain("--showcase-delay: 350ms");
+    expect(css).toContain("--showcase-stagger: 140ms");
+    const win = css.match(/\.hero-showcase__win\s*{([^}]*)}/)?.[1] ?? "";
+    expect(win).toContain("var(--dur-showcase)");
+    expect(win).toContain("var(--showcase-delay)");
+    expect(win).toContain("var(--showcase-stagger)");
+    expect(win).not.toMatch(/\b(900|350|140)ms\b/);
+  });
+
   it("no usa ease-in ni transition: all", () => {
     expect(css).not.toMatch(/[^-]ease-in[^-]/);
     expect(css).not.toContain("transition: all");

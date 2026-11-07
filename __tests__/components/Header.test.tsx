@@ -76,6 +76,94 @@ describe("Header", () => {
       expect(document.activeElement).toBe(screen.getByRole("button", { name: es.nav.menu }));
     });
 
+    it("con el menú abierto deja <main> y el footer inertes, y los libera al cerrar", () => {
+      render(
+        <>
+          <HeroScrollProvider>
+            <Header locale="es" labels={labels} whatsappHref="#" />
+          </HeroScrollProvider>
+          <main id="main" />
+          <footer />
+        </>,
+      );
+      const main = document.getElementById("main")!;
+      const footer = document.querySelector("footer")!;
+      expect(main.hasAttribute("inert")).toBe(false);
+      fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+      expect(main.hasAttribute("inert")).toBe(true);
+      expect(footer.hasAttribute("inert")).toBe(true);
+      expect(screen.getByRole("banner").hasAttribute("inert")).toBe(false);
+      fireEvent.keyDown(document, { key: "Escape" });
+      expect(main.hasAttribute("inert")).toBe(false);
+      expect(footer.hasAttribute("inert")).toBe(false);
+    });
+
+    it("no libera un inert que ya tenía <main> antes de abrir el menú", () => {
+      render(
+        <>
+          <HeroScrollProvider>
+            <Header locale="es" labels={labels} whatsappHref="#" />
+          </HeroScrollProvider>
+          <main id="main" inert />
+        </>,
+      );
+      fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+      fireEvent.keyDown(document, { key: "Escape" });
+      expect(document.getElementById("main")!.hasAttribute("inert")).toBe(true);
+    });
+
+    it("si el viewport pasa a escritorio con el foco en el panel, el foco va al nav de escritorio", () => {
+      const original = window.matchMedia;
+      let desktop = false;
+      const listeners = new Set<() => void>();
+      window.matchMedia = ((query: string) => ({
+        get matches() { return query === "(min-width: 900px)" ? desktop : false; },
+        media: query,
+        addEventListener: (_: string, l: () => void) => listeners.add(l),
+        removeEventListener: (_: string, l: () => void) => listeners.delete(l),
+      })) as unknown as typeof window.matchMedia;
+      try {
+        setup();
+        fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+        const panelLink = document.getElementById("mobile-menu")!.querySelector<HTMLAnchorElement>("nav a")!;
+        expect(document.activeElement).toBe(panelLink);
+        act(() => {
+          desktop = true;
+          listeners.forEach((l) => l());
+        });
+        expect(document.getElementById("mobile-menu")).toBeNull();
+        const navLink = document.querySelector<HTMLAnchorElement>(".site-header__nav a")!;
+        expect(document.activeElement).toBe(navLink);
+      } finally {
+        window.matchMedia = original;
+      }
+    });
+
+    it("si el navegador ya soltó el foco en <body> al ocultar el panel, igual va al nav de escritorio", () => {
+      const original = window.matchMedia;
+      let desktop = false;
+      const listeners = new Set<() => void>();
+      window.matchMedia = ((query: string) => ({
+        get matches() { return query === "(min-width: 900px)" ? desktop : false; },
+        media: query,
+        addEventListener: (_: string, l: () => void) => listeners.add(l),
+        removeEventListener: (_: string, l: () => void) => listeners.delete(l),
+      })) as unknown as typeof window.matchMedia;
+      try {
+        setup();
+        fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+        (document.activeElement as HTMLElement).blur();
+        expect(document.activeElement).toBe(document.body);
+        act(() => {
+          desktop = true;
+          listeners.forEach((l) => l());
+        });
+        expect(document.activeElement).toBe(document.querySelector(".site-header__nav a"));
+      } finally {
+        window.matchMedia = original;
+      }
+    });
+
     it("tocar un link cierra el panel", () => {
       setup();
       fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));

@@ -33,6 +33,10 @@
   --dur-fast: 120ms;
   --dur-base: 200ms;
   --dur-slow: 500ms;
+  /* Entrada del showcase del hero: espejo de SHOWCASE en lib/motion.ts. */
+  --dur-showcase: 900ms;
+  --showcase-delay: 350ms;
+  --showcase-stagger: 140ms;
 
   --text-display: clamp(3.5rem, 11vw, 10rem);
   --text-h2: clamp(1.625rem, 3.4vw, 3rem);
@@ -905,8 +909,8 @@ body:has(#hero) {
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   box-shadow: var(--showcase-shadow);
-  animation: showcase-in 900ms var(--ease-out) both;
-  animation-delay: calc(350ms + var(--i) * 140ms);
+  animation: showcase-in var(--dur-showcase) var(--ease-out) both;
+  animation-delay: calc(var(--showcase-delay) + var(--i) * var(--showcase-stagger));
 }
 .hero-showcase__layer--0 .hero-showcase__win { rotate: -2deg; }
 .hero-showcase__layer--1 .hero-showcase__win { rotate: 2.5deg; opacity: 0.94; }

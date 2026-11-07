@@ -43,8 +43,19 @@ export function HeroShowcase({ items }: { items: ShowcaseItem[] }) {
       rawX.set((e.clientX / window.innerWidth - 0.5) * 2);
       rawY.set((e.clientY / window.innerHeight - 0.5) * 2);
     };
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onMove);
+    // Por debajo de 1280px el showcase está oculto (display: none): no hay nada
+    // que mover, así que el listener sólo vive mientras el viewport es ancho.
+    const wide = window.matchMedia("(min-width: 1280px)");
+    const sync = () => {
+      window.removeEventListener("pointermove", onMove);
+      if (wide.matches) window.addEventListener("pointermove", onMove, { passive: true });
+    };
+    sync();
+    wide.addEventListener("change", sync);
+    return () => {
+      wide.removeEventListener("change", sync);
+      window.removeEventListener("pointermove", onMove);
+    };
   }, [rawX, rawY, reduced]);
 
   return (

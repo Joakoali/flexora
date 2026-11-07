@@ -4,6 +4,7 @@ import {
   EASE_IN_OUT,
   EASE_OUT,
   REVEAL,
+  SHOWCASE,
   SPRING_BASE,
   SPRING_FOLLOW,
 } from "@/lib/motion";
@@ -21,6 +22,10 @@ describe("motion tokens", () => {
   it("define el spring base y el de seguimiento", () => {
     expect(SPRING_BASE).toEqual({ type: "spring", duration: 0.4, bounce: 0.2 });
     expect(SPRING_FOLLOW).toEqual({ stiffness: 120, damping: 24, mass: 1 });
+  });
+
+  it("define la entrada del showcase del hero", () => {
+    expect(SHOWCASE).toEqual({ durationMs: 900, delayMs: 350, staggerMs: 140 });
   });
 
   it("define los parámetros de reveal", () => {

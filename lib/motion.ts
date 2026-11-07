@@ -7,6 +7,9 @@ export const EASE_IN_OUT = "cubic-bezier(0.77, 0, 0.175, 1)";
 
 export const DURATION = { fast: 120, base: 200, slow: 500 } as const;
 
+/** Entrada escalonada de las ventanas del showcase del hero (ms). */
+export const SHOWCASE = { durationMs: 900, delayMs: 350, staggerMs: 140 } as const;
+
 /** Spring para cambios de estado discretos (switch de tema, marquee al soltar). */
 export const SPRING_BASE = { type: "spring", duration: 0.4, bounce: 0.2 } as const;
 

@@ -48,14 +48,20 @@ export function Header({ locale, labels, whatsappHref }: Props) {
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-  // Menú abierto: bloquea el scroll de la página, cierra con Esc (devolviendo el
-  // foco al botón), mantiene el Tab dentro del header y se cierra solo si el
-  // viewport pasa al layout de escritorio.
+  // Menú abierto: bloquea el scroll de la página, deja el resto del documento
+  // inerte (ni Tab ni cursor virtual de lectores de pantalla), cierra con Esc
+  // (devolviendo el foco al botón), mantiene el Tab dentro del header y se cierra
+  // solo si el viewport pasa al layout de escritorio.
   useEffect(() => {
     if (!menuOpen) return;
     const html = document.documentElement;
     const prevOverflow = html.style.overflow;
     html.style.overflow = "hidden";
+    // Sólo se libera lo que se marcó acá: un inert previo del mismo elemento se respeta.
+    const inerted = Array.from(headerRef.current?.parentElement?.children ?? []).filter(
+      (el) => (el.tagName === "MAIN" || el.tagName === "FOOTER") && !el.hasAttribute("inert"),
+    );
+    inerted.forEach((el) => el.setAttribute("inert", ""));
     headerRef.current?.querySelector<HTMLElement>(".mobile-menu a")?.focus();
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -81,12 +87,27 @@ export function Header({ locale, labels, whatsappHref }: Props) {
     };
     const desktop = window.matchMedia("(min-width: 900px)");
     const onBreakpoint = () => {
-      if (desktop.matches) setMenuOpen(false);
+      if (!desktop.matches) return;
+      // En escritorio el botón del menú está oculto (display: none) y no puede
+      // recibir foco: si el foco estaba en el panel o en el botón, pasa al primer
+      // link del nav de escritorio en vez de caer en <body> al desmontarse el panel.
+      // El navegador puede haber ocultado ya el panel (y soltado el foco en <body>)
+      // antes de este handler; con el menú abierto el foco vive siempre dentro del
+      // header, así que <body> significa "se perdió" y se trata igual.
+      const active = document.activeElement;
+      const lost = !active || active === document.body;
+      const inMenu =
+        !!active &&
+        (active === menuButtonRef.current ||
+          !!headerRef.current?.querySelector(".mobile-menu")?.contains(active));
+      if (lost || inMenu) headerRef.current?.querySelector<HTMLElement>(".site-header__nav a")?.focus();
+      setMenuOpen(false);
     };
     document.addEventListener("keydown", onKeyDown);
     desktop.addEventListener("change", onBreakpoint);
     return () => {
       html.style.overflow = prevOverflow;
+      inerted.forEach((el) => el.removeAttribute("inert"));
       document.removeEventListener("keydown", onKeyDown);
       desktop.removeEventListener("change", onBreakpoint);
     };
