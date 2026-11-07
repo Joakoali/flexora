@@ -666,7 +666,8 @@ body:has(#hero) {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr;
   padding-top: var(--header-h);
-  padding-bottom: clamp(2rem, 6vh, 5rem);
+  /* Sin relleno inferior: el bloque de texto queda centrado de verdad en la escena
+     (el mismo aire arriba, bajo el wordmark, que abajo). */
 }
 .hero__wordmark {
   /* El viaje y la convergencia (color, wdth, proporción) terminan al 85% de
@@ -968,6 +969,12 @@ body:has(#hero) {
   position: relative;
   z-index: 1;
   background: var(--bg);
+  /* La escena del hero mide 100dvh y su texto va centrado, así que en pantallas
+     altas queda una banda vacía bajo el texto antes del marquee. Se sube el
+     marquee sobre ese hueco (la escena sticky y el viaje del logo no cambian):
+     0 hasta ~814px de alto y crece 0.44px por cada px extra, lo que deja el
+     hueco cerca de --section-y (medido de 390x844 a 1920x1080). */
+  margin-top: calc(-1 * max(0px, (100dvh - 814px) * 0.44));
   padding-block: clamp(1rem, 2vw, 1.75rem);
   overflow: hidden;
   border-bottom: 1px solid var(--border);

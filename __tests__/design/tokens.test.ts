@@ -64,6 +64,13 @@ describe("design tokens", () => {
     expect(item).toContain("font-size: clamp(1.25rem, 2.2vw, 2rem)");
   });
 
+  it("el hero reparte el aire por igual y el marquee sube sobre el hueco muerto de la escena", () => {
+    const content = css.match(/\.hero__content\s*{([^}]*)}/)?.[1] ?? "";
+    expect(content).not.toContain("padding-bottom");
+    const marquee = css.match(/\.marquee\s*{([^}]*)}/)?.[1] ?? "";
+    expect(marquee).toContain("margin-top: calc(-1 * max(0px, (100dvh - 814px) * 0.44))");
+  });
+
   it("no usa ease-in ni transition: all", () => {
     expect(css).not.toMatch(/[^-]ease-in[^-]/);
     expect(css).not.toContain("transition: all");
