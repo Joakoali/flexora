@@ -532,7 +532,6 @@ html.theme-changing *::after {
 
 /* ---------- Process ---------- */
 .process__title {
-  max-width: 20ch;
   text-wrap: balance;
 }
 .process__steps {
@@ -1019,7 +1018,6 @@ body:has(#hero) {
   background: var(--bg);
 }
 .services__title {
-  max-width: 20ch;
   text-wrap: balance;
 }
 .services__list {
@@ -1075,7 +1073,6 @@ body:has(#hero) {
   color: var(--fg-muted);
 }
 .work__title {
-  max-width: 20ch;
   text-wrap: balance;
 }
 .work__grid {

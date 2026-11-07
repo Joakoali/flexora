@@ -52,6 +52,13 @@ describe("design tokens", () => {
     expect(win).not.toMatch(/\b(900|350|140)ms\b/);
   });
 
+  it("los títulos de sección no tienen ancho máximo: ocupan una sola línea en desktop", () => {
+    for (const name of ["services", "work", "process"]) {
+      const rule = css.match(new RegExp(`\\.${name}__title\\s*{([^}]*)}`))?.[1] ?? "";
+      expect(rule, `.${name}__title`).not.toContain("max-width");
+    }
+  });
+
   it("no usa ease-in ni transition: all", () => {
     expect(css).not.toMatch(/[^-]ease-in[^-]/);
     expect(css).not.toContain("transition: all");
