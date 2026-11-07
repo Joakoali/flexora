@@ -30,6 +30,17 @@ describe("design tokens", () => {
     expect(css).toContain("--dur-slow: 500ms");
   });
 
+  it("alinea la jerarquía al hero: h2 de sección más chico que el H1 y ritmo vertical unificado", () => {
+    expect(css).toContain("--text-h2: clamp(1.625rem, 3.4vw, 3rem)");
+    expect(css).toContain("--section-y: clamp(4rem, 8vw, 7rem)");
+    const rule = (selector: string) =>
+      css.match(new RegExp(`(?:^|\\n)${selector.replace(/[.#]/g, "\\$&")}\\s*{([^}]*)}`))?.[1] ?? "";
+    expect(rule(".section")).toContain("var(--section-y)");
+    expect(rule(".closing__content")).toContain("var(--section-y)");
+    expect(rule(".closing")).not.toContain("min-height");
+    expect(rule(".closing__title")).not.toContain("font-size");
+  });
+
   it("no usa ease-in ni transition: all", () => {
     expect(css).not.toMatch(/[^-]ease-in[^-]/);
     expect(css).not.toContain("transition: all");

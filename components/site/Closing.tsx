@@ -19,7 +19,7 @@ export function Closing({
     <section id="contact" className="closing" aria-labelledby="closing-title">
       <FlexField variant="closing" />
       <Reveal className="container-site closing__content">
-        <h2 id="closing-title" className="display closing__title">{t.title}</h2>
+        <h2 id="closing-title" className="h2 closing__title">{t.title}</h2>
         <div className="closing__grid">
           <div className="closing__intro">
             <p className="closing__desc measure">{t.description}</p>
