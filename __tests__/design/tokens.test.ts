@@ -59,6 +59,11 @@ describe("design tokens", () => {
     }
   });
 
+  it("el marquee de clientes es una franja discreta: tipografía bien por debajo del H1 del hero", () => {
+    const item = css.match(/\.marquee__item\s*{([^}]*)}/)?.[1] ?? "";
+    expect(item).toContain("font-size: clamp(1.25rem, 2.2vw, 2rem)");
+  });
+
   it("no usa ease-in ni transition: all", () => {
     expect(css).not.toMatch(/[^-]ease-in[^-]/);
     expect(css).not.toContain("transition: all");
