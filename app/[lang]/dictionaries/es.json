@@ -23,6 +23,9 @@
     "en": "English",
     "ca": "Català"
   },
+  "whatsappFab": {
+    "label": "Escribinos por WhatsApp"
+  },
   "hero": {
     "eyebrow": "Estudio digital · Barcelona",
     "tagline": "Soluciones digitales para hacer crecer tu negocio y tu equipo.",

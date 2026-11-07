@@ -98,6 +98,23 @@ describe("Header", () => {
       expect(footer.hasAttribute("inert")).toBe(false);
     });
 
+    it("también deja inerte el botón flotante de WhatsApp", () => {
+      render(
+        <>
+          <HeroScrollProvider>
+            <Header locale="es" labels={labels} whatsappHref="#" />
+          </HeroScrollProvider>
+          <main id="main" />
+          <a className="wa-fab" href="#">WhatsApp</a>
+        </>,
+      );
+      const fab = document.querySelector(".wa-fab")!;
+      fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
+      expect(fab.hasAttribute("inert")).toBe(true);
+      fireEvent.keyDown(document, { key: "Escape" });
+      expect(fab.hasAttribute("inert")).toBe(false);
+    });
+
     it("no libera un inert que ya tenía <main> antes de abrir el menú", () => {
       render(
         <>

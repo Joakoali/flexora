@@ -59,7 +59,9 @@ export function Header({ locale, labels, whatsappHref }: Props) {
     html.style.overflow = "hidden";
     // Sólo se libera lo que se marcó acá: un inert previo del mismo elemento se respeta.
     const inerted = Array.from(headerRef.current?.parentElement?.children ?? []).filter(
-      (el) => (el.tagName === "MAIN" || el.tagName === "FOOTER") && !el.hasAttribute("inert"),
+      (el) =>
+        (el.tagName === "MAIN" || el.tagName === "FOOTER" || el.classList.contains("wa-fab")) &&
+        !el.hasAttribute("inert"),
     );
     inerted.forEach((el) => el.setAttribute("inert", ""));
     headerRef.current?.querySelector<HTMLElement>(".mobile-menu a")?.focus();

@@ -27,6 +27,11 @@
   --gutter: clamp(16px, 4vw, 64px);
   /* Ritmo vertical único de las secciones (Servicios, Trabajos, Proceso, Cierre). */
   --section-y: clamp(4rem, 8vw, 7rem);
+  /* Botón flotante de WhatsApp. */
+  --fab-size: 52px;
+  --fab-offset: clamp(1rem, 2vw, 1.5rem);
+  /* Verde de marca de WhatsApp: fijo, no forma parte de la paleta temable de Flexora. */
+  --whatsapp-brand: #25d366;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -560,7 +565,9 @@ html.theme-changing *::after {
 /* ---------- Footer ---------- */
 .site-footer {
   margin-top: auto;
-  padding-block: 2rem;
+  padding-top: 2rem;
+  /* Deja lugar al botón flotante de WhatsApp para que no tape el texto legal. */
+  padding-bottom: calc(var(--fab-size) + var(--fab-offset) + 1rem);
 }
 .site-footer__inner {
   display: flex;
@@ -579,6 +586,51 @@ html.theme-changing *::after {
 .site-footer__legal {
   font-size: 0.875rem;
   color: var(--fg-muted);
+}
+
+/* ---------- Botón flotante de WhatsApp ---------- */
+.wa-fab {
+  position: fixed;
+  z-index: 40; /* bajo el header (50): con el menú mobile abierto queda tapado */
+  right: max(var(--fab-offset), env(safe-area-inset-right));
+  bottom: max(var(--fab-offset), env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  width: var(--fab-size);
+  height: var(--fab-size);
+  background: var(--surface);
+  color: var(--accent-text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--showcase-shadow);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+  animation: wa-fab-in var(--dur-slow) var(--ease-out) 600ms both;
+}
+.wa-fab:active {
+  transform: scale(0.97);
+}
+/* Foco por teclado igual que el hover; el hover real sólo donde hay puntero. */
+.wa-fab:focus-visible {
+  background: var(--whatsapp-brand);
+  border-color: var(--whatsapp-brand);
+  color: #fff;
+}
+@media (hover: hover) {
+  .wa-fab:hover {
+    background: var(--whatsapp-brand);
+    border-color: var(--whatsapp-brand);
+    color: #fff;
+  }
+}
+@keyframes wa-fab-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wa-fab { animation: none; }
 }
 
 /* ---------- FlexField ---------- */

@@ -5,6 +5,7 @@ import { locales, type Locale } from "@/lib/i18n";
 import { Header } from "@/components/site/Header";
 import { HeroScrollProvider } from "@/components/site/HeroScrollProvider";
 import { Footer } from "@/components/site/Footer";
+import { WhatsAppFab } from "@/components/site/WhatsAppFab";
 import { whatsappHref } from "@/lib/whatsapp";
 import { getDictionary, getLocale } from "./dictionaries";
 import "../globals.css";
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
           {children}
         </HeroScrollProvider>
         <Footer t={dict.footer} locale={locale} />
+        <WhatsAppFab href={whatsappHref(dict.hero.whatsappMessage)} label={dict.whatsappFab.label} />
       </body>
     </html>
   );

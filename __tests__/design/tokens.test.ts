@@ -71,6 +71,22 @@ describe("design tokens", () => {
     expect(marquee).toContain("margin-top: calc(-1 * max(0px, (100dvh - 814px) * 0.44))");
   });
 
+  it("el botón flotante de WhatsApp es de Flexora en reposo y verde de WhatsApp en hover/foco", () => {
+    expect(css).toContain("--whatsapp-brand: #25d366");
+    const fab = css.match(/\.wa-fab\s*{([^}]*)}/)?.[1] ?? "";
+    expect(fab).toContain("position: fixed");
+    expect(fab).toContain("background: var(--surface)");
+    expect(fab).toContain("color: var(--accent-text)");
+    expect(fab).toContain("border-radius: var(--radius-md)");
+    expect(css).toMatch(/\.wa-fab:focus-visible[^{]*{[^}]*var\(--whatsapp-brand\)/);
+    expect(css).toMatch(/@media \(hover: hover\)\s*{\s*\.wa-fab:hover/);
+  });
+
+  it("el footer deja lugar al botón flotante para no taparse", () => {
+    const footer = css.match(/\.site-footer\s*{([^}]*)}/)?.[1] ?? "";
+    expect(footer).toContain("--fab-size");
+  });
+
   it("no usa ease-in ni transition: all", () => {
     expect(css).not.toMatch(/[^-]ease-in[^-]/);
     expect(css).not.toContain("transition: all");

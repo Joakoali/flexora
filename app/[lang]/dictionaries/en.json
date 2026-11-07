@@ -23,6 +23,9 @@
     "en": "English",
     "ca": "Català"
   },
+  "whatsappFab": {
+    "label": "Message us on WhatsApp"
+  },
   "hero": {
     "eyebrow": "Digital studio · Barcelona",
     "tagline": "Digital solutions to grow your business and your team.",
