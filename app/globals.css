@@ -261,7 +261,10 @@ html.theme-changing *::after {
 /* ---------- Reveal ---------- */
 /* Gesto "subir y aparecer": desplazamiento --reveal-offset y escalón --reveal-stagger (REVEAL en
    lib/motion.ts). Lo comparten Reveal (transición), la entrada del copy del hero y el botón flotante
-   de WhatsApp (animación `rise-in`): una sola fuente para los tres. */
+   de WhatsApp (animación `rise-in`): una sola fuente para los tres. El botón usa el desplazamiento pero
+   no el escalón (su delay es --fab-delay). El menú mobile reutiliza solo el escalón en sus ítems
+   (`.mobile-menu__list li`, `.mobile-menu__foot`); su desplazamiento es propio (`menu-item-in`, 16px),
+   así que cambiar REVEAL.staggerMs también mueve el menú, a propósito. */
 [data-reveal] > * {
   opacity: 0;
   transform: translateY(var(--reveal-offset));

@@ -42,14 +42,6 @@ describe("design tokens", () => {
     expect(css).toContain("--accent: #6a2bf2");
   });
 
-  it("expone las variables de motion con los valores del spec", () => {
-    expect(css).toContain("--ease-out: cubic-bezier(0.23, 1, 0.32, 1)");
-    expect(css).toContain("--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)");
-    expect(css).toContain("--dur-fast: 120ms");
-    expect(css).toContain("--dur-base: 200ms");
-    expect(css).toContain("--dur-slow: 500ms");
-  });
-
   it("cada token de lib/motion.ts está espejado en :root con el valor exacto que deriva de la constante", () => {
     const root = css.match(/:root\s*{([^}]*)}/)?.[1] ?? "";
     const mirrors = [
@@ -85,15 +77,11 @@ describe("design tokens", () => {
     expect(rule(".closing__title")).not.toContain("font-size");
   });
 
-  it("la entrada del showcase sale de tokens y no de duraciones sueltas", () => {
-    expect(css).toContain("--dur-showcase: 900ms");
-    expect(css).toContain("--showcase-delay: 350ms");
-    expect(css).toContain("--showcase-stagger: 140ms");
+  it("la entrada del showcase lee sus tokens (que no haya literales lo veda el guard de abajo)", () => {
     const win = css.match(/\.hero-showcase__win\s*{([^}]*)}/)?.[1] ?? "";
     expect(win).toContain("var(--dur-showcase)");
     expect(win).toContain("var(--showcase-delay)");
     expect(win).toContain("var(--showcase-stagger)");
-    expect(win).not.toMatch(/\b(900|350|140)ms\b/);
   });
 
   it("los títulos de sección no tienen ancho máximo: ocupan una sola línea en desktop", () => {
@@ -181,122 +169,65 @@ describe("design tokens", () => {
 
 // ---------- Guard: sin duraciones, delays ni curvas literales en las animaciones ----------
 
-type Declaration = { context: string[]; property: string; value: string };
-
-/** Recorre el CSS (sin comentarios) con una pila de bloques: soporta @media/@supports/@keyframes anidados. */
-function declarations(source: string): Declaration[] {
-  const code = source.replace(/\/\*[\s\S]*?\*\//g, "");
-  const out: Declaration[] = [];
-  const stack: string[] = [];
-  let buffer = "";
-  let parens = 0;
-  let quote: string | null = null;
-  for (const ch of code) {
-    if (quote) {
-      buffer += ch;
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'") {
-      quote = ch;
-      buffer += ch;
-      continue;
-    }
-    if (ch === "(") parens++;
-    if (ch === ")") parens--;
-    if (parens === 0 && ch === "{") {
-      stack.push(buffer.trim().replace(/\s+/g, " "));
-      buffer = "";
-      continue;
-    }
-    if (parens === 0 && (ch === ";" || ch === "}")) {
-      const text = buffer.trim();
-      const colon = text.indexOf(":");
-      if (text && colon > 0) {
-        out.push({ context: [...stack], property: text.slice(0, colon).trim().toLowerCase(), value: text.slice(colon + 1).trim() });
-      }
-      buffer = "";
-      if (ch === "}") stack.pop();
-      continue;
-    }
-    buffer += ch;
-  }
-  return out;
-}
-
-const MOTION_PROPERTIES = new Set([
-  "animation",
-  "animation-delay",
-  "animation-duration",
-  "animation-timing-function",
-  "transition",
-  "transition-delay",
-  "transition-duration",
-  "transition-timing-function",
-]);
+/**
+ * Veda los literales de duración/delay (`300ms`, `.5s`, `-4s`) y de curva (`ease`, `linear`, `cubic-bezier()`,
+ * `steps()`) en toda declaración `animation*` / `transition*` de globals.css: los valores salen de los tokens
+ * (bloque "Tokens de movimiento" de `:root` y lib/motion.ts). Es un regex sobre el CSS sin comentarios, no un
+ * parser, así que no sabe en qué regla está cada declaración.
+ *
+ * Límites conocidos: no ve una duración puesta en una custom property fuera de `:root` y consumida con `var()`
+ * (`.x { --d: 300ms; transition: opacity var(--d) }`), ni un override de `--dur-*` anidado en `@media`. Las
+ * custom properties (`--*`) quedan fuera a propósito: ahí viven los tokens.
+ */
+const MOTION_DECLARATION = /(?<![\w-])((?:animation|transition)(?:-[a-z-]+)?)\s*:\s*([^;{}]+)/gi;
 const TIME_LITERAL = /^[+-]?(\d+\.?\d*|\.\d+)(ms|s)$/i;
 const EASING_KEYWORDS = new Set(["ease", "ease-in", "ease-out", "ease-in-out", "linear", "step-start", "step-end"]);
 
-type Violation = { rule: string; property: string; value: string; literals: string[] };
+type MotionDeclaration = { line: number; declaration: string; literals: string[] };
 
-/** Literales de duración/delay y curvas en declaraciones de animation/transition fuera de `:root` (donde viven los tokens). */
-function findMotionLiterals(source: string): Violation[] {
-  const violations: Violation[] = [];
-  for (const { context, property, value } of declarations(source)) {
-    if (!MOTION_PROPERTIES.has(property) || context.at(-1) === ":root") continue;
+/**
+ * Todas las declaraciones de movimiento, con los literales que traen (vacío si usan solo tokens).
+ * `declaration` está normalizada: propiedad en minúsculas, blancos colapsados y sin `!important` (la
+ * prioridad no cambia si hay un literal). Es la clave exacta con la que se compara la allowlist.
+ */
+function motionDeclarations(source: string): MotionDeclaration[] {
+  // Los comentarios se reemplazan por blancos (no se borran) para conservar los números de línea.
+  const code = source.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, " "));
+  return [...code.matchAll(MOTION_DECLARATION)].map(({ 1: property, 2: raw, index }) => {
+    const value = raw.trim().replace(/\s+/g, " ").replace(/ ?!important$/i, "");
     // Tokens por identificador/número: `--ease-out` o `-4s` (con signo) son uno solo, así que
     // `var(--ease-out)` y `linear-gradient` no matchean la keyword `ease-out`/`linear`.
     const tokens = value.match(/[A-Za-z0-9_.+-]+/g) ?? [];
-    const functions = value.match(/(?<![\w-])(?:cubic-bezier|steps|linear)(?=\()/g) ?? [];
+    const functions = value.match(/(?<![\w-])(?:cubic-bezier|steps)(?=\()/g) ?? [];
     const literals = [...tokens.filter((t) => TIME_LITERAL.test(t) || EASING_KEYWORDS.has(t.toLowerCase())), ...functions];
-    if (literals.length) violations.push({ rule: context.join(" > "), property, value: value.replace(/\s+/g, " "), literals });
-  }
-  return violations;
+    return { line: code.slice(0, index).split("\n").length, declaration: `${property.toLowerCase()}: ${value}`, literals };
+  });
 }
 
 /**
- * Deuda preexistente de la PR de tokens: literales que quedaron fuera de alcance. Cada entrada nombra
- * la regla, la propiedad y los literales exactos; cambiar el valor o sumar otro literal en la misma
- * regla vuelve a fallar. La lista no puede tener entradas muertas: al tokenizar una, hay que borrarla.
+ * Allowlist: declaración normalizada -> motivo. Se compara por igualdad exacta, así que cambiar una entrada
+ * (sumar un literal, tokenizar solo una parte, renombrar la animación) deja de coincidir y falla. Cada
+ * entrada cubre UNA declaración (una copia idéntica en otra regla también falla) y no puede quedar muerta:
+ * si ninguna declaración la usa, el test pide borrarla.
  */
-const MOTION_LITERAL_DEBT: { rule: string; property: string; literals: string[]; why: string }[] = [
-  {
-    rule: "@media (prefers-reduced-motion: reduce) > *, *::before, *::after",
-    property: "animation-duration",
-    literals: ["0.001ms"],
-    why: "No es deuda: idioma estándar de reduced-motion (colapsa toda animación sin apagarla). No es un valor de diseño.",
-  },
-  {
-    rule: "@media (prefers-reduced-motion: reduce) > *, *::before, *::after",
-    property: "transition-duration",
-    literals: ["0.001ms"],
-    why: "Ídem animation-duration: idioma de reduced-motion, no un valor de diseño.",
-  },
-  {
-    rule: "@supports (animation-timeline: scroll()) > html",
-    property: "animation",
-    literals: ["linear"],
-    why: "@keyframes hero-progress: animación guiada por scroll, no por tiempo; `linear` es lo que la mapea 1:1 al scroll. No hay duración.",
-  },
-  {
-    rule: "@media (hover: none) > .hero__wordmark-text",
-    property: "animation",
-    literals: ["6s"],
-    why: "Deuda: @keyframes breathe (respiración del wordmark sin puntero). Falta un token de duración de loop ambiental.",
-  },
-  {
-    rule: ".marquee__scroller",
-    property: "animation",
-    literals: ["28s", "linear"],
-    why: "Deuda: @keyframes marquee (franja de clientes). 28 s y la curva lineal deberían ser tokens de loop.",
-  },
-  {
-    rule: "[data-reveal][data-visible] .work-card__window img",
-    property: "animation",
-    literals: ["8s", "ease-in-out"],
-    why: "Deuda: @keyframes work-scroll (scroll de la captura en las cards de Work). Mismo gesto que el loop del showcase: debería usar var(--ease-loop) y un token de duración.",
-  },
-];
+
+/** Excepciones permanentes: literales legítimos que no son valores de diseño. No se tokenizan. */
+const MOTION_EXCEPTIONS: Record<string, string> = {
+  "animation-duration: 0.001ms": "Idioma estándar de reduced-motion: colapsa toda animación sin apagarla (siguen disparando los eventos).",
+  "transition-duration: 0.001ms": "Ídem animation-duration.",
+  "animation: hero-progress linear both":
+    "@keyframes hero-progress va guiada por scroll (animation-timeline), no por tiempo: `linear` la mapea 1:1 al scroll y no hay duración.",
+};
+
+/** Deuda real de la PR de tokens: literales preexistentes que quedaron fuera de alcance. */
+const MOTION_DEBT: Record<string, string> = {
+  "animation: breathe 6s var(--ease-in-out) infinite alternate":
+    "@keyframes breathe (wordmark sin puntero). Al saldar: token de duración de loop ambiental (hoy no existe).",
+  "animation: marquee 28s linear infinite":
+    "@keyframes marquee (franja de clientes). Al saldar: token de duración de loop (28 s); `linear` tampoco tiene token.",
+  "animation: work-scroll 8s ease-in-out infinite alternate":
+    "@keyframes work-scroll (captura de las cards de Work). Al saldar: `ease-in-out` ES var(--ease-loop) (mismo comportamiento) y el 8s necesita un token de duración de loop.",
+};
 
 describe("animaciones sin duraciones ni curvas literales", () => {
   it("el escáner distingue literales de tokens (anidados, calc con signo, var(--ease-*), comentarios, :root)", () => {
@@ -309,46 +240,58 @@ describe("animaciones sin duraciones ni curvas literales", () => {
         .c { transition: opacity .5s ease-in-out, transform 200ms cubic-bezier(0.2, 0, 0, 1) !important }
         .d { content: "a;b{c}"; animation: none }
       }
-      @keyframes k { from { opacity: 0 } }
+      @keyframes k { from { opacity: 0 } to { animation-timing-function: linear } }
       .e { transition-timing-function: linear; animation-duration: var(--dur-fast); }
+      .f { ANIMATION-DELAY: 1S; animation-delay: var(--x, 250ms); animation-range: 0 20vh; transition: none }
+      .g { animation: a var(--dur-slow) steps(4); transition-delay: calc(var(--i)*70ms) }
+      .animation-x:hover { color: red }
     `;
-    expect(findMotionLiterals(sample)).toEqual([
-      { rule: "@media (min-width: 900px) > .b", property: "animation-delay", value: "calc(var(--i) * -4s)", literals: ["-4s"] },
+    const all = motionDeclarations(sample);
+    expect(all.filter(({ literals }) => literals.length).map(({ declaration, literals }) => ({ declaration, literals }))).toEqual([
+      { declaration: "transition: color 99ms ease", literals: ["99ms", "ease"] }, // sin excepción para :root
+      { declaration: "animation-delay: calc(var(--i) * -4s)", literals: ["-4s"] },
       {
-        rule: "@media (min-width: 900px) > .c",
-        property: "transition",
-        value: "opacity .5s ease-in-out, transform 200ms cubic-bezier(0.2, 0, 0, 1) !important",
+        declaration: "transition: opacity .5s ease-in-out, transform 200ms cubic-bezier(0.2, 0, 0, 1)", // sin `!important`
         literals: [".5s", "ease-in-out", "200ms", "cubic-bezier"],
       },
-      { rule: ".e", property: "transition-timing-function", value: "linear", literals: ["linear"] },
+      { declaration: "animation-timing-function: linear", literals: ["linear"] },
+      { declaration: "transition-timing-function: linear", literals: ["linear"] },
+      { declaration: "animation-delay: 1S", literals: ["1S"] }, // propiedad normalizada a minúsculas
+      { declaration: "animation-delay: var(--x, 250ms)", literals: ["250ms"] },
+      { declaration: "animation: a var(--dur-slow) steps(4)", literals: ["steps"] },
+      { declaration: "transition-delay: calc(var(--i)*70ms)", literals: ["70ms"] },
     ]);
+    expect(all, "las declaraciones sin literales también se cuentan (las usa el piso de sanidad)").toHaveLength(16);
+    expect(motionDeclarations("a { }\n\n/* x\ny */ b { animation: x 5s }")[0].line, "los comentarios conservan las líneas").toBe(4);
   });
 
   it("globals.css no suma duraciones, delays ni curvas literales: usar los tokens de lib/motion.ts", () => {
-    const all = declarations(css).filter(({ property }) => MOTION_PROPERTIES.has(property));
-    // Sin esto, si el recorrido dejara de encontrar declaraciones el guard aprobaría en silencio.
-    expect(all.length, "no se encontró ninguna declaración de animation/transition").toBeGreaterThan(20);
+    const all = motionDeclarations(css);
+    // Sin esto, si el escáner dejara de encontrar declaraciones el guard aprobaría en silencio.
+    expect(all.length, "no se encontraron declaraciones de animation/transition").toBeGreaterThan(50);
 
-    const used = new Set<number>();
+    const allowed = { ...MOTION_EXCEPTIONS, ...MOTION_DEBT };
+    const used = new Set<string>();
     const offenders: string[] = [];
-    for (const v of findMotionLiterals(css)) {
-      const index = MOTION_LITERAL_DEBT.findIndex(
-        (d) => d.rule === v.rule && d.property === v.property && v.literals.every((l) => d.literals.includes(l.toLowerCase())),
-      );
-      if (index >= 0) {
-        used.add(index);
-        continue;
-      }
-      offenders.push(
-        `${v.rule} { ${v.property}: ${v.value} } usa ${v.literals.map((l) => `\`${l}\``).join(", ")}. ` +
-          "Usá un token de lib/motion.ts: duraciones y delays con var(--dur-fast|base|slow), --dur-showcase, --showcase-delay|stagger|loop|loop-phase, " +
-          "--reveal-stagger, --menu-delay o --fab-delay; curvas con var(--ease-out), var(--ease-in-out) o var(--ease-loop). " +
-          "Si falta uno, agregalo a lib/motion.ts y espejalo en :root.",
+    for (const { line, declaration, literals } of all) {
+      if (!literals.length) continue;
+      if (Object.hasOwn(allowed, declaration) && !used.has(declaration)) used.add(declaration);
+      else offenders.push(`  app/globals.css:${line}  ${declaration}  (literales: ${literals.join(", ")})`);
+    }
+
+    const unused = (list: Record<string, string>) => Object.keys(list).filter((declaration) => !used.has(declaration)).map((d) => `  ${d}`);
+    const report: string[] = [];
+    if (offenders.length) {
+      report.push(
+        "Literales de duración/delay/curva en globals.css:",
+        ...offenders,
+        'Usá los tokens del bloque "Tokens de movimiento" de :root (espejo de lib/motion.ts); si falta uno, agregalo en los dos lados. Para duración cero, `transition: none`.',
       );
     }
-    expect(offenders, offenders.join("\n")).toEqual([]);
-
-    const dead = MOTION_LITERAL_DEBT.filter((_, i) => !used.has(i)).map((d) => `${d.rule} { ${d.property} }`);
-    expect(dead, `Deuda ya saldada: borrala de MOTION_LITERAL_DEBT (${dead.join("; ")})`).toEqual([]);
+    const settled = unused(MOTION_DEBT);
+    if (settled.length) report.push("Deuda ya saldada: borrala de MOTION_DEBT (si la declaración cambió y aún trae literales, actualizá la entrada):", ...settled);
+    const gone = unused(MOTION_EXCEPTIONS);
+    if (gone.length) report.push("Excepción que ya no existe: borrala de MOTION_EXCEPTIONS:", ...gone);
+    if (report.length) expect.fail(report.join("\n"));
   });
 });

@@ -37,7 +37,9 @@ export const SPRING_FOLLOW = { stiffness: 120, damping: 24, mass: 1 } as const;
 
 /**
  * Gesto "subir y aparecer" (fade + desplazamiento vertical) y su escalón entre hermanos. Lo comparten
- * Reveal, la entrada del copy del hero y el botón flotante de WhatsApp.
+ * Reveal, la entrada del copy del hero y el botón flotante de WhatsApp (este último solo el desplazamiento:
+ * su delay es FAB.delayMs). El menú mobile reutiliza únicamente el escalón; su desplazamiento es propio, así
+ * que cambiar `staggerMs` también mueve el menú, a propósito.
  */
 export const REVEAL = { offsetPx: 12, staggerMs: 60 } as const;
 
