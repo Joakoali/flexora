@@ -46,7 +46,9 @@ export function validateContact(
     name: text(formData, "name").replace(/\s+/g, " "),
     email: text(formData, "email"),
     projectTypes: projectTypes(formData),
-    message: text(formData, "message"),
+    // El navegador manda los saltos del textarea como CRLF (2 caracteres) pero maxLength
+    // los cuenta como 1: normalizamos a LF para que el límite del servidor sea el mismo.
+    message: text(formData, "message").replace(/\r\n?/g, "\n"),
   };
 
   const errors: ContactErrors = {};

@@ -60,6 +60,28 @@ describe("validateContact", () => {
     expect(!r.ok && r.errors.message).toBe("too_long");
   });
 
+  it("normaliza CRLF y CR sueltos a LF en el mensaje", () => {
+    const r = validateContact(fd({ ...valid, message: "uno\r\ndos\rtres\ncuatro" }));
+    expect(r.ok && r.data.message).toBe("uno\ndos\ntres\ncuatro");
+    expect(r.ok && r.data.message.includes("\r")).toBe(false);
+  });
+
+  it("el límite del mensaje cuenta cada salto de línea como 1 (como el textarea del navegador)", () => {
+    // 1999 caracteres con 9 saltos: el navegador los manda como CRLF → 2008 en crudo.
+    const withBreaks = `${"a".repeat(199)}\r\n`.repeat(9) + "a".repeat(1999 - 9 * 200);
+    expect(withBreaks.replace(/\r\n/g, "\n")).toHaveLength(1999);
+    expect(withBreaks.length).toBe(2008);
+    const ok = validateContact(fd({ ...valid, message: withBreaks }));
+    expect(ok.ok).toBe(true);
+    expect(ok.ok && ok.data.message).toHaveLength(1999);
+    expect(ok.ok && ok.data.message.includes("\r")).toBe(false);
+
+    const tooLong = `${"a".repeat(199)}\r\n`.repeat(9) + "a".repeat(2001 - 9 * 200);
+    expect(tooLong.replace(/\r\n/g, "\n")).toHaveLength(2001);
+    const r = validateContact(fd({ ...valid, message: tooLong }));
+    expect(!r.ok && r.errors.message).toBe("too_long");
+  });
+
   it("chips: descarta inválidos y duplicados, y ordena como PROJECT_TYPES", () => {
     const r = validateContact(fd({ ...valid, projectType: ["webapp", "hacker", "website", "webapp"] }));
     expect(r.ok && r.data.projectTypes).toEqual(["website", "webapp"]);
@@ -134,5 +156,14 @@ describe("buildEmail", () => {
     expect(r.text).toContain("Qué necesita: E-commerce, Web app");
     expect(r.text).toContain("Idioma del sitio: en");
     expect(r.text.endsWith("Mensaje:\nHola\nqué tal")).toBe(true);
+  });
+
+  it("un mensaje que llegó con CRLF sale sin \\r en el cuerpo del mail", () => {
+    const v = validateContact(fd({ ...valid, message: "Hola\r\nqué tal" }));
+    expect(v.ok).toBe(true);
+    if (!v.ok) return;
+    const { text } = buildEmail(v.data);
+    expect(text.includes("\r")).toBe(false);
+    expect(text.endsWith("Mensaje:\nHola\nqué tal")).toBe(true);
   });
 });
