@@ -31,6 +31,17 @@ for (const lang of ["es", "en", "ca"] as const) {
     await page.getByRole("button", { name: t.sendAnother }).click();
     const again = page.getByRole("form", { name: t.formLabel });
     await expect(again.getByLabel(t.nameLabel, { exact: true })).toHaveValue("");
+    // El botón enfocado se desmontó: el foco no puede quedar en <body>.
+    await expect(again.getByLabel(t.nameLabel, { exact: true })).toBeFocused();
+  });
+
+  test(`contacto ${lang}: al cargar la página, incluso llegando por #contact, no roba el foco`, async ({ page }) => {
+    await page.goto(`/${lang}#contact`);
+    const name = page.getByRole("form", { name: t.formLabel }).getByLabel(t.nameLabel, { exact: true });
+    await expect(name).toBeVisible();
+    // Tiempo de sobra para hidratar y correr los effects de montaje.
+    await page.waitForTimeout(1000);
+    await expect(name).not.toBeFocused();
   });
 
   test(`contacto ${lang}: email que pasa el navegador pero no el servidor muestra el error y conserva el nombre`, async ({ page }) => {

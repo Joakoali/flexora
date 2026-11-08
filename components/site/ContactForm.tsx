@@ -41,12 +41,20 @@ export function ContactForm(props: Props) {
   const [formKey, setFormKey] = useState(0);
   return (
     <div className="contact-form">
-      <ContactFormBody key={formKey} {...props} onSendAnother={() => setFormKey((k) => k + 1)} />
+      <ContactFormBody
+        key={formKey}
+        {...props}
+        // Solo tras "Enviar otro mensaje": en la primera carga no hay que robarle el foco a la página.
+        focusNameOnMount={formKey > 0}
+        onSendAnother={() => setFormKey((k) => k + 1)}
+      />
     </div>
   );
 }
 
-function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { onSendAnother: () => void }) {
+type BodyProps = Props & { focusNameOnMount: boolean; onSendAnother: () => void };
+
+function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnother }: BodyProps) {
   // Un wrapper común pierde `$$FORM_ACTION`: React no emite los campos ocultos de la server action y el
   // form queda inerte sin JS (o antes de hidratar). Por eso va la action pelada hasta hidratar y el
   // wrapper con try/catch recién después.
@@ -54,6 +62,7 @@ function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { o
   const [state, formAction, isPending] = useActionState(hydrated ? submitContact : contactAction, INITIAL_STATE);
   const id = useId();
   const formRef = useRef<HTMLFormElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const startedAtRef = useRef<HTMLInputElement>(null);
   const successTitleRef = useRef<HTMLHeadingElement>(null);
 
@@ -61,6 +70,11 @@ function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { o
   useEffect(() => {
     if (startedAtRef.current) startedAtRef.current.value = String(Date.now());
   }, []);
+
+  // "Enviar otro mensaje" desmonta el botón enfocado y el foco caería en <body>: va al primer campo.
+  useEffect(() => {
+    if (focusNameOnMount) nameRef.current?.focus();
+  }, [focusNameOnMount]);
 
   useEffect(() => {
     if (state.status === "success") {
@@ -102,6 +116,7 @@ function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { o
               {t.nameLabel}
             </label>
             <input
+              ref={nameRef}
               id={`${id}-name`}
               name="name"
               type="text"

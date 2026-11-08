@@ -222,4 +222,22 @@ describe("ContactForm", () => {
     expect((screen.getByLabelText(t.nameLabel) as HTMLInputElement).value).toBe("");
     expect(container.querySelector<HTMLInputElement>('input[name="startedAt"]')!.value).toMatch(/^\d+$/);
   });
+
+  it("al montar la página no roba el foco: sigue en el body", () => {
+    setup();
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("'Enviar otro mensaje' devuelve el foco al campo nombre (el botón enfocado se desmonta)", async () => {
+    actionMock.mockResolvedValue({ status: "success" });
+    const { form } = setup();
+    await submit(form);
+    const title = await screen.findByRole("heading", { name: t.successTitle });
+    expect(document.activeElement).toBe(title);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: t.sendAnother }));
+    });
+    expect(document.activeElement).toBe(screen.getByLabelText(t.nameLabel));
+  });
 });
