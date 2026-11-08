@@ -61,17 +61,20 @@ test("hero: al terminar la entrada ningún hijo del copy conserva una animación
   expect(retained).toEqual([]);
 });
 
-// Celulares apaisados: con más de 640 px de ancho no corren los fallbacks de ancho del hero, y la
-// escena es 100dvh con overflow hidden, así que lo que se pasa del alto queda cortado (no
-// scrolleable). El copy entero, con sus CTA, tiene que entrar sin pisar el wordmark de arriba.
-const LANDSCAPE_PHONES = [
+// Pantallas bajas (celulares apaisados y una ventana chata): con más de 640 px de ancho no corren
+// los fallbacks de ancho del hero, y la escena es 100dvh con overflow hidden, así que lo que se
+// pasa del alto queda cortado (no scrolleable). El copy entero, con sus CTA, tiene que entrar sin
+// pisar el wordmark de arriba. Los celulares miden <= 430 px de alto; 1280x501 es el único que
+// ejercita el bloque de alto medio (oculta la línea de proyectos): sin él desborda ~31 px.
+const SHORT_VIEWPORTS = [
   { width: 844, height: 390 },
   { width: 667, height: 375 },
   { width: 740, height: 360 },
   { width: 915, height: 412 },
   { width: 932, height: 430 },
+  { width: 1280, height: 501 },
 ];
-for (const viewport of LANDSCAPE_PHONES) {
+for (const viewport of SHORT_VIEWPORTS) {
   test.describe(`hero a ${viewport.width}x${viewport.height}`, () => {
     test.use({ viewport });
 
@@ -93,6 +96,17 @@ for (const viewport of LANDSCAPE_PHONES) {
         expect(copy.top).toBeGreaterThanOrEqual(wordmark.bottom);
         expect((await box(".hero__actions .btn-primary")).bottom).toBeLessThanOrEqual(scene.bottom);
         expect((await box(".hero__actions .btn-secondary")).bottom).toBeLessThanOrEqual(scene.bottom);
+        // Medir el copy no alcanza: si el titular o la nota pasaran a display:none el bloque se
+        // achicaría y las cajas de arriba seguirían entrando. Nunca se sacrifican.
+        for (const selector of [
+          ".hero__tagline",
+          ".hero__subcopy",
+          ".hero__note",
+          ".hero__actions .btn-primary",
+          ".hero__actions .btn-secondary",
+        ]) {
+          await expect(page.locator(selector)).toBeVisible();
+        }
       });
     }
   });
