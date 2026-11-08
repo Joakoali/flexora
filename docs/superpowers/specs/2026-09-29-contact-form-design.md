@@ -392,3 +392,20 @@ ronda: `2026-11-08-pr4-review-fixes.md`.
 - **Foco no tapado.** `html` declara `scroll-padding` arriba y abajo (header
   fijo y botón flotante de WhatsApp) para que el campo enfocado no quede
   debajo de ninguno de los dos (WCAG 2.4.11); lo cubre `e2e/contact.spec.ts`.
+- **Volver a `#contact` sin JavaScript.** `useActionState` recibe como permalink
+  `/${locale}#contact`: sin JS el formulario postea ahí y, tras enviar, la página
+  queda en el formulario en vez de volver al tope. Con JS no se usa. En
+  pantallas bajas (844×390) el error de campo aterriza unos 88 px bajo el borde
+  inferior (sin JS no hay forma de enfocar el campo): seguimiento xiv del doc
+  de la ronda.
+- **El dry run no vale en producción de Vercel.** `CONTACT_DRY_RUN` se ignora
+  (y se loguea) cuando `VERCEL_ENV` es `production`; en otros hosts esa variable
+  no existe y el dry run se respeta. Las variables de entorno de la tabla de
+  arriba y la configuración de Playwright de este spec describen el estado
+  original: la vigente está en `CLAUDE.md` y en el doc de la ronda.
+- **El e2e nunca reutiliza un servidor.** La config de Playwright usa
+  `reuseExistingServer: false`, fija `CONTACT_DRY_RUN=1` y vacía
+  `RESEND_API_KEY`, para que ninguna corrida pueda mandar mails reales.
+
+Detalle, motivos y seguimientos de toda la ronda:
+`docs/superpowers/specs/2026-11-08-pr4-review-fixes.md`.

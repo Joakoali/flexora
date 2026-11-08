@@ -75,7 +75,7 @@ Hallazgos nuevos de la ronda (aparecieron al verificar los fixes):
 
 - **Qué:** token propio para el loop ambiental del showcase (`alternate`, ~16 s): el keyword CSS `ease-in-out` escrito explícito.
 - **Por qué:** `EASE_IN_OUT` (`0.77, 0, 0.175, 1`) está pensada para UI de ~500 ms; en un recorrido largo el pico de velocidad
-  es ~2,8× mayor y se lee como tirón, no como deriva.
+  es ~2,9× mayor y se lee como tirón, no como deriva.
 - **Costo:** un token más que se comporta como `ease-in-out`; `work-scroll` sigue con el literal (deuda, §6 viii).
 
 ### d) `@media (scripting: none)` no cubre una hidratación caída
@@ -113,9 +113,9 @@ Hallazgos nuevos de la ronda (aparecieron al verificar los fixes):
 
 | Chequeo | Resultado |
 |---|---|
-| Tests unitarios (Vitest) | 161 declaraciones `it`/`test` en `__tests__/` (conteo estático; `it.each` expande a más). Cifra exacta: ver último run local. |
-| Lint, `tsc`, build | Ver último run local (`npm run lint`, `npx tsc --noEmit`, `npm run build`). |
-| E2E (Playwright, desktop + mobile) | ≈134 passed / 2 skipped, cifra del último run local de la ronda (no re-ejecutado al escribir este doc). Los 2 skipped son por viewport: el CTA del header se salta en mobile y el del panel del menú, en escritorio. |
+| Tests unitarios (Vitest) | 168 tests en 31 archivos (`npm run test`, 2026-11-08). |
+| Lint, `tsc`, build | Limpios (`npm run lint`, `npx tsc --noEmit`, `npm run build`; el build genera `/es`, `/en` y `/ca` sin variables de entorno), 2026-11-08. |
+| E2E (Playwright, desktop + mobile) | 146 passed / 2 skipped (`npx playwright test`, ~1,2 min, 2026-11-08). Los 2 skipped son por viewport: el CTA del header se salta en mobile y el del panel del menú, en escritorio. |
 | Axe | `e2e/a11y.spec.ts` escanea `/es`, `/en` y `/ca` con `wcag2a`, `wcag2aa`, `wcag22aa`; sin violaciones en el último run. |
 
 El repo no tiene CI de tests (el único workflow es `.github/workflows/react-doctor.yml`): la verificación es local.
@@ -147,7 +147,27 @@ Esfuerzo: S = menos de una hora, M = una tarea chica con verificación, L = requ
 | xi | Sin JS el menú hamburguesa no hace nada por debajo de 900 px (se abre con estado de React y la nav de escritorio no se muestra). | Navegación sin JS en mobile. | M |
 | xii | `npx tsc --noEmit` falla en un clon recién hecho hasta correr `npm run typegen` o `next build` (preexistente). | Fricción de onboarding y de un CI futuro. | S |
 | xiii | `d8e62a7` está etiquetado `chore:` pero solo cambia un test y dos comentarios; `b09abf1` tiene otro email de autor. | Cosmético; no vale reescribir historia ya pusheada. | — |
+| xiv | Sin JS en celulares apaisados (844×390, 667×375) el error de campo aterriza 83–88 px bajo el borde inferior (el éxito sí se ve), porque el permalink apunta a la sección y ahí el título y el copy gastan el alto antes del formulario. Arreglo posible: `id` en `<div className="contact-form">` y permalink a ese id (obliga a cambiar los 6 asserts `#contact$` del e2e). | Solo sin JS y en pantallas bajas. | S |
+| xv | `.env.example` dice que `CONTACT_DRY_RUN` es "solo e2e, nunca en producción"; sigue siendo cierto, pero no aclara que el bloqueo automático solo existe en Vercel. | Documentación. | S |
 
 ### Endurecimiento del formulario (tarea 7)
 
-<!-- completar -->
+- **El e2e nunca reutiliza un servidor** (`2edf03a`, `playwright.config.ts`): `reuseExistingServer: false` y el `env` del
+  `webServer` fija `CONTACT_DRY_RUN=1` y vacía `RESEND_API_KEY`. Motivo: con un `npm run dev` en :3000 y una key real en
+  `.env.local`, Playwright se conectaba a ese servidor sin dry run y `contact.spec.ts` mandaba ~12 mails reales por corrida.
+  Next no pisa variables ya definidas (aunque sean `""`), así que `.env.local` no repone la key. Costo: con el puerto 3000
+  ocupado el e2e falla de inmediato; remedio, levantar el dev en otro puerto (`npm run dev -- -p 3001`).
+- **El dry run se ignora en producción de Vercel** (`4a846a3`, `lib/resend.ts`): con `VERCEL_ENV === "production"`,
+  `CONTACT_DRY_RUN` no tiene efecto y se loguea `[contact] CONTACT_DRY_RUN ignorado en producción`. El log sale dos veces por
+  envío porque `isDryRun()` se consulta en la action y en `sendEmail`: es una alarma de mala configuración, sin datos
+  personales, y se dejó así a propósito (deduplicar con un flag de módulo escondería la alarma tras el primer request). No se
+  usa `NODE_ENV`: el e2e corre `next start` (NODE_ENV=production) con dry run a propósito. **Límite:** en hosts que no son
+  Vercel `VERCEL_ENV` no existe y el dry run se respeta en producción (éxito falso, leads perdidos). Además, Vercel solo
+  expone `VERCEL_ENV` si el proyecto tiene activado "Automatically expose System Environment Variables" (viene activado).
+- **Sin JS, el formulario vuelve a `#contact` tras enviar** (`633a0aa`, `ContactForm.tsx`):
+  `useActionState(..., INITIAL_STATE, \`/${locale}#contact\`)`. Sin JS el formulario postea a ese permalink; con JS no se
+  usa. React deriva `$ACTION_KEY` (`p/<locale>#contact`) del mismo string al emitir el HTML y al comparar en el postback, así
+  que el estado se asocia bien (probado con un POST real: con la clave cambiada el estado se ignora). Debe ser único por
+  formulario en la página y llevar el `basePath` si algún día se configura (`next.config.ts` está vacío). Verificado en
+  es/en/ca con JS apagado (la URL termina en `#contact`, el mensaje queda en el viewport y los valores se conservan) y con JS
+  encendido (sin warnings de hidratación en `next dev` ni `next start`, la URL no cambia). Limitación: seguimiento xiv.
