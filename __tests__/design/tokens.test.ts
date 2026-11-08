@@ -130,8 +130,9 @@ describe("design tokens", () => {
   });
 
   it("sin JavaScript (@media (scripting: none)) el contenido de Reveal se ve en su lugar final", () => {
-    // Reveal arranca en opacity 0 y solo un JS que corra le pone data-visible: sin JS (o con la hidratación
-    // caída) Servicios, Trabajos, Proceso y Cierre —el formulario incluido— quedarían invisibles.
+    // Reveal arranca en opacity 0 y solo un JS que corra le pone data-visible: sin JS, Servicios,
+    // Trabajos, Proceso y Cierre —el formulario incluido— quedarían invisibles. Con JS encendido y la
+    // hidratación rota esta media query no aplica.
     const code = css.replace(/\/\*[\s\S]*?\*\//g, "");
     // Cada bloque trae solo reglas planas (un nivel de llaves anidadas).
     const blocks = [...code.matchAll(/@media \(scripting: none\)\s*{((?:[^{}]*{[^{}]*})*)\s*}/g)].map(({ 1: body, index }) => ({
@@ -152,14 +153,18 @@ describe("design tokens", () => {
     expect(content, "[data-reveal] > * dentro de @media (scripting: none)").toBeDefined();
     expect(content.declarations).toMatch(/opacity:\s*1\b/);
     expect(content.declarations).toMatch(/transform:\s*none/);
-    expect(content.index, "el override va después del estado inicial").toBeGreaterThan(base("[data-reveal] > *"));
+    const contentBase = base("[data-reveal] > *");
+    expect(contentBase, "no se encontró la regla base [data-reveal] > *").toBeGreaterThanOrEqual(0);
+    expect(content.index, "el override va después del estado inicial").toBeGreaterThan(contentBase);
 
     // Los chevrones de Servicios arrancan desplazados con la misma condición (`[data-reveal] .svis__chev--*`).
     for (const selector of ["[data-reveal] .svis__chev--a", "[data-reveal] .svis__chev--b"]) {
       const chevron = override(selector);
       expect(chevron, `${selector} dentro de @media (scripting: none)`).toBeDefined();
       expect(chevron.declarations).toMatch(/transform:\s*none/);
-      expect(chevron.index, `${selector}: el override va después del estado inicial`).toBeGreaterThan(base(selector));
+      const chevronBase = base(selector);
+      expect(chevronBase, `no se encontró la regla base ${selector}`).toBeGreaterThanOrEqual(0);
+      expect(chevron.index, `${selector}: el override va después del estado inicial`).toBeGreaterThan(chevronBase);
     }
   });
 

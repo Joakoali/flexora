@@ -222,9 +222,18 @@ test.describe("contacto: el foco no queda tapado por el header fijo ni por el bo
     await focusWithoutScrolling(submit);
     await toBottomEdge(submit);
 
+    // Precondición: con el botón al borde inferior, el email queda arriba del borde inferior del header (o
+    // más arriba aún). Es el caso malo que justifica este viewport: si el layout cambia y el email deja de
+    // estar ahí, el test ya no probaría que el foco lo trae de vuelta a la vista.
+    const email = form.getByLabel(t.emailLabel, { exact: true });
+    const header = await boxOf(page.getByRole("banner"));
+    const before = await boxOf(email);
+    expect(before.y, `el email (${JSON.stringify(before)}) debe quedar tapado por el header o más arriba (borde inferior del header: ${header.y + header.height})`).toBeLessThan(
+      header.y + header.height,
+    );
+
     await page.keyboard.press("Enter");
 
-    const email = form.getByLabel(t.emailLabel, { exact: true });
     await expect(email).toBeFocused();
     await expect(email).toHaveAttribute("aria-invalid", "true");
     const box = await boxOf(email);

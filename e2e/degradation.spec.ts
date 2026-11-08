@@ -74,9 +74,9 @@ test.describe("hero sin JavaScript", () => {
 });
 
 // Reveal deja su contenido en opacity 0 hasta que un IntersectionObserver (JS) le pone data-visible.
-// Sin JS (o con la hidratación caída) eso es contenido invisible para siempre, formulario incluido;
-// `@media (scripting: none)` lo muestra en su lugar final. toBeVisible() ignora la opacidad, de ahí
-// que se compare la opacidad efectiva.
+// Sin JS eso es contenido invisible para siempre, formulario incluido; `@media (scripting: none)` lo
+// muestra en su lugar final (con JS encendido y la hidratación rota la regla no aplica y esto no lo
+// cubre). toBeVisible() ignora la opacidad, de ahí que se compare la opacidad efectiva.
 test.describe("secciones con Reveal sin JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 

@@ -112,8 +112,9 @@ html {
   scroll-padding-bottom: calc(var(--fab-size) + var(--fab-offset));
 }
 /* Las anclas (#services, #work, #process, #contact) siguen aterrizando con la sección al ras del borde
-   superior: su propio padding ya despeja el título del header, y el scroll-padding de arriba, pensado para
-   el foco, las correría ~88 px más abajo. El margen negativo lo cancela solo para el salto a ancla. */
+   superior, como antes del scroll-padding: el padding propio de la sección deja el título a 64–112 px
+   del borde según el ancho (el header mide 72 px), y el scroll-padding de arriba, pensado para el
+   foco, las correría ~88 px más abajo. El margen negativo lo cancela solo para el salto a ancla. */
 section[id] {
   scroll-margin-top: calc(-1 * var(--scroll-clear-top));
 }
@@ -294,10 +295,11 @@ html.theme-changing *::after {
   opacity: 1;
   transform: none;
 }
-/* Sin JavaScript (o con la hidratación caída) nadie pone data-visible: el contenido quedaría invisible
-   para siempre, formulario de contacto incluido. Con `scripting: none` se muestra ya en su lugar final;
-   no hace falta `transition: none` porque el estilo inicial no dispara transición. Con JS encendido la
-   media query no matchea y todo sigue igual. Soporte: Chrome/Edge 120, Firefox 113, Safari 17; en los
+/* Sin JavaScript nadie pone data-visible: el contenido quedaría invisible para siempre, formulario de
+   contacto incluido. Con `scripting: none` se muestra ya en su lugar final; no hace falta `transition:
+   none` porque el estilo inicial no dispara transición. Con JS encendido la media query no matchea y
+   todo sigue igual: si la hidratación se rompe con JS activo, el contenido de Reveal sigue dependiendo
+   de data-visible y esto no lo cubre. Soporte: Chrome/Edge 120, Firefox 113, Safari 17; en los
    anteriores (el mínimo de Next 16 es Chrome 111 / Firefox 111 / Safari 16.4) la regla no aplica y queda
    el comportamiento previo, sin empeorar. Los estados iniciales de [data-reveal] que no son opacity
    (chevrones de Servicios) tienen su override junto a su regla base. */
