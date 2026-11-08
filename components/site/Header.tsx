@@ -148,7 +148,9 @@ export function Header({ locale, labels, whatsappHref }: Props) {
             className="site-header__menu"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
-            aria-label={menuOpen ? labels.nav.closeMenu : labels.nav.menu}
+            // Etiqueta constante (patrón disclosure de la APG): el estado lo comunica
+            // aria-expanded; cambiar también el nombre hace que se anuncie doble.
+            aria-label={labels.nav.menu}
             onClick={() => setMenuOpen((v) => !v)}
           >
             <span className="site-header__menu-bar" />

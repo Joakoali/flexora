@@ -54,17 +54,23 @@ describe("Header", () => {
       expect(screen.getAllByRole("link", { name: "Servicios" })).toHaveLength(1);
     });
 
-    it("abre el panel con los 3 links y el CTA, bloquea el scroll y cambia el nombre del botón", () => {
+    it("abre el panel con los 3 links y el CTA y bloquea el scroll; el botón conserva su nombre y sólo cambia aria-expanded", () => {
       setup();
       fireEvent.click(screen.getByRole("button", { name: es.nav.menu }));
       const panel = document.getElementById("mobile-menu")!;
       expect(panel).toBeTruthy();
       expect(panel.querySelectorAll("nav a")).toHaveLength(3);
       expect(panel.querySelector(".mobile-menu__cta")?.getAttribute("href")).toBe("https://wa.me/1?text=hola");
-      const close = screen.getByRole("button", { name: es.nav.closeMenu });
-      expect(close.getAttribute("aria-expanded")).toBe("true");
+      // Patrón disclosure (APG): etiqueta constante, el estado lo comunica aria-expanded.
+      const btn = screen.getByRole("button", { name: es.nav.menu });
+      expect(btn.getAttribute("aria-expanded")).toBe("true");
       expect(document.documentElement.style.overflow).toBe("hidden");
       expect(screen.getByRole("banner").getAttribute("data-menu-open")).toBe("true");
+      fireEvent.click(btn);
+      const closed = screen.getByRole("button", { name: es.nav.menu });
+      expect(closed).toBe(btn);
+      expect(closed.getAttribute("aria-expanded")).toBe("false");
+      expect(document.getElementById("mobile-menu")).toBeNull();
     });
 
     it("Esc cierra, libera el scroll y devuelve el foco al botón", () => {
