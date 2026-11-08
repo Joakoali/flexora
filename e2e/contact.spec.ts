@@ -172,6 +172,42 @@ for (const lang of ["es", "en", "ca"] as const) {
       expect(await effectiveOpacity(title), "opacidad efectiva del éxito").toBe(1);
       await expect(page.getByRole("form", { name: t.formLabel })).toHaveCount(0);
     });
+
+    // El POST sin JS recarga la página: sin un permalink a #contact el navegador la deja en el tope y la
+    // persona no ve ni el éxito ni el error de campo, que quedan más abajo.
+    test("tras enviar con éxito la página queda en #contact y el éxito se ve", async ({ page }) => {
+      await page.goto(`/${lang}`);
+      const form = page.getByRole("form", { name: t.formLabel });
+      await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+      await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example.com");
+      await form.getByRole("button", { name: t.submit }).click();
+
+      const title = page.getByRole("heading", { name: t.successTitle });
+      await expect(title).toBeVisible();
+      expect(page.url()).toMatch(new RegExp(`/${lang}#contact$`));
+      expect(await page.evaluate(() => window.scrollY), "la página no debe volver al tope").toBeGreaterThan(0);
+      await expect(title).toBeInViewport({ ratio: 1 });
+    });
+
+    test("tras un error de campo la página queda en #contact, con el error a la vista y lo escrito conservado", async ({
+      page,
+    }) => {
+      await page.goto(`/${lang}`);
+      const form = page.getByRole("form", { name: t.formLabel });
+      await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+      // type=email del navegador acepta "ana@example"; el servidor exige un punto en el dominio.
+      await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example");
+      await form.getByRole("button", { name: t.submit }).click();
+
+      const error = page.getByRole("form", { name: t.formLabel }).getByText(t.errors.invalid);
+      await expect(error).toBeVisible();
+      expect(page.url()).toMatch(new RegExp(`/${lang}#contact$`));
+      expect(await page.evaluate(() => window.scrollY), "la página no debe volver al tope").toBeGreaterThan(0);
+      await expect(error).toBeInViewport({ ratio: 1 });
+      const again = page.getByRole("form", { name: t.formLabel });
+      await expect(again.getByLabel(t.nameLabel, { exact: true })).toHaveValue("Ana Test");
+      await expect(again.getByLabel(t.emailLabel, { exact: true })).toHaveValue("ana@example");
+    });
   });
 }
 

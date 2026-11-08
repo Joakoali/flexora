@@ -59,7 +59,13 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
   // form queda inerte sin JS (o antes de hidratar). Por eso va la action pelada hasta hidratar y el
   // wrapper con try/catch recién después.
   const hydrated = useHydrated();
-  const [state, formAction, isPending] = useActionState(hydrated ? submitContact : contactAction, INITIAL_STATE);
+  // El permalink es la URL a la que postea el form cuando no hay JS: sin él la página recarga en el tope y
+  // el éxito o el error de campo, más abajo, no se ven. Con JS no interviene (el envío no navega).
+  const [state, formAction, isPending] = useActionState(
+    hydrated ? submitContact : contactAction,
+    INITIAL_STATE,
+    `/${locale}#contact`,
+  );
   const id = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
