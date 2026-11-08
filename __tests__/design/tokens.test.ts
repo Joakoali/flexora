@@ -1,9 +1,29 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { DURATION, EASE_IN_OUT, EASE_LOOP, EASE_OUT, FAB, MENU, REVEAL, SHOWCASE } from "@/lib/motion";
 
 const css = readFileSync("app/globals.css", "utf8");
 
 const SEMANTIC = ["--bg", "--surface", "--fg", "--fg-muted", "--border", "--accent", "--accent-soft", "--switch-half", "--danger"];
+
+// Los strings esperados se derivan de lib/motion.ts (fuente única), no se repiten a mano acá.
+const ms = (n: number) => `${n}ms`;
+const seconds = (n: number) => `${n / 1000}s`; // los loops largos se escriben en segundos
+const px = (n: number) => `${n}px`;
+
+type Mirror = [variable: string, format: (n: number) => string];
+
+/**
+ * Una entrada por clave de la constante. `vars` es un Record tipado por las claves de `source`: sumar
+ * una clave sin darle variable CSS no compila (tsc) y, en runtime, tira el error de acá abajo.
+ */
+function mirror<T extends Record<string, number>>(name: string, source: T, vars: Record<keyof T, Mirror>) {
+  return Object.entries(source).map(([key, value]) => {
+    const entry = (vars as Record<string, Mirror | undefined>)[key];
+    if (!entry) throw new Error(`${name}.${key} no tiene variable CSS asignada en tokens.test.ts`);
+    return { source: `${name}.${key}`, variable: `--${entry[0]}`, expected: entry[1](value) };
+  });
+}
 
 describe("design tokens", () => {
   it("define cada token semántico en oscuro (:root) y en claro ([data-theme=light])", () => {
@@ -28,6 +48,30 @@ describe("design tokens", () => {
     expect(css).toContain("--dur-fast: 120ms");
     expect(css).toContain("--dur-base: 200ms");
     expect(css).toContain("--dur-slow: 500ms");
+  });
+
+  it("cada token de lib/motion.ts está espejado en :root con el valor exacto que deriva de la constante", () => {
+    const root = css.match(/:root\s*{([^}]*)}/)?.[1] ?? "";
+    const mirrors = [
+      { source: "EASE_OUT", variable: "--ease-out", expected: EASE_OUT },
+      { source: "EASE_IN_OUT", variable: "--ease-in-out", expected: EASE_IN_OUT },
+      { source: "EASE_LOOP", variable: "--ease-loop", expected: EASE_LOOP },
+      ...mirror("DURATION", DURATION, { fast: ["dur-fast", ms], base: ["dur-base", ms], slow: ["dur-slow", ms] }),
+      ...mirror("REVEAL", REVEAL, { offsetPx: ["reveal-offset", px], staggerMs: ["reveal-stagger", ms] }),
+      ...mirror("SHOWCASE", SHOWCASE, {
+        durationMs: ["dur-showcase", ms],
+        delayMs: ["showcase-delay", ms],
+        staggerMs: ["showcase-stagger", ms],
+        loopMs: ["showcase-loop", seconds],
+        loopPhaseMs: ["showcase-loop-phase", seconds],
+      }),
+      ...mirror("MENU", MENU, { delayMs: ["menu-delay", ms] }),
+      ...mirror("FAB", FAB, { delayMs: ["fab-delay", ms] }),
+    ];
+    for (const { source, variable, expected } of mirrors) {
+      const declared = root.match(new RegExp(`(?<![\\w-])${variable}:\\s*([^;]+);`))?.[1]?.trim();
+      expect(declared, `${variable} (espejo de ${source} en lib/motion.ts) falta o difiere en :root`).toBe(expected);
+    }
   });
 
   it("alinea la jerarquía al hero: h2 de sección más chico que el H1 y ritmo vertical unificado", () => {
