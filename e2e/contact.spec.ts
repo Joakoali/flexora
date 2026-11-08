@@ -1,9 +1,25 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import es from "../app/[lang]/dictionaries/es.json";
 import en from "../app/[lang]/dictionaries/en.json";
 import ca from "../app/[lang]/dictionaries/ca.json";
 
 const DICTS = { es, en, ca } as const;
+
+// El time-gate de 2 s corre desde que el effect de montaje setea startedAt (hidratación), no desde goto:
+// se espera sobre ese mismo valor en vez de dormir un tiempo fijo.
+async function waitTimeGate(form: Locator) {
+  const startedAt = form.locator('input[name="startedAt"]');
+  await expect
+    .poll(
+      async () => {
+        const value = await startedAt.inputValue();
+        return value ? Date.now() - Number(value) : 0; // vacío = todavía no hidrató
+      },
+      // Hidratar (con el fondo WebGL por software) + 2 s puede pasar los 5 s por defecto.
+      { timeout: 10_000, intervals: [100] },
+    )
+    .toBeGreaterThan(2000);
+}
 
 for (const lang of ["es", "en", "ca"] as const) {
   const t = DICTS[lang].closing.form;
@@ -20,7 +36,7 @@ for (const lang of ["es", "en", "ca"] as const) {
     await form.getByLabel(t.messageLabel).fill("Hola, quiero una web app.");
 
     // Tiempo mínimo anti-bot: 2000 ms desde el montaje.
-    await page.waitForTimeout(2100);
+    await waitTimeGate(form);
     await form.getByRole("button", { name: t.submit }).click();
 
     const title = page.getByRole("heading", { name: t.successTitle });
@@ -37,10 +53,12 @@ for (const lang of ["es", "en", "ca"] as const) {
 
   test(`contacto ${lang}: al cargar la página, incluso llegando por #contact, no roba el foco`, async ({ page }) => {
     await page.goto(`/${lang}#contact`);
-    const name = page.getByRole("form", { name: t.formLabel }).getByLabel(t.nameLabel, { exact: true });
+    const form = page.getByRole("form", { name: t.formLabel });
+    const name = form.getByLabel(t.nameLabel, { exact: true });
     await expect(name).toBeVisible();
-    // Tiempo de sobra para hidratar y correr los effects de montaje.
-    await page.waitForTimeout(1000);
+    // Con startedAt seteado ya corrieron los effects de montaje: uno de foco mal puesto correría en el mismo
+    // flush, así que el not.toBeFocused() de abajo no puede dar un falso verde por llegar antes de tiempo.
+    await expect(form.locator('input[name="startedAt"]')).toHaveValue(/^\d+$/);
     await expect(name).not.toBeFocused();
   });
 
@@ -52,7 +70,7 @@ for (const lang of ["es", "en", "ca"] as const) {
     await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
     // type=email del navegador acepta "ana@example"; el servidor exige un punto en el dominio.
     await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example");
-    await page.waitForTimeout(2100);
+    await waitTimeGate(form);
     await form.getByRole("button", { name: t.submit }).click();
 
     await expect(form.getByText(t.errors.invalid)).toBeVisible();
@@ -99,10 +117,17 @@ for (const lang of ["es", "en", "ca"] as const) {
     await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
     await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example.com");
     await form.getByLabel(t.messageLabel).fill("Hola, quiero una web app.");
-    await page.waitForTimeout(2100);
+    await waitTimeGate(form);
     await form.getByRole("button", { name: t.submit }).click();
 
     await expect(form.getByText(t.errors.send_failed, { exact: false })).toBeVisible();
+    // Con el error visible, entre el mensaje y el botón también queda un solo gap del form (el margen del mensaje).
+    const withError = await form.evaluate((el) => {
+      const message = el.querySelector('[aria-live="polite"] p')!.getBoundingClientRect();
+      const submit = el.querySelector('button[type="submit"]')!.getBoundingClientRect();
+      return { distance: submit.top - message.bottom, rowGap: parseFloat(getComputedStyle(el).rowGap) };
+    });
+    expect(withError.distance).toBeCloseTo(withError.rowGap, 1);
     await expect(form.getByRole("link", { name: t.errors.sendFailedLink })).toBeVisible();
     // El mensaje entró en el mismo live region que ya estaba montado.
     await expect(form.locator('[aria-live="polite"]')).toContainText(t.errors.send_failed);
