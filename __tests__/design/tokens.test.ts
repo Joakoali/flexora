@@ -87,6 +87,19 @@ describe("design tokens", () => {
     expect(footer).toContain("--fab-size");
   });
 
+  it("el live region del error de formulario nunca se oculta: sin display:none ni :empty que lo saque del árbol de accesibilidad", () => {
+    // Un aria-live que nace con contenido (o sale de display:none) no se anuncia en lectores de pantalla.
+    const rules = [...css.matchAll(/([^{}]+){([^{}]*)}/g)]
+      .map(([, selector, body]) => ({ selector: selector.trim(), body }))
+      .filter(({ selector }) => /contact-form__form-(error|status)/.test(selector));
+    expect(rules.length).toBeGreaterThan(0);
+    for (const { selector, body } of rules) {
+      expect(selector, selector).not.toContain(":empty");
+      expect(body, selector).not.toMatch(/display:\s*none/);
+      expect(body, selector).not.toMatch(/visibility:\s*hidden/);
+    }
+  });
+
   it("no usa ease-in ni transition: all", () => {
     expect(css).not.toMatch(/[^-]ease-in[^-]/);
     expect(css).not.toContain("transition: all");

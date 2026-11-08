@@ -49,6 +49,29 @@ for (const lang of ["es", "en", "ca"] as const) {
     await expect(form.getByLabel(t.nameLabel, { exact: true })).toHaveValue("Ana Test");
   });
 
+  test(`contacto ${lang}: el live region del error de envío está siempre en el árbol y vacío no ocupa lugar`, async ({ page }) => {
+    await page.goto(`/${lang}`);
+    const form = page.getByRole("form", { name: t.formLabel });
+    await form.scrollIntoViewIfNeeded();
+
+    const status = form.locator('[aria-live="polite"]');
+    await expect(status).toBeAttached();
+    await expect(status).toHaveText("");
+    // display:none o visibility:hidden lo sacan del árbol de accesibilidad y el aviso no se anuncia.
+    await expect(status).not.toHaveCSS("display", "none");
+    await expect(status).not.toHaveCSS("visibility", "hidden");
+
+    // Sin huella visual: entre el mensaje y el botón queda un solo gap del form, como si no existiera.
+    const layout = await form.evaluate((el) => {
+      const textarea = el.querySelector("textarea")!.getBoundingClientRect();
+      const submit = el.querySelector('button[type="submit"]')!.getBoundingClientRect();
+      const live = el.querySelector('[aria-live="polite"]')!.getBoundingClientRect();
+      return { distance: submit.top - textarea.bottom, rowGap: parseFloat(getComputedStyle(el).rowGap), liveHeight: live.height };
+    });
+    expect(layout.liveHeight).toBe(0);
+    expect(layout.distance).toBeCloseTo(layout.rowGap, 1);
+  });
+
   test(`contacto ${lang}: si el POST de la action falla (red caída) la página no se rompe y se conserva lo escrito`, async ({ page }) => {
     const pageErrors: Error[] = [];
     page.on("pageerror", (error) => pageErrors.push(error));
@@ -70,6 +93,8 @@ for (const lang of ["es", "en", "ca"] as const) {
 
     await expect(form.getByText(t.errors.send_failed, { exact: false })).toBeVisible();
     await expect(form.getByRole("link", { name: t.errors.sendFailedLink })).toBeVisible();
+    // El mensaje entró en el mismo live region que ya estaba montado.
+    await expect(form.locator('[aria-live="polite"]')).toContainText(t.errors.send_failed);
     // Sin el wrapper de la action, Next reemplaza toda la página por su pantalla de error.
     await expect(page.getByText(/This page couldn.t load/)).toHaveCount(0);
     expect(pageErrors).toEqual([]);

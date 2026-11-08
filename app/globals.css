@@ -1294,8 +1294,9 @@ body:has(#hero) {
   padding: clamp(1.25rem, 3vw, 2rem);
 }
 .contact-form__form {
+  --contact-gap: 1.25rem;
   display: grid;
-  gap: 1.25rem;
+  gap: var(--contact-gap);
 }
 .contact-form__field {
   display: grid;
@@ -1398,8 +1399,10 @@ body:has(#hero) {
   font-size: 0.875rem;
   color: var(--danger);
 }
-.contact-form__form-error:empty {
-  display: none;
+/* El live region (.contact-form__form-status) está siempre y mide 0 vacío: el aire de abajo lo trae
+   el mensaje, así no suma un hueco extra del gap del grid cuando no hay error. */
+.contact-form__form-error {
+  margin: 0 0 var(--contact-gap);
 }
 .contact-form__form-error .text-link {
   color: var(--fg);

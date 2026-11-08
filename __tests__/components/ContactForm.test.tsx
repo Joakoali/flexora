@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ContactState } from "@/lib/contact";
 
 const actionMock = vi.fn<(prev: ContactState, formData: FormData) => Promise<ContactState>>();
@@ -88,6 +88,70 @@ describe("ContactForm", () => {
     await submit(form);
     expect(await screen.findByText(t.errors.send_failed, { exact: false })).toBeTruthy();
     expect(screen.getByRole("link", { name: t.errors.sendFailedLink }).getAttribute("href")).toBe(WA);
+  });
+
+  describe("región aria-live del error de formulario", () => {
+    // Un live region que aparece ya con contenido (o que sale de display:none) no se anuncia: tiene
+    // que estar en el DOM y en el árbol de accesibilidad desde el inicio, vacía y sin huella visual.
+    const liveRegion = (form: HTMLElement) => form.querySelector<HTMLElement>('[aria-live="polite"]');
+
+    it("existe desde el inicio, vacía y sin ocultar", () => {
+      const { form } = setup();
+      const region = liveRegion(form)!;
+      expect(region).not.toBeNull();
+      expect(region.textContent).toBe("");
+      expect(region.childElementCount).toBe(0);
+      for (let el: HTMLElement | null = region; el && el !== document.body; el = el.parentElement) {
+        expect(el.hidden, el.tagName).toBe(false);
+        expect(el.getAttribute("aria-hidden"), el.tagName).toBeNull();
+        expect(el.style.display, el.tagName).not.toBe("none");
+        expect(el.style.visibility, el.tagName).not.toBe("hidden");
+      }
+    });
+
+    it("send_failed: el mensaje entra en la misma región que ya estaba en el DOM", async () => {
+      actionMock.mockResolvedValue({
+        status: "error",
+        errors: { form: "send_failed" },
+        values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+      });
+      const { form } = setup();
+      const before = liveRegion(form)!;
+      await submit(form);
+      await screen.findByText(t.errors.send_failed, { exact: false });
+
+      const after = liveRegion(form)!;
+      expect(after).toBe(before);
+      expect(after.isConnected).toBe(true);
+      expect(after.textContent).toContain(t.errors.send_failed);
+      expect(within(after).getByRole("link", { name: t.errors.sendFailedLink })).toBeTruthy();
+    });
+
+    it("too_fast: también aparece dentro de la misma región", async () => {
+      actionMock.mockResolvedValue({
+        status: "error",
+        errors: { form: "too_fast" },
+        values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+      });
+      const { form } = setup();
+      const before = liveRegion(form)!;
+      await submit(form);
+      await screen.findByText(t.errors.too_fast);
+      expect(liveRegion(form)).toBe(before);
+      expect(before.textContent).toBe(t.errors.too_fast);
+    });
+
+    it("sin error de formulario vuelve a quedar vacía (un error de campo no mete texto en ella)", async () => {
+      actionMock.mockResolvedValue({
+        status: "error",
+        errors: { email: "invalid" },
+        values: { name: "Ana", email: "mal", projectTypes: [], message: "" },
+      });
+      const { form } = setup();
+      await submit(form);
+      await screen.findByLabelText(t.emailLabel);
+      expect(liveRegion(form)!.textContent).toBe("");
+    });
   });
 
   it("too_fast: muestra el mensaje, conserva lo escrito y no ofrece el link a WhatsApp", async () => {

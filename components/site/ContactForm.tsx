@@ -170,22 +170,31 @@ function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { o
             {fieldError("message")}
           </div>
 
-          <p className="contact-form__form-error" aria-live="polite">
-            {errors.form === "send_failed" && (
-              <>
-                {t.errors.send_failed}{" "}
-                <TextLink href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                  {t.errors.sendFailedLink}
-                </TextLink>
-              </>
-            )}
-            {errors.form === "too_fast" && t.errors.too_fast}
-          </p>
+          <div className="contact-form__actions">
+            {/* Siempre montado y visible para la accesibilidad (vacío mide 0): si naciera con el mensaje
+                o saliera de display:none, los lectores de pantalla no lo anunciarían. */}
+            <div aria-live="polite" className="contact-form__form-status">
+              {errors.form && (
+                <p className="contact-form__form-error">
+                  {errors.form === "send_failed" ? (
+                    <>
+                      {t.errors.send_failed}{" "}
+                      <TextLink href={whatsappHref} target="_blank" rel="noopener noreferrer">
+                        {t.errors.sendFailedLink}
+                      </TextLink>
+                    </>
+                  ) : (
+                    t.errors.too_fast
+                  )}
+                </p>
+              )}
+            </div>
 
-          <div className="contact-form__submit">
-            <Button type="submit" disabled={isPending} aria-disabled={isPending || undefined}>
-              {isPending ? t.sending : t.submit}
-            </Button>
+            <div className="contact-form__submit">
+              <Button type="submit" disabled={isPending} aria-disabled={isPending || undefined}>
+                {isPending ? t.sending : t.submit}
+              </Button>
+            </div>
           </div>
         </form>
       )}
