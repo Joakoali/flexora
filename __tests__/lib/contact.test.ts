@@ -63,22 +63,16 @@ describe("validateContact", () => {
   it("normaliza CRLF y CR sueltos a LF en el mensaje", () => {
     const r = validateContact(fd({ ...valid, message: "uno\r\ndos\rtres\ncuatro" }));
     expect(r.ok && r.data.message).toBe("uno\ndos\ntres\ncuatro");
-    expect(r.ok && r.data.message.includes("\r")).toBe(false);
   });
 
   it("el límite del mensaje cuenta cada salto de línea como 1 (como el textarea del navegador)", () => {
-    // 1999 caracteres con 9 saltos: el navegador los manda como CRLF → 2008 en crudo.
-    const withBreaks = `${"a".repeat(199)}\r\n`.repeat(9) + "a".repeat(1999 - 9 * 200);
-    expect(withBreaks.replace(/\r\n/g, "\n")).toHaveLength(1999);
-    expect(withBreaks.length).toBe(2008);
-    const ok = validateContact(fd({ ...valid, message: withBreaks }));
-    expect(ok.ok).toBe(true);
-    expect(ok.ok && ok.data.message).toHaveLength(1999);
-    expect(ok.ok && ok.data.message.includes("\r")).toBe(false);
+    // Largo en LF = lfLength; en crudo suma 1000 por los CRLF. Sin saltos en los extremos: text() hace trim.
+    const crlfMessage = (lfLength: number) => "a" + "\r\n".repeat(1000) + "a".repeat(lfLength - 1001);
 
-    const tooLong = `${"a".repeat(199)}\r\n`.repeat(9) + "a".repeat(2001 - 9 * 200);
-    expect(tooLong.replace(/\r\n/g, "\n")).toHaveLength(2001);
-    const r = validateContact(fd({ ...valid, message: tooLong }));
+    // 2000 en LF = 3000 en crudo: el navegador lo permite y el servidor debe aceptarlo.
+    expect(validateContact(fd({ ...valid, message: crlfMessage(2000) })).ok).toBe(true);
+
+    const r = validateContact(fd({ ...valid, message: crlfMessage(2001) }));
     expect(!r.ok && r.errors.message).toBe("too_long");
   });
 

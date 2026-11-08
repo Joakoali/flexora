@@ -20,7 +20,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type ContactField = "name" | "email" | "message";
 export type FieldErrorCode = "required" | "too_long" | "invalid";
-export type ContactErrors = Partial<Record<ContactField, FieldErrorCode>> & { form?: "send_failed" | "too_fast" };
+export type FormErrorCode = "send_failed" | "too_fast";
+export type ContactErrors = Partial<Record<ContactField, FieldErrorCode>> & { form?: FormErrorCode };
 export type ContactValues = { name: string; email: string; projectTypes: ProjectType[]; message: string };
 export type ContactData = ContactValues & { locale: Locale };
 export type ContactState =

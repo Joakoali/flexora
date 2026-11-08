@@ -66,6 +66,13 @@ describe("contactAction", () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
+  it("honeypot lleno + campos inválidos → success falso (el honeypot va antes que la validación)", async () => {
+    await expect(contactAction(IDLE, form({ website: "spam", name: "", email: "mal" }))).resolves.toEqual({
+      status: "success",
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
   it("demasiado rápido → too_fast con los values de la persona, sin enviar", async () => {
     const r = await contactAction(IDLE, form({ startedAt: String(Date.now()) }));
     expect(r).toEqual({

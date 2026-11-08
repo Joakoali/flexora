@@ -141,7 +141,7 @@
         "too_long": "This is too long.",
         "send_failed": "We couldn't send it. Try again or",
         "sendFailedLink": "message us on WhatsApp.",
-        "too_fast": "That was quick. Please try again in a moment."
+        "too_fast": "That was a bit too fast. Try again in a moment."
       }
     }
   },
