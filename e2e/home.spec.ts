@@ -22,6 +22,23 @@ for (const lang of ["es", "en"] as const) {
   });
 }
 
+// WCAG 1.4.10 (Reflow): a 320 px de ancho CSS la página no puede scrollear en horizontal.
+// Aparte del test de arriba porque ese corre al ancho del proyecto (1280 en escritorio) y
+// acá se mide en el límite: un hijo de grilla con nowrap que ensancha una columna `auto`
+// solo se nota a este ancho. Se compara contra el ancho pedido y no contra innerWidth: en
+// emulación mobile el viewport de layout crece hasta el contenido (innerWidth pasa a 347)
+// y un desborde real quedaría enmascarado.
+const REFLOW_WIDTH = 320;
+for (const lang of ["es", "en", "ca"] as const) {
+  test(`home ${lang}: sin scroll horizontal a ${REFLOW_WIDTH} px (reflow)`, async ({ page }) => {
+    await page.setViewportSize({ width: REFLOW_WIDTH, height: 640 });
+    await page.goto(`/${lang}`);
+    await page.evaluate(() => document.fonts.ready);
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(scrollWidth).toBeLessThanOrEqual(REFLOW_WIDTH + 1);
+  });
+}
+
 test("/ redirige según Accept-Language", async ({ browser }) => {
   const en = await browser.newContext({ locale: "en-US", extraHTTPHeaders: { "Accept-Language": "en-US,en;q=0.9" } });
   const p1 = await en.newPage();

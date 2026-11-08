@@ -1156,6 +1156,9 @@ body:has(#hero) {
 .work__grid {
   margin-top: clamp(2.5rem, 5vw, 4rem);
   display: grid;
+  /* minmax(0,·): una columna `auto` crece al max-content de la tarjeta (la URL del frame
+     es nowrap) y a 320 px empuja la página a scroll horizontal. */
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(2rem, 4vw, 3.5rem);
 }
 .work-card {
