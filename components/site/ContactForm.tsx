@@ -152,6 +152,7 @@ function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { o
                 </TextLink>
               </>
             )}
+            {errors.form === "too_fast" && t.errors.too_fast}
           </p>
 
           <div className="contact-form__submit">

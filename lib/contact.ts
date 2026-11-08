@@ -20,7 +20,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type ContactField = "name" | "email" | "message";
 export type FieldErrorCode = "required" | "too_long" | "invalid";
-export type ContactErrors = Partial<Record<ContactField, FieldErrorCode>> & { form?: "send_failed" };
+export type ContactErrors = Partial<Record<ContactField, FieldErrorCode>> & { form?: "send_failed" | "too_fast" };
 export type ContactValues = { name: string; email: string; projectTypes: ProjectType[]; message: string };
 export type ContactData = ContactValues & { locale: Locale };
 export type ContactState =
@@ -66,11 +66,18 @@ export function validateContact(
   return { ok: true, data: { ...values, locale: isLocale(lang) ? lang : defaultLocale } };
 }
 
-export function isLikelyBot(formData: FormData, now: number): boolean {
-  if (text(formData, "website") !== "") return true;
+/** Honeypot (`website`): un humano nunca lo ve, así que cualquier contenido delata a un bot. */
+export function isHoneypotFilled(formData: FormData): boolean {
+  return text(formData, "website") !== "";
+}
 
+/**
+ * Se envió antes de MIN_FILL_MS desde que se montó el form. No implica bot: un autofill
+ * seguido de Enter también lo dispara, así que la action pide reintentar en vez de descartar.
+ */
+export function isTooFast(formData: FormData, now: number): boolean {
   const raw = text(formData, "startedAt");
-  // Sin startedAt (usuario sin JS) no se puede juzgar: queda solo el honeypot.
+  // Sin startedAt (usuario sin JS) no se puede juzgar.
   if (raw === "") return false;
   const startedAt = Number(raw);
   if (!Number.isFinite(startedAt)) return false;

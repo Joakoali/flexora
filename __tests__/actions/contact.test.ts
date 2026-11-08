@@ -54,14 +54,43 @@ describe("contactAction", () => {
     });
   });
 
-  it("bot (honeypot) → success sin enviar", async () => {
+  it("bot (honeypot) → success falso sin enviar", async () => {
     await expect(contactAction(IDLE, form({ website: "spam" }))).resolves.toEqual({ status: "success" });
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("bot (demasiado rápido) → success sin enviar", async () => {
-    await expect(contactAction(IDLE, form({ startedAt: String(Date.now()) }))).resolves.toEqual({ status: "success" });
+  it("honeypot lleno + demasiado rápido → success falso (el honeypot manda)", async () => {
+    await expect(contactAction(IDLE, form({ website: "spam", startedAt: String(Date.now()) }))).resolves.toEqual({
+      status: "success",
+    });
     expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("demasiado rápido → too_fast con los values de la persona, sin enviar", async () => {
+    const r = await contactAction(IDLE, form({ startedAt: String(Date.now()) }));
+    expect(r).toEqual({
+      status: "error",
+      errors: { form: "too_fast" },
+      values: { name: "Ana", email: "ana@example.com", projectTypes: ["webapp"], message: "Hola" },
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("demasiado rápido y con campos inválidos → mandan los errores de campo", async () => {
+    const r = await contactAction(IDLE, form({ name: "", email: "mal", startedAt: String(Date.now()) }));
+    expect(r).toEqual({
+      status: "error",
+      errors: { name: "required", email: "invalid" },
+      values: { name: "", email: "mal", projectTypes: ["webapp"], message: "Hola" },
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("sin startedAt (usuario sin JS) → no es demasiado rápido y envía", async () => {
+    const f = form();
+    f.delete("startedAt");
+    await expect(contactAction(IDLE, f)).resolves.toEqual({ status: "success" });
+    expect(sendEmail).toHaveBeenCalledOnce();
   });
 
   it("inválido → error con códigos y values, sin enviar", async () => {

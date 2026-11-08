@@ -140,7 +140,8 @@
         "invalid": "Ingresá un email válido.",
         "too_long": "Es demasiado largo.",
         "send_failed": "No pudimos enviarlo. Probá de nuevo o",
-        "sendFailedLink": "escribinos por WhatsApp."
+        "sendFailedLink": "escribinos por WhatsApp.",
+        "too_fast": "Enviaste el formulario muy rápido. Probá de nuevo en un momento."
       }
     }
   },

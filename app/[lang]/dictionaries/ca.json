@@ -140,7 +140,8 @@
         "invalid": "Introdueix un correu electrònic vàlid.",
         "too_long": "És massa llarg.",
         "send_failed": "No hem pogut enviar-lo. Torna-ho a provar o",
-        "sendFailedLink": "escriu-nos per WhatsApp."
+        "sendFailedLink": "escriu-nos per WhatsApp.",
+        "too_fast": "Has enviat el formulari massa de pressa. Torna-ho a provar d'aquí a un moment."
       }
     }
   },

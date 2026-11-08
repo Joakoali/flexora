@@ -87,6 +87,21 @@ describe("ContactForm", () => {
     expect(screen.getByRole("link", { name: t.errors.sendFailedLink }).getAttribute("href")).toBe(WA);
   });
 
+  it("too_fast: muestra el mensaje, conserva lo escrito y no ofrece el link a WhatsApp", async () => {
+    actionMock.mockResolvedValue({
+      status: "error",
+      errors: { form: "too_fast" },
+      values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "hola" },
+    });
+    const { form } = setup();
+    await submit(form);
+    expect(await screen.findByText(t.errors.too_fast)).toBeTruthy();
+    expect(screen.queryByRole("link", { name: t.errors.sendFailedLink })).toBeNull();
+    expect(screen.queryByText(t.errors.send_failed, { exact: false })).toBeNull();
+    expect((screen.getByLabelText(t.nameLabel) as HTMLInputElement).value).toBe("Ana");
+    expect((screen.getByLabelText(new RegExp(t.messageLabel)) as HTMLTextAreaElement).value).toBe("hola");
+  });
+
   it("mientras envía: botón deshabilitado con texto de enviando", async () => {
     // La promesa se resuelve al final del test (no queda colgada): React 19
     // entrelaza todas las acciones async pendientes en una cola a nivel de

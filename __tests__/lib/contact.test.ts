@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildEmail, isLikelyBot, validateContact, type ContactData } from "@/lib/contact";
+import { buildEmail, isHoneypotFilled, isTooFast, validateContact, type ContactData } from "@/lib/contact";
 
 function fd(entries: Record<string, string | string[]>): FormData {
   const f = new FormData();
@@ -104,30 +104,48 @@ describe("validateContact", () => {
   });
 });
 
-describe("isLikelyBot", () => {
+describe("isHoneypotFilled", () => {
+  it("honeypot con contenido → true", () => {
+    expect(isHoneypotFilled(fd({ website: "http://spam" }))).toBe(true);
+  });
+
+  it("honeypot vacío, solo espacios o ausente → false", () => {
+    expect(isHoneypotFilled(fd({ website: "" }))).toBe(false);
+    expect(isHoneypotFilled(fd({ website: "  " }))).toBe(false);
+    expect(isHoneypotFilled(fd({}))).toBe(false);
+  });
+
+  it("no depende de startedAt", () => {
+    expect(isHoneypotFilled(fd({ website: "x", startedAt: "0" }))).toBe(true);
+    expect(isHoneypotFilled(fd({ startedAt: String(Date.now()) }))).toBe(false);
+  });
+});
+
+describe("isTooFast", () => {
   const now = 1_000_000;
 
-  it("honeypot con contenido → bot", () => {
-    expect(isLikelyBot(fd({ website: "http://spam", startedAt: String(now - 10_000) }), now)).toBe(true);
+  it("menos de 2000 ms → true; 2000 ms o más → false", () => {
+    expect(isTooFast(fd({ startedAt: String(now - 1999) }), now)).toBe(true);
+    expect(isTooFast(fd({ startedAt: String(now - 2000) }), now)).toBe(false);
+    expect(isTooFast(fd({ startedAt: String(now - 10_000) }), now)).toBe(false);
   });
 
-  it("honeypot vacío o solo espacios → no es bot por el honeypot", () => {
-    expect(isLikelyBot(fd({ website: "  ", startedAt: String(now - 10_000) }), now)).toBe(false);
+  it("elapsed 0 (justo ahora) → true", () => {
+    expect(isTooFast(fd({ startedAt: String(now) }), now)).toBe(true);
   });
 
-  it("menos de 2000 ms → bot; 2000 ms o más → no", () => {
-    expect(isLikelyBot(fd({ startedAt: String(now - 1999) }), now)).toBe(true);
-    expect(isLikelyBot(fd({ startedAt: String(now - 2000) }), now)).toBe(false);
+  it("startedAt ausente, vacío o no numérico → false (no se puede juzgar)", () => {
+    expect(isTooFast(fd({}), now)).toBe(false);
+    expect(isTooFast(fd({ startedAt: "" }), now)).toBe(false);
+    expect(isTooFast(fd({ startedAt: "abc" }), now)).toBe(false);
   });
 
-  it("startedAt ausente, vacío o no numérico → no se rechaza (usuario sin JS)", () => {
-    expect(isLikelyBot(fd({}), now)).toBe(false);
-    expect(isLikelyBot(fd({ startedAt: "" }), now)).toBe(false);
-    expect(isLikelyBot(fd({ startedAt: "abc" }), now)).toBe(false);
+  it("startedAt en el futuro (reloj del cliente adelantado) → false", () => {
+    expect(isTooFast(fd({ startedAt: String(now + 60_000) }), now)).toBe(false);
   });
 
-  it("startedAt en el futuro (reloj del cliente adelantado) → no se rechaza", () => {
-    expect(isLikelyBot(fd({ startedAt: String(now + 60_000) }), now)).toBe(false);
+  it("ignora el honeypot", () => {
+    expect(isTooFast(fd({ website: "http://spam", startedAt: String(now - 10_000) }), now)).toBe(false);
   });
 });
 
