@@ -119,6 +119,16 @@ describe("design tokens", () => {
     expect(footer).toContain("--fab-size");
   });
 
+  it("el foco no queda bajo el header ni el botón flotante: scroll-padding en html, compensado en las anclas", () => {
+    const html = css.match(/(?:^|\n)html\s*{([^}]*)}/)?.[1] ?? "";
+    expect(html).toContain("--scroll-clear-top: calc(var(--header-h) + 1rem)");
+    expect(html).toContain("scroll-padding-top: var(--scroll-clear-top)");
+    expect(html).toContain("scroll-padding-bottom: calc(var(--fab-size) + var(--fab-offset))");
+    // Sin esta compensación el scroll-padding corre las anclas de la nav ~88 px más abajo.
+    const section = css.match(/(?:^|\n)section\[id\]\s*{([^}]*)}/)?.[1] ?? "";
+    expect(section).toContain("scroll-margin-top: calc(-1 * var(--scroll-clear-top))");
+  });
+
   it("sin JavaScript (@media (scripting: none)) el contenido de Reveal se ve en su lugar final", () => {
     // Reveal arranca en opacity 0 y solo un JS que corra le pone data-visible: sin JS (o con la hidratación
     // caída) Servicios, Trabajos, Proceso y Cierre —el formulario incluido— quedarían invisibles.

@@ -150,3 +150,19 @@ test("en mobile el CTA del panel del menú lleva a WhatsApp", async ({ page }) =
   const cta = header.locator("#mobile-menu").getByRole("link", { name: "Hablemos" });
   await expect(cta).toHaveAttribute("href", WHATSAPP_HREF);
 });
+
+// Las anclas de la nav dejan cada sección al ras del borde superior de la ventana (el padding de la sección
+// despeja el título del header). El `scroll-padding-top` de html existe para el foco (WCAG 2.4.11) y, sin
+// compensarlo en las secciones, correría las anclas ~88 px más abajo.
+test("las anclas dejan la sección al ras del borde superior, sin sumar el scroll-padding del foco", async ({ page }) => {
+  await page.goto("/es");
+  await page.evaluate(() => document.fonts.ready);
+  for (const id of ["services", "work", "process", "contact"]) {
+    // Navegar por hash es lo mismo que clicar el link: no todas las anclas tienen link en el header o el menú.
+    await page.evaluate((hash) => {
+      location.hash = hash;
+    }, id);
+    const top = () => page.locator(`#${id}`).evaluate((el) => Math.abs(Math.round(el.getBoundingClientRect().top)));
+    await expect.poll(top, { message: `borde superior de #${id}` }).toBe(0);
+  }
+});

@@ -104,6 +104,18 @@
 html {
   scroll-behavior: auto;
   -webkit-text-size-adjust: 100%;
+  /* WCAG 2.4.11 (foco no oculto): el header fijo y el botón flotante de WhatsApp tapan lo que queda debajo.
+     Sin estos paddings el navegador da por visible todo lo que está dentro de la ventana y no scrollea al
+     enfocar, así que un campo enfocado al borde quedaba detrás de ellos. */
+  --scroll-clear-top: calc(var(--header-h) + 1rem);
+  scroll-padding-top: var(--scroll-clear-top);
+  scroll-padding-bottom: calc(var(--fab-size) + var(--fab-offset));
+}
+/* Las anclas (#services, #work, #process, #contact) siguen aterrizando con la sección al ras del borde
+   superior: su propio padding ya despeja el título del header, y el scroll-padding de arriba, pensado para
+   el foco, las correría ~88 px más abajo. El margen negativo lo cancela solo para el salto a ancla. */
+section[id] {
+  scroll-margin-top: calc(-1 * var(--scroll-clear-top));
 }
 
 body {

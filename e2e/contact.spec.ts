@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { effectiveOpacity } from "./helpers";
 import es from "../app/[lang]/dictionaries/es.json";
 import en from "../app/[lang]/dictionaries/en.json";
@@ -174,3 +174,73 @@ for (const lang of ["es", "en", "ca"] as const) {
     });
   });
 }
+
+// WCAG 2.4.11 (foco no oculto): el header fijo (72 px) y el botón flotante de WhatsApp no pueden tapar el
+// elemento enfocado. Sin scroll-padding el navegador da por "visible" todo lo que está dentro de la ventana,
+// aunque esté debajo del header o del botón, y no scrollea. Se mide en una ventana baja (844x390), donde el
+// form no entra entero y el borde inferior es el caso malo.
+test.describe("contacto: el foco no queda tapado por el header fijo ni por el botón flotante", () => {
+  test.use({ viewport: { width: 844, height: 390 } });
+
+  const t = es.closing.form;
+  type Box = { x: number; y: number; width: number; height: number };
+  const overlaps = (a: Box, b: Box) =>
+    a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+  const boxOf = async (target: Locator) => {
+    const box = await target.boundingBox();
+    if (!box) throw new Error("el elemento no tiene caja");
+    return box;
+  };
+
+  /** Form listo para enviar con un email que el navegador acepta pero el servidor rechaza (`ana@example`). */
+  async function prepare(page: Page) {
+    await page.goto("/es");
+    const form = page.getByRole("form", { name: t.formLabel });
+    await form.scrollIntoViewIfNeeded();
+    // Reveal anima opacidad y desplazamiento del form: hasta que termina, las cajas no son las finales.
+    await expect.poll(() => effectiveOpacity(form)).toBe(1);
+    await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+    await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example");
+    await form.getByLabel(t.messageLabel).fill("Hola, quiero una web app.");
+    await waitTimeGate(form);
+    return { form, submit: form.getByRole("button", { name: t.submit }) };
+  }
+
+  /** Scrollea hasta que el borde inferior del botón coincide con el de la ventana. */
+  async function toBottomEdge(submit: Locator) {
+    const gap = await submit.evaluate((button) => {
+      window.scrollBy(0, button.getBoundingClientRect().bottom - window.innerHeight);
+      return button.getBoundingClientRect().bottom - window.innerHeight;
+    });
+    expect(Math.abs(gap), "el botón Enviar debe quedar en el borde inferior").toBeLessThan(1);
+  }
+
+  const focusWithoutScrolling = (target: Locator) => target.evaluate((el) => (el as HTMLElement).focus({ preventScroll: true }));
+
+  test("error que solo detecta el servidor: el email enfocado no queda bajo el header ni el botón flotante", async ({ page }) => {
+    const { form, submit } = await prepare(page);
+    await focusWithoutScrolling(submit);
+    await toBottomEdge(submit);
+
+    await page.keyboard.press("Enter");
+
+    const email = form.getByLabel(t.emailLabel, { exact: true });
+    await expect(email).toBeFocused();
+    await expect(email).toHaveAttribute("aria-invalid", "true");
+    const box = await boxOf(email);
+    expect(overlaps(box, await boxOf(page.getByRole("banner"))), `el email (${JSON.stringify(box)}) queda bajo el header`).toBe(false);
+    expect(overlaps(box, await boxOf(page.locator(".wa-fab"))), `el email (${JSON.stringify(box)}) queda bajo el botón flotante`).toBe(false);
+  });
+
+  test("Tab hasta Enviar con el botón al borde inferior: no queda bajo el botón flotante", async ({ page }) => {
+    const { form, submit } = await prepare(page);
+    await focusWithoutScrolling(form.getByLabel(t.messageLabel));
+    await toBottomEdge(submit);
+
+    await page.keyboard.press("Tab");
+
+    await expect(submit).toBeFocused();
+    const box = await boxOf(submit);
+    expect(overlaps(box, await boxOf(page.locator(".wa-fab"))), `Enviar (${JSON.stringify(box)}) queda bajo el botón flotante`).toBe(false);
+  });
+});
