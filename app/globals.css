@@ -931,9 +931,11 @@ body:has(#hero) {
 /* Pantallas bajas (celulares apaisados, ventanas chatas): el límite es el alto y no el
    ancho, así que estos cortes valen a cualquier ancho. El copy mide ~400-450 px y la escena
    es 100dvh con overflow hidden: lo que se pasa queda cortado. Se sacrifica por orden:
-   primero la línea de proyectos, después los chips y, en los más bajos, se achican titular
-   e interlineado. El titular, los dos CTA y su nota nunca se ocultan. */
-@media (max-height: 560px) {
+   primero la línea de proyectos (≤ 600 px, como la regla angosta: con un corte más bajo el
+   copy quedaba pegado al wordmark justo por encima), después los chips (≤ 500 px) y, en los
+   más bajos, se achican titular e interlineado. El titular, los dos CTA y su nota nunca se
+   ocultan. */
+@media (max-height: 600px) {
   .hero__copy { gap: 0.75rem; }
   .hero__copy .hero__projects {
     display: none;
@@ -954,6 +956,15 @@ body:has(#hero) {
   }
   .hero__subcopy { line-height: 1.45; }
   .hero__cta { gap: 0.5rem; }
+}
+/* Mismo tope de alto pero con el escalón angosto: el bloque de arriba tiene la misma
+   especificidad que el de ≤ 640 px y, al ir después, le pisaría el valor con uno mayor
+   (a 320 px de ancho el titular pasaba de 26 a 32 px). 7.5vh baja el titular de 3 a 2 líneas
+   (~27 px) hasta ≈ 360 px de alto; la base usa 8.5vh. */
+@media (max-width: 640px) and (max-height: 440px) {
+  .hero__tagline {
+    font-size: min(clamp(1.625rem, 7.8vw, 2rem), 7.5vh);
+  }
 }
 
 /* Sin puntero: el wordmark respira solo entre 125 y 150. */
