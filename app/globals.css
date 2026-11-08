@@ -794,6 +794,20 @@ body:has(#hero) {
   justify-items: start;
   gap: clamp(1rem, 2.4vh, 1.5rem);
 }
+/* Entrada escalonada (fade + 12 px, 60 ms entre elementos: el mismo gesto que Reveal) en CSS
+   puro. El hero está siempre en el primer viewport, así que no necesita IntersectionObserver,
+   y con Reveal el h1 (candidato a LCP) nacía en opacity 0 hasta hidratar y sin JS no
+   aparecía nunca. `both` retiene el `from` durante el delay (sin parpadeo previo). */
+.hero__copy > * {
+  animation: hero-copy-in var(--dur-slow) var(--ease-out) both;
+}
+.hero__copy > :nth-child(2) { animation-delay: 60ms; }
+.hero__copy > :nth-child(3) { animation-delay: 120ms; }
+.hero__copy > :nth-child(4) { animation-delay: 180ms; }
+.hero__copy > :nth-child(n + 5) { animation-delay: 240ms; }
+@keyframes hero-copy-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
 /* Velo suave detrás del texto: sube la legibilidad sin tapar el campo. */
 .hero__copy::before {
   content: "";
@@ -936,6 +950,9 @@ body:has(#hero) {
     font-variation-settings: "wdth" 140 !important;
   }
   .hero__copy { opacity: 1; transform: none; }
+  /* La regla global solo acorta la duración: el delay escalonado seguiría reteniendo el
+     `from` (opacity 0) hasta 240 ms. Sin animación el copy aparece completo de entrada. */
+  .hero__copy > * { animation: none; }
   html { animation: none; }
   /* Mismo selector que la declaración base: un valor propio de body no se pisa
      desde :root. Sin hero (o sin :has()) no hay declaración y gana el

@@ -6,7 +6,6 @@ import { work } from "@/content/work";
 import { FlexWordmark } from "./FlexWordmark";
 import { HeroProgress } from "./HeroProgress";
 import { HeroShowcase } from "./HeroShowcase";
-import { Reveal } from "./Reveal";
 
 export function Hero({ t, whatsappHref }: { t: Dictionary["hero"]; whatsappHref: string }) {
   const projects = work.map((w) => w.client).join(", ");
@@ -17,7 +16,7 @@ export function Hero({ t, whatsappHref }: { t: Dictionary["hero"]; whatsappHref:
         <div className="hero__content container-site">
           <FlexWordmark text="FLEXORA" />
           <HeroShowcase items={work} />
-          <Reveal className="hero__copy">
+          <div className="hero__copy">
             <p className="hero__eyebrow label">{t.eyebrow}</p>
             <h1 className="hero__tagline h2">{t.tagline}</h1>
             <p className="hero__subcopy">{t.subcopy}</p>
@@ -45,7 +44,7 @@ export function Hero({ t, whatsappHref }: { t: Dictionary["hero"]; whatsappHref:
                 </TextLink>
               </p>
             </div>
-          </Reveal>
+          </div>
         </div>
       </div>
       <HeroProgress />
