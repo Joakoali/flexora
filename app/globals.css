@@ -797,9 +797,12 @@ body:has(#hero) {
 /* Entrada escalonada (fade + 12 px, 60 ms entre elementos: el mismo gesto que Reveal) en CSS
    puro. El hero está siempre en el primer viewport, así que no necesita IntersectionObserver,
    y con Reveal el h1 (candidato a LCP) nacía en opacity 0 hasta hidratar y sin JS no
-   aparecía nunca. `both` retiene el `from` durante el delay (sin parpadeo previo). */
+   aparecía nunca. `backwards` retiene el `from` durante el delay (sin parpadeo previo). No se
+   usa `forwards`/`both`: dejarían la animación aplicada tras terminar y, en Chromium, el hijo
+   animado pasa a ser backdrop root, con lo que el backdrop-filter de los chips (.hero__chip,
+   dentro de .hero__proof) deja de difuminar lo que hay detrás. El estado `to` ya es el natural. */
 .hero__copy > * {
-  animation: hero-copy-in var(--dur-slow) var(--ease-out) both;
+  animation: hero-copy-in var(--dur-slow) var(--ease-out) backwards;
 }
 .hero__copy > :nth-child(2) { animation-delay: 60ms; }
 .hero__copy > :nth-child(3) { animation-delay: 120ms; }

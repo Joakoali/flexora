@@ -2,6 +2,13 @@ import { expect, test, type Page } from "@playwright/test";
 
 const SECTIONS = ["hero", "services", "work", "process", "contact"];
 
+// La entrada del copy del hero (fade + 12 px, animación CSS) tiene que terminar antes de medirlo
+// o de mirar qué animaciones le quedan aplicadas.
+const heroCopyEntryDone = (page: Page) =>
+  page.locator(".hero__copy").evaluate((el) =>
+    Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)),
+  );
+
 for (const lang of ["es", "en"] as const) {
   test(`home ${lang}: secciones, sin errores, sin scroll horizontal`, async ({ page }) => {
     const errors: string[] = [];
@@ -39,6 +46,21 @@ for (const lang of ["es", "en", "ca"] as const) {
   });
 }
 
+// La entrada del copy no puede dejar su animación aplicada al terminar (nada de fill-mode
+// `both`/`forwards`): en Chromium un elemento con animación de opacity/transform aplicada es
+// backdrop root, y el backdrop-filter de los chips (dentro de .hero__proof) pasa a difuminar
+// solo el interior del bloque y no el campo de atrás.
+test("hero: al terminar la entrada ningún hijo del copy conserva una animación aplicada", async ({ page }) => {
+  await page.goto("/es");
+  const children = page.locator(".hero__copy > *");
+  await expect(children).not.toHaveCount(0);
+  await heroCopyEntryDone(page);
+  const retained = await children.evaluateAll((els) =>
+    els.filter((el) => el.getAnimations().length > 0).map((el) => el.className || el.tagName),
+  );
+  expect(retained).toEqual([]);
+});
+
 // Celulares apaisados: con más de 640 px de ancho no corren los fallbacks de ancho del hero, y la
 // escena es 100dvh con overflow hidden, así que lo que se pasa del alto queda cortado (no
 // scrolleable). El copy entero, con sus CTA, tiene que entrar sin pisar el wordmark de arriba.
@@ -58,9 +80,7 @@ for (const viewport of LANDSCAPE_PHONES) {
         await page.goto(`/${lang}`);
         await page.evaluate(() => document.fonts.ready);
         // La entrada del copy desplaza 12 px: se mide con la animación terminada.
-        await page.locator(".hero__copy").evaluate((el) =>
-          Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)),
-        );
+        await heroCopyEntryDone(page);
         const box = async (selector: string) => {
           const b = await page.locator(selector).boundingBox();
           if (!b) throw new Error(`${selector} no tiene caja`);

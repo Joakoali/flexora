@@ -69,10 +69,13 @@ test.describe("hero sin JavaScript", () => {
     test("el copy del hero aparece completo, sin animación ni delay", async ({ page }) => {
       await page.goto("/es");
       const hero = page.locator("#hero");
-      const animated = await hero.locator(".hero__copy > *").evaluateAll((els) =>
-        els.filter((el) => el.getAnimations().length > 0).length,
+      // animationName y no getAnimations(): con fill `backwards` una animación terminada ya no
+      // aparece en getAnimations() y el test dependería de la carrera contra el delay de 240 ms.
+      const names = await hero.locator(".hero__copy > *").evaluateAll((els) =>
+        els.map((el) => getComputedStyle(el).animationName),
       );
-      expect(animated).toBe(0);
+      expect(names.length).toBeGreaterThan(0);
+      expect(names.filter((name) => name !== "none")).toEqual([]);
       expect(await effectiveOpacity(hero.getByRole("heading", { level: 1 }))).toBe(1);
       expect(await effectiveOpacity(hero.locator(".btn-primary"))).toBe(1);
     });
