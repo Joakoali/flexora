@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildEmail, isHoneypotFilled, isTooFast, validateContact, type ContactData } from "@/lib/contact";
+import {
+  buildEmail,
+  isHoneypotFilled,
+  isTooFast,
+  readContactValues,
+  validateContact,
+  type ContactData,
+} from "@/lib/contact";
 
 function fd(entries: Record<string, string | string[]>): FormData {
   const f = new FormData();
@@ -10,6 +17,44 @@ function fd(entries: Record<string, string | string[]>): FormData {
 }
 
 const valid = { name: "Ana", email: "ana@example.com", lang: "es" };
+
+describe("readContactValues", () => {
+  it("devuelve los valores con trim y sin validar nada (ni siquiera lo obligatorio)", () => {
+    expect(readContactValues(fd({}))).toEqual({ name: "", email: "", projectTypes: [], message: "" });
+    expect(readContactValues(fd({ name: "  Ana  ", email: " mal ", message: "  hola  " }))).toEqual({
+      name: "Ana",
+      email: "mal",
+      projectTypes: [],
+      message: "hola",
+    });
+  });
+
+  it("colapsa el whitespace interno del nombre (una sola línea)", () => {
+    expect(readContactValues(fd({ name: "Ana\r\n\tMaría   Pérez" })).name).toBe("Ana María Pérez");
+  });
+
+  it("normaliza CRLF y CR sueltos a LF en el mensaje", () => {
+    expect(readContactValues(fd({ message: "uno\r\ndos\rtres\ncuatro" })).message).toBe("uno\ndos\ntres\ncuatro");
+  });
+
+  it("chips: descarta inválidos y duplicados, y ordena como PROJECT_TYPES", () => {
+    const values = readContactValues(fd({ projectType: ["webapp", "hacker", "website", "webapp"] }));
+    expect(values.projectTypes).toEqual(["website", "webapp"]);
+  });
+
+  it("ignora los valores que no son texto (archivos)", () => {
+    const f = new FormData();
+    f.append("name", new File(["x"], "x.txt"));
+    f.append("projectType", new File(["x"], "x.txt"));
+    expect(readContactValues(f)).toEqual({ name: "", email: "", projectTypes: [], message: "" });
+  });
+
+  it("es lo mismo que validateContact devuelve en values", () => {
+    const f = fd({ name: " Ana  Pérez ", email: "mal", projectType: ["mobile", "x"], message: " hola\r\nchau " });
+    const r = validateContact(f);
+    expect(!r.ok && r.values).toEqual(readContactValues(f));
+  });
+});
 
 describe("validateContact", () => {
   it("acepta el mínimo (nombre + email) y aplica trim", () => {

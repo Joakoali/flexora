@@ -39,10 +39,12 @@ function projectTypes(formData: FormData): ProjectType[] {
   return PROJECT_TYPES.filter((type) => picked.has(type));
 }
 
-export function validateContact(
-  formData: FormData,
-): { ok: true; data: ContactData } | { ok: false; errors: ContactErrors; values: ContactValues } {
-  const values: ContactValues = {
+/**
+ * Lee y normaliza lo que la persona escribió, sin validar nada. Lo usa `validateContact` y también
+ * el cliente para devolverle sus valores al form cuando la action ni siquiera llegó al servidor.
+ */
+export function readContactValues(formData: FormData): ContactValues {
+  return {
     // El nombre va al asunto del mail: una sola línea.
     name: text(formData, "name").replace(/\s+/g, " "),
     email: text(formData, "email"),
@@ -51,6 +53,12 @@ export function validateContact(
     // los cuenta como 1: normalizamos a LF para que el límite del servidor sea el mismo.
     message: text(formData, "message").replace(/\r\n?/g, "\n"),
   };
+}
+
+export function validateContact(
+  formData: FormData,
+): { ok: true; data: ContactData } | { ok: false; errors: ContactErrors; values: ContactValues } {
+  const values = readContactValues(formData);
 
   const errors: ContactErrors = {};
   if (!values.name) errors.name = "required";

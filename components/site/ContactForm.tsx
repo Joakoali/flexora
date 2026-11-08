@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useId, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { LIMITS, PROJECT_TYPES, type ContactField, type ContactState } from "@/lib/contact";
+import { LIMITS, PROJECT_TYPES, readContactValues, type ContactField, type ContactState } from "@/lib/contact";
 import { contactAction } from "@/app/[lang]/actions/contact";
 import { Button } from "@/components/ui/Button";
 import { TextLink } from "@/components/ui/TextLink";
@@ -12,6 +12,29 @@ type Props = { t: Dictionary["closing"]["form"]; locale: Locale; whatsappHref: s
 
 const INITIAL_STATE: ContactState = { status: "idle" };
 const FIELD_ORDER: ContactField[] = ["name", "email", "message"];
+
+/**
+ * La action del servidor nunca lanza, pero el POST puede fallar antes de llegar (sin conexión,
+ * timeout, 5xx, action ID viejo tras un deploy). `useActionState` re-lanza ese rechazo y, sin error
+ * boundary, se cae toda la página y se pierde lo escrito: lo convertimos en el error de envío.
+ */
+async function submitContact(prev: ContactState, formData: FormData): Promise<ContactState> {
+  try {
+    return await contactAction(prev, formData);
+  } catch (error) {
+    console.error("[contact] la action fue rechazada antes de responder", error);
+    return { status: "error", errors: { form: "send_failed" }, values: readContactValues(formData) };
+  }
+}
+
+// `false` en el servidor y durante la hidratación, `true` ya en el cliente (sin setState en un effect).
+const subscribeNever = () => () => {};
+const useHydrated = () =>
+  useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
 
 export function ContactForm(props: Props) {
   // Cambiar la key remonta el cuerpo: estado de la acción en idle y startedAt nuevo.
@@ -24,7 +47,11 @@ export function ContactForm(props: Props) {
 }
 
 function ContactFormBody({ t, locale, whatsappHref, onSendAnother }: Props & { onSendAnother: () => void }) {
-  const [state, formAction, isPending] = useActionState(contactAction, INITIAL_STATE);
+  // Un wrapper común pierde `$$FORM_ACTION`: React no emite los campos ocultos de la server action y el
+  // form queda inerte sin JS (o antes de hidratar). Por eso va la action pelada hasta hidratar y el
+  // wrapper con try/catch recién después.
+  const hydrated = useHydrated();
+  const [state, formAction, isPending] = useActionState(hydrated ? submitContact : contactAction, INITIAL_STATE);
   const id = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const startedAtRef = useRef<HTMLInputElement>(null);

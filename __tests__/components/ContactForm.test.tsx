@@ -25,7 +25,10 @@ async function submit(form: HTMLElement) {
   });
 }
 
-afterEach(() => actionMock.mockReset());
+afterEach(() => {
+  actionMock.mockReset();
+  vi.restoreAllMocks();
+});
 
 describe("ContactForm", () => {
   it("tiene labels visibles, fieldset con legend y 6 chips checkbox", () => {
@@ -100,6 +103,26 @@ describe("ContactForm", () => {
     expect(screen.queryByText(t.errors.send_failed, { exact: false })).toBeNull();
     expect((screen.getByLabelText(t.nameLabel) as HTMLInputElement).value).toBe("Ana");
     expect((screen.getByLabelText(new RegExp(t.messageLabel)) as HTMLTextAreaElement).value).toBe("hola");
+  });
+
+  it("si la action se rechaza (red caída, 5xx, action vieja) no rompe la página: send_failed y conserva lo escrito", async () => {
+    // Sin el wrapper, useActionState re-lanza el rechazo y, sin error boundary, React desmonta todo el árbol.
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    actionMock.mockRejectedValue(new TypeError("Failed to fetch"));
+    const { form } = setup();
+    fireEvent.change(screen.getByLabelText(t.nameLabel), { target: { value: "  Ana   Pérez " } });
+    fireEvent.change(screen.getByLabelText(t.emailLabel), { target: { value: "ana@example.com" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: t.projectTypes.webapp }));
+    fireEvent.change(screen.getByLabelText(new RegExp(t.messageLabel)), { target: { value: "hola" } });
+    await submit(form);
+
+    expect(await screen.findByText(t.errors.send_failed, { exact: false })).toBeTruthy();
+    expect(screen.getByRole("link", { name: t.errors.sendFailedLink }).getAttribute("href")).toBe(WA);
+    expect((screen.getByLabelText(t.nameLabel) as HTMLInputElement).value).toBe("Ana Pérez");
+    expect((screen.getByLabelText(t.emailLabel) as HTMLInputElement).value).toBe("ana@example.com");
+    expect((screen.getByRole("checkbox", { name: t.projectTypes.webapp }) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText(new RegExp(t.messageLabel)) as HTMLTextAreaElement).value).toBe("hola");
+    expect(consoleError).toHaveBeenCalledWith(expect.stringContaining("[contact]"), expect.any(TypeError));
   });
 
   it("mientras envía: botón deshabilitado con texto de enviando", async () => {

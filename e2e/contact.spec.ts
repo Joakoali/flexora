@@ -48,4 +48,62 @@ for (const lang of ["es", "en", "ca"] as const) {
     await expect(form.getByLabel(t.emailLabel, { exact: true })).toHaveAttribute("aria-invalid", "true");
     await expect(form.getByLabel(t.nameLabel, { exact: true })).toHaveValue("Ana Test");
   });
+
+  test(`contacto ${lang}: si el POST de la action falla (red caída) la página no se rompe y se conserva lo escrito`, async ({ page }) => {
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+
+    await page.goto(`/${lang}`);
+    // Server Actions viajan como POST con el header next-action: se abortan como si no hubiera conexión.
+    await page.route("**/*", (route) => {
+      const request = route.request();
+      return request.method() === "POST" && "next-action" in request.headers() ? route.abort() : route.continue();
+    });
+
+    const form = page.getByRole("form", { name: t.formLabel });
+    await form.scrollIntoViewIfNeeded();
+    await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+    await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example.com");
+    await form.getByLabel(t.messageLabel).fill("Hola, quiero una web app.");
+    await page.waitForTimeout(2100);
+    await form.getByRole("button", { name: t.submit }).click();
+
+    await expect(form.getByText(t.errors.send_failed, { exact: false })).toBeVisible();
+    await expect(form.getByRole("link", { name: t.errors.sendFailedLink })).toBeVisible();
+    // Sin el wrapper de la action, Next reemplaza toda la página por su pantalla de error.
+    await expect(page.getByText(/This page couldn.t load/)).toHaveCount(0);
+    expect(pageErrors).toEqual([]);
+
+    // Conserva lo que la persona escribió y la página sigue interactiva.
+    await expect(form.getByLabel(t.nameLabel, { exact: true })).toHaveValue("Ana Test");
+    await expect(form.getByLabel(t.emailLabel, { exact: true })).toHaveValue("ana@example.com");
+    await expect(form.getByLabel(t.messageLabel)).toHaveValue("Hola, quiero una web app.");
+    const button = form.getByRole("button", { name: t.submit });
+    await expect(button).toBeEnabled();
+    await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test 2");
+    await expect(form.getByLabel(t.nameLabel, { exact: true })).toHaveValue("Ana Test 2");
+  });
+
+  test(`contacto ${lang}: el HTML inicial trae los campos de la server action para enviar sin JS`, async ({ request }) => {
+    const html = await (await request.get(`/${lang}`)).text();
+    // Si el form se arma con un wrapper común en vez de la server action, React los omite.
+    expect(html).toMatch(/name="\$ACTION_REF_\d+"/);
+    expect(html).toMatch(/name="\$ACTION_\d+:0"/);
+    expect(html).not.toContain("React form unexpectedly submitted");
+  });
+
+  test.describe(`contacto ${lang}: sin JavaScript`, () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("el form se envía igual (progressive enhancement) y muestra el éxito", async ({ page }) => {
+      await page.goto(`/${lang}`);
+      const form = page.getByRole("form", { name: t.formLabel });
+      await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+      await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example.com");
+      await form.getByRole("button", { name: t.submit }).click();
+
+      await expect(page.getByRole("heading", { name: t.successTitle })).toBeVisible();
+      await expect(page.getByRole("form", { name: t.formLabel })).toHaveCount(0);
+    });
+  });
 }
