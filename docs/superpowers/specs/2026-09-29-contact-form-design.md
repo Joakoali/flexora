@@ -59,9 +59,9 @@ mensajes en ningún otro lado.
 
 | Archivo | Responsabilidad | Depende de |
 |---|---|---|
-| `lib/contact.ts` (nuevo) | Lógica pura, sin I/O: `PROJECT_TYPES`, `validateContact`, `isLikelyBot`, `buildEmail`, tipos `ContactData` / `ContactState`. | nada |
+| `lib/contact.ts` (nuevo) | Lógica pura, sin I/O: `PROJECT_TYPES`, `validateContact`, `isHoneypotFilled`, `isTooFast`, `buildEmail`, tipos `ContactData` / `ContactState`. | nada |
 | `lib/resend.ts` (nuevo) | `sendEmail(msg)`: un `POST https://api.resend.com/emails`. Devuelve `{ ok: boolean }`, nunca lanza. | `fetch`, env |
-| `app/[lang]/actions/contact.ts` (nuevo) | Server Action `'use server'` `contactAction(prev, formData)`. Orquesta bot → validar → mail → enviar. | `lib/contact`, `lib/resend` |
+| `app/[lang]/actions/contact.ts` (nuevo) | Server Action `'use server'` `contactAction(prev, formData)`. Orquesta honeypot → validar → time-gate → mail → enviar. | `lib/contact`, `lib/resend` |
 | `components/site/ContactForm.tsx` (nuevo) | Client component. `<form action>` con `useActionState`, campos, chips, estados. Recibe `t` (copy), `locale` y `whatsappHref` (para el link del error de envío). | action, `Button` |
 | `components/site/Closing.tsx` | Nuevo layout: título a ancho completo, debajo dos columnas (contenido actual \| formulario). Sigue siendo server component. Recibe también `locale`. | `ContactForm` |
 | `app/[lang]/page.tsx` | Pasa `locale` a `Closing`. | — |
@@ -93,13 +93,14 @@ export type ContactState =
   | { status: "success" }
   | {
       status: "error";
-      errors: Partial<Record<"name" | "email" | "message", FieldErrorCode>> & { form?: "send_failed" };
+      errors: Partial<Record<"name" | "email" | "message", FieldErrorCode>> & { form?: "send_failed" | "too_fast" };
       values: ContactValues;
     };
 ```
 
 - `validateContact(formData): { ok: true; data: ContactData } | { ok: false; errors; values }`
-- `isLikelyBot(formData, now: number): boolean`
+- `isHoneypotFilled(formData): boolean`: el honeypot `website` vino con contenido.
+- `isTooFast(formData, now: number): boolean`: pasaron menos de 2 s desde el montaje del form (`startedAt`).
 - `buildEmail(data): { subject: string; text: string; replyTo: string }`
 
 Los nombres exactos de funciones y tipos pueden ajustarse en el plan; las
@@ -109,16 +110,18 @@ responsabilidades y el contrato (códigos, no textos) no.
 
 ```
 <form action={formAction}>  →  contactAction(prevState, formData)
-  1. isLikelyBot(formData, Date.now())
+  1. isHoneypotFilled(formData)
        sí → return { status: "success" }            // sin enviar; el bot no se entera
   2. validateContact(formData)
        errores → return { status: "error", errors, values }
-  3. faltan RESEND_API_KEY / CONTACT_TO_EMAIL / CONTACT_FROM_EMAIL
+  3. isTooFast(formData, Date.now())
+       sí → return { status: "error", errors: { form: "too_fast" }, values }   // reintentar sin perder lo tipeado
+  4. faltan RESEND_API_KEY / CONTACT_TO_EMAIL / CONTACT_FROM_EMAIL
        → console.error(...) ; return { status: "error", errors: { form: "send_failed" }, values }
        (en modo CONTACT_DRY_RUN no se exige RESEND_API_KEY)
-  4. sendEmail({ from, to, replyTo, subject, text })
+  5. sendEmail({ from, to, replyTo, subject, text })
        { ok: false } → return { status: "error", errors: { form: "send_failed" }, values }
-  5. return { status: "success" }
+  6. return { status: "success" }
 ```
 
 ### Campos del formulario
@@ -131,7 +134,7 @@ responsabilidades y el contrato (códigos, no textos) no.
 | `message` | textarea | opcional; ≤2000 caracteres | `too_long` |
 | `lang` | hidden | `locale` actual; si no es un locale válido, se usa `"es"` | — |
 | `website` | text (honeypot) | debe venir vacío | — (bot) |
-| `startedAt` | hidden | ms epoch, seteado en el cliente | — (bot) |
+| `startedAt` | hidden | ms epoch, seteado en el cliente | `form: too_fast` (time-gate) |
 
 El whitespace interno del nombre (incluidos saltos de línea) se colapsa a un
 espacio, porque el nombre va al asunto del mail.
@@ -149,7 +152,9 @@ En el cliente solo se usa validación nativa (`required`, `type="email"`,
   `tabIndex={-1}` y `autoComplete="off"`. Si llega con contenido no vacío, es un bot.
 - **Tiempo mínimo:** `startedAt` se completa con `Date.now()` en un efecto al
   montar `ContactForm` en el cliente. No puede venir del render del servidor
-  porque la página se prerenderiza en el build. Si `0 <= now - startedAt < 2000`, es un bot. Un valor negativo
+  porque la página se prerenderiza en el build. Si `0 <= now - startedAt < 2000`, el envío fue demasiado rápido
+  (`isTooFast`): no se asume que sea un bot (un autofill seguido de Enter también lo dispara), así que la action
+  responde el error `form: "too_fast"` conservando lo tipeado. Un valor negativo
   (reloj del cliente adelantado) no se puede juzgar y se acepta.
   Si `startedAt` falta o no es un número (usuario sin JS), **no se rechaza**:
   queda solo el honeypot. Es un compromiso deliberado para no romper el caso sin JS.
@@ -313,7 +318,7 @@ Pasos manuales (del dueño de la cuenta, fuera del código):
 - `__tests__/lib/resend.test.ts` (`fetch` mockeado): URL, headers y body
   (`reply_to`, `to` como array); no-2xx → `{ ok: false }`; `fetch` lanza →
   `{ ok: false }` sin propagar; la API key no aparece en los logs; `CONTACT_DRY_RUN=1` → no llama a `fetch`.
-- `__tests__/actions/contact.test.ts` (`sendEmail` mockeado): bot → `success`
+- `__tests__/actions/contact.test.ts` (`sendEmail` mockeado): honeypot lleno → `success`
   sin enviar; inválido → `error` con `errors` y `values`; env vars faltantes →
   `send_failed` sin enviar; envío falla → `send_failed`; ok → `success` y
   `sendEmail` recibe `from`/`to`/`replyTo` correctos.
@@ -338,3 +343,52 @@ Pasos manuales (del dueño de la cuenta, fuera del código):
 
 **Revisión visual:** `scripts/capture-review.mjs` a 1440 y 390 en ambos temas,
 mirando la legibilidad del panel sobre el WebGL y el apilado en mobile.
+
+## Cambios posteriores (2026-11-08, review de la PR #4)
+
+El review de la PR #4 ajustó el comportamiento descrito arriba. Detalle de la
+ronda: `2026-11-08-pr4-review-fixes.md`.
+
+- **`too_fast` en vez de éxito falso por tiempo.** Antes (`isLikelyBot`) un envío
+  en menos de 2 s respondía éxito falso y el lead se perdía en silencio
+  (autofill + Enter, o el envío justo después de "Enviar otro mensaje", que
+  reinicia `startedAt`). Ahora son dos chequeos: `isHoneypotFilled` (honeypot
+  lleno → éxito falso, sin enviar) e `isTooFast` (menos de 2 s → error
+  `form: "too_fast"` con los valores tipeados; el segundo intento ya pasa). El
+  orden en la action es honeypot → validación → time-gate → envío, así que un
+  error de campo tiene prioridad sobre `too_fast`. La UI muestra
+  `errors.too_fast` sin el link a WhatsApp, que queda solo para `send_failed`.
+- **Normalización CRLF.** `maxLength` del textarea cuenta cada salto de línea
+  como 1 carácter, pero el navegador los envía como `\r\n` (2). La validación
+  normaliza `\r\n` y `\r` a `\n` antes de medir el límite de 2000 y de armar el
+  mail, para que el límite del servidor sea el mismo que el del navegador.
+- **Wrapper `submitContact`, recién hidratado.** Si el POST de la action falla
+  antes de llegar al servidor (sin conexión, timeout, 5xx, action ID viejo tras
+  un deploy), `useActionState` re-lanza el error y, sin error boundary, se cae
+  toda la página y se pierde lo escrito. `submitContact` envuelve la action con
+  un `try/catch` y devuelve `send_failed` con los valores del form
+  (`readContactValues`). Se activa recién cuando el componente está hidratado
+  (`useHydrated`, con `useSyncExternalStore`: `false` en el servidor y durante
+  la hidratación, `true` en el cliente); hasta entonces va la server action
+  pelada. **Por qué:** un wrapper común pierde `$$FORM_ACTION`: React deja de
+  emitir los campos ocultos de la server action y el envío sin JS (o antes de
+  hidratar) queda inerte. `e2e/contact.spec.ts` verifica que el HTML inicial
+  traiga esos campos.
+- **Región `aria-live` siempre montada.** El contenedor `aria-live="polite"` del
+  error de envío existe siempre y vacío no ocupa lugar; el `<p>` con el mensaje
+  se renderiza solo cuando hay error. Antes estaba `:empty { display: none }`,
+  así que salía del árbol de accesibilidad y, al aparecer el mensaje, nacía con
+  contenido y los lectores de pantalla no lo anunciaban. Un test sobre el CSS
+  veda `display: none`, `visibility: hidden` y `:empty` en esa región.
+- **Foco tras "Enviar otro mensaje".** El botón enfocado se desmonta, así que el
+  foco caía en `<body>`: ahora va al primer campo (Nombre). Solo en esa
+  transición (`focusNameOnMount`): en la primera carga, o al llegar por
+  `#contact`, no se le roba el foco a la página.
+- **Visible sin JavaScript.** `Closing` está dentro de `Reveal`, que arranca en
+  `opacity: 0` y solo con JS recibe `data-visible`: sin JS el formulario
+  quedaba invisible, aunque el spec exige que funcione sin JS. El fallback es
+  `@media (scripting: none)` en `app/globals.css`, que lo muestra en su lugar
+  final. No cubre una hidratación caída con JS encendido.
+- **Foco no tapado.** `html` declara `scroll-padding` arriba y abajo (header
+  fijo y botón flotante de WhatsApp) para que el campo enfocado no quede
+  debajo de ninguno de los dos (WCAG 2.4.11); lo cubre `e2e/contact.spec.ts`.
