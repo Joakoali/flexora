@@ -100,19 +100,33 @@ describe("design tokens", () => {
     }
   });
 
-  it("los breakpoints de ancho no dejan hueco: ningún max-width entero queda a 1px de un min-width", () => {
-    // Un par como (max-width: 899px) + (min-width: 900px) deja sin cubrir los viewports
-    // fraccionarios entre 899 y 900 (zoom, HiDPI): no aparece ni el menú ni la nav.
+  describe("breakpoints de ancho", () => {
     const code = css.replace(/\/\*[\s\S]*?\*\//g, ""); // los comentarios pueden citar el par viejo
     const widths = (kind: "min" | "max") =>
       [...code.matchAll(new RegExp(`\\(${kind}-width:\\s*(\\d+)px\\)`, "g"))].map(([, px]) => Number(px));
-    const mins = new Set(widths("min"));
-    expect(mins.size).toBeGreaterThan(0);
-    for (const max of widths("max")) {
-      expect(mins.has(max + 1), `(max-width: ${max}px) deja un hueco con (min-width: ${max + 1}px)`).toBe(false);
-    }
-    // La hamburguesa es el complemento exacto de la nav de escritorio (min-width: 900px).
-    expect(code).toMatch(/@media \(width < 900px\)\s*{\s*\.site-header__menu\s*{/);
+
+    it("no hay pares max/min-width con hueco", () => {
+      // Un par como (max-width: 899px) + (min-width: 900px) deja sin cubrir los viewports
+      // fraccionarios entre 899 y 900 (zoom, HiDPI): no aparece ni el menú ni la nav.
+      const mins = new Set(widths("min"));
+      const maxs = widths("max");
+      // Sin estas dos guardas, si dejaran de matchear el bucle no verificaría nada en silencio.
+      expect(mins.size, "no se encontró ningún (min-width: Npx)").toBeGreaterThan(0);
+      expect(maxs.length, "no se encontró ningún (max-width: Npx)").toBeGreaterThan(0);
+      for (const max of maxs) {
+        expect(mins.has(max + 1), `(max-width: ${max}px) deja un hueco con (min-width: ${max + 1}px)`).toBe(false);
+      }
+    });
+
+    it("la hamburguesa y la nav de escritorio son complementarias en 900px", () => {
+      // Se fijan los dos lados: si cualquiera se corre, aparece un hueco (o un solapamiento) cerca de 900px.
+      expect(code, "la nav de escritorio debe aparecer desde (min-width: 900px)").toMatch(
+        /@media \(min-width: 900px\)\s*{\s*\.site-header__nav\s*{/,
+      );
+      expect(code, "la hamburguesa debe ser el complemento exacto de la nav: (width < 900px)").toMatch(
+        /@media \(width < 900px\)\s*{\s*\.site-header__menu\s*{/,
+      );
+    });
   });
 
   it("no usa ease-in ni transition: all", () => {
