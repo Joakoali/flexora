@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ContactState } from "@/lib/contact";
 
 const actionMock = vi.fn<(prev: ContactState, formData: FormData) => Promise<ContactState>>();
@@ -141,7 +141,7 @@ describe("ContactForm", () => {
       expect(before.textContent).toBe(t.errors.too_fast);
     });
 
-    it("sin error de formulario vuelve a quedar vacía (un error de campo no mete texto en ella)", async () => {
+    it("un error de campo no escribe en la región", async () => {
       actionMock.mockResolvedValue({
         status: "error",
         errors: { email: "invalid" },
@@ -149,7 +149,9 @@ describe("ContactForm", () => {
       });
       const { form } = setup();
       await submit(form);
-      await screen.findByLabelText(t.emailLabel);
+      // El label existe desde el montaje, así que no sirve de espera: aria-invalid sí cambia recién cuando el
+      // error de campo se aplica, y es la precondición para mirar la región.
+      await waitFor(() => expect(screen.getByLabelText(t.emailLabel).getAttribute("aria-invalid")).toBe("true"));
       expect(liveRegion(form)!.textContent).toBe("");
     });
   });

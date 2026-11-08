@@ -186,7 +186,7 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
           </div>
 
           <div className="contact-form__actions">
-            {/* Siempre montado y visible para la accesibilidad (vacío mide 0): si naciera con el mensaje
+            {/* Siempre montado y presente en el árbol de accesibilidad (vacío mide 0): si naciera con el mensaje
                 o saliera de display:none, los lectores de pantalla no lo anunciarían. */}
             <div aria-live="polite" className="contact-form__form-status">
               {errors.form && (

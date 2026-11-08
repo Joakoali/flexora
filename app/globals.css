@@ -1400,7 +1400,8 @@ body:has(#hero) {
   color: var(--danger);
 }
 /* El live region (.contact-form__form-status) está siempre y mide 0 vacío: el aire de abajo lo trae
-   el mensaje, así no suma un hueco extra del gap del grid cuando no hay error. */
+   el mensaje, así no suma un hueco extra del gap del grid cuando no hay error. .contact-form__actions
+   agrupa status y submit en un solo ítem del grid: el gap del grid no los separa, solo este margen. */
 .contact-form__form-error {
   margin: 0 0 var(--contact-gap);
 }
