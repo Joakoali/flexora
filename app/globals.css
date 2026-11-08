@@ -382,10 +382,29 @@ html.theme-changing *::after {
 }
 .lang-switch {
   display: inline-flex;
-  gap: 0.5rem;
+  /* Sin gap: los targets de 24px van pegados y la separación visual entre los
+     códigos sale de su padding y del centrado (~8px, como antes). */
+  gap: 0;
   font-family: var(--font-mono);
   font-size: var(--text-label);
   letter-spacing: 0.08em;
+}
+/* Cada código es un target de al menos 24x24px (WCAG 2.2, 2.5.8), también el
+   idioma actual (un <span>) para que la fila no cambie de tamaño al navegar. */
+.lang-switch__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding-inline: 0.25rem;
+}
+/* El subrayado del .text-link se ancla al borde del target, que ahora es más
+   grande que el texto: se lo acota al ancho del código y se lo sube a su base. */
+.lang-switch__item.text-link::after {
+  left: 0.25rem;
+  width: calc(100% - 0.5rem);
+  bottom: 1px;
 }
 .lang-switch__item[aria-current="true"] {
   color: var(--fg);
@@ -404,9 +423,6 @@ html.theme-changing *::after {
   }
   .site-header__tools {
     gap: 0.5rem;
-  }
-  .lang-switch {
-    gap: 0.375rem;
   }
   .site-header__cta {
     min-height: 40px;
