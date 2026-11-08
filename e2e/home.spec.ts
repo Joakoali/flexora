@@ -39,6 +39,45 @@ for (const lang of ["es", "en", "ca"] as const) {
   });
 }
 
+// Celulares apaisados: con más de 640 px de ancho no corren los fallbacks de ancho del hero, y la
+// escena es 100dvh con overflow hidden, así que lo que se pasa del alto queda cortado (no
+// scrolleable). El copy entero, con sus CTA, tiene que entrar sin pisar el wordmark de arriba.
+const LANDSCAPE_PHONES = [
+  { width: 844, height: 390 },
+  { width: 667, height: 375 },
+  { width: 740, height: 360 },
+  { width: 915, height: 412 },
+  { width: 932, height: 430 },
+];
+for (const viewport of LANDSCAPE_PHONES) {
+  test.describe(`hero a ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport });
+
+    for (const lang of ["es", "en", "ca"] as const) {
+      test(`${lang}: el copy y los CTA entran en la escena`, async ({ page }) => {
+        await page.goto(`/${lang}`);
+        await page.evaluate(() => document.fonts.ready);
+        // La entrada del copy desplaza 12 px: se mide con la animación terminada.
+        await page.locator(".hero__copy").evaluate((el) =>
+          Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)),
+        );
+        const box = async (selector: string) => {
+          const b = await page.locator(selector).boundingBox();
+          if (!b) throw new Error(`${selector} no tiene caja`);
+          return { top: b.y, bottom: b.y + b.height };
+        };
+        const scene = await box(".hero__sticky");
+        const wordmark = await box(".hero__wordmark");
+        const copy = await box(".hero__copy");
+        expect(copy.bottom).toBeLessThanOrEqual(scene.bottom);
+        expect(copy.top).toBeGreaterThanOrEqual(wordmark.bottom);
+        expect((await box(".hero__actions .btn-primary")).bottom).toBeLessThanOrEqual(scene.bottom);
+        expect((await box(".hero__actions .btn-secondary")).bottom).toBeLessThanOrEqual(scene.bottom);
+      });
+    }
+  });
+}
+
 test("/ redirige según Accept-Language", async ({ browser }) => {
   const en = await browser.newContext({ locale: "en-US", extraHTTPHeaders: { "Accept-Language": "en-US,en;q=0.9" } });
   const p1 = await en.newPage();

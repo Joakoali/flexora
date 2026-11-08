@@ -925,6 +925,33 @@ body:has(#hero) {
     display: none;
   }
 }
+/* Pantallas bajas (celulares apaisados, ventanas chatas): el límite es el alto y no el
+   ancho, así que estos cortes valen a cualquier ancho. El copy mide ~400-450 px y la escena
+   es 100dvh con overflow hidden: lo que se pasa queda cortado. Se sacrifica por orden:
+   primero la línea de proyectos, después los chips y, en los más bajos, se achican titular
+   e interlineado. El titular, los dos CTA y su nota nunca se ocultan. */
+@media (max-height: 560px) {
+  .hero__copy { gap: 0.75rem; }
+  .hero__copy .hero__projects {
+    display: none;
+  }
+}
+@media (max-height: 500px) {
+  .hero__copy .hero__proof {
+    display: none;
+  }
+}
+@media (max-height: 440px) {
+  .hero__copy { gap: 0.5rem; }
+  .hero__tagline {
+    /* Sin el tope de 20ch: con 20ch el corte de línea cae justo al borde y, según el
+       tamaño, el titular salta de 3 a 4 líneas (+30 px) de golpe. */
+    max-width: none;
+    font-size: min(clamp(2rem, 4vw, 3.5rem), 7.5vh);
+  }
+  .hero__subcopy { line-height: 1.45; }
+  .hero__cta { gap: 0.5rem; }
+}
 
 /* Sin puntero: el wordmark respira solo entre 125 y 150. */
 @media (hover: none) {
