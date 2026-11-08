@@ -3,9 +3,19 @@ export type EmailMessage = { from: string; to: string; replyTo: string; subject:
 const RESEND_URL = "https://api.resend.com/emails";
 export const RESEND_TIMEOUT_MS = 10_000;
 
-/** Modo de prueba: el form responde éxito sin llamar a Resend. */
+/**
+ * Modo de prueba: el form responde éxito sin llamar a Resend.
+ * En producción de Vercel se ignora: un CONTACT_DRY_RUN=1 olvidado ahí perdería leads en silencio mostrando
+ * éxito. Se mira VERCEL_ENV y no NODE_ENV porque solo Vercel define el primero; el e2e corre `next start`
+ * (NODE_ENV=production) con dry run a propósito.
+ */
 export function isDryRun(): boolean {
-  return process.env.CONTACT_DRY_RUN === "1";
+  if (process.env.CONTACT_DRY_RUN !== "1") return false;
+  if (process.env.VERCEL_ENV === "production") {
+    console.error("[contact] CONTACT_DRY_RUN ignorado en producción");
+    return false;
+  }
+  return true;
 }
 
 /** Envía un mail por la API REST de Resend. Nunca lanza: devuelve { ok }. */

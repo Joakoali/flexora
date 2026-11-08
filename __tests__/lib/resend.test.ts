@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { RESEND_TIMEOUT_MS, sendEmail, type EmailMessage } from "@/lib/resend";
+import { RESEND_TIMEOUT_MS, isDryRun, sendEmail, type EmailMessage } from "@/lib/resend";
 
 const msg: EmailMessage = {
   from: "Flexora <onboarding@resend.dev>",
@@ -18,6 +18,7 @@ describe("sendEmail", () => {
     vi.stubGlobal("fetch", fetchMock);
     vi.stubEnv("RESEND_API_KEY", "re_secret_123");
     vi.stubEnv("CONTACT_DRY_RUN", "");
+    vi.stubEnv("VERCEL_ENV", undefined);
   });
 
   afterEach(() => {
@@ -74,5 +75,39 @@ describe("sendEmail", () => {
     vi.stubEnv("CONTACT_DRY_RUN", "1");
     await expect(sendEmail(msg)).resolves.toEqual({ ok: true });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  // Un CONTACT_DRY_RUN=1 olvidado en Vercel producción perdería leads en silencio mostrando éxito. Solo se mira
+  // VERCEL_ENV (lo define únicamente Vercel): el e2e corre `next start` con NODE_ENV=production y dry run a propósito.
+  describe("dry run en producción de Vercel", () => {
+    it("VERCEL_ENV=production ignora CONTACT_DRY_RUN=1: envía de verdad y lo avisa en el log", async () => {
+      vi.stubEnv("CONTACT_DRY_RUN", "1");
+      vi.stubEnv("VERCEL_ENV", "production");
+      fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+
+      expect(isDryRun()).toBe(false);
+      await expect(sendEmail(msg)).resolves.toEqual({ ok: true });
+
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(errorSpy).toHaveBeenCalledWith("[contact] CONTACT_DRY_RUN ignorado en producción");
+    });
+
+    it.each(["preview", "development", undefined])("VERCEL_ENV=%s mantiene el dry run, sin avisos", async (env) => {
+      vi.stubEnv("CONTACT_DRY_RUN", "1");
+      vi.stubEnv("VERCEL_ENV", env);
+
+      expect(isDryRun()).toBe(true);
+      await expect(sendEmail(msg)).resolves.toEqual({ ok: true });
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it("VERCEL_ENV=production sin CONTACT_DRY_RUN no avisa nada", () => {
+      vi.stubEnv("VERCEL_ENV", "production");
+
+      expect(isDryRun()).toBe(false);
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
   });
 });
