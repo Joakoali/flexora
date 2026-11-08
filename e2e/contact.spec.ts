@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from "@playwright/test";
+import { effectiveOpacity } from "./helpers";
 import es from "../app/[lang]/dictionaries/es.json";
 import en from "../app/[lang]/dictionaries/en.json";
 import ca from "../app/[lang]/dictionaries/ca.json";
@@ -159,11 +160,16 @@ for (const lang of ["es", "en", "ca"] as const) {
     test("el form se envía igual (progressive enhancement) y muestra el éxito", async ({ page }) => {
       await page.goto(`/${lang}`);
       const form = page.getByRole("form", { name: t.formLabel });
+      // toBeVisible() ignora la opacidad: sin Reveal.visible el form estaba en opacity 0 y el test daba verde.
+      expect(await effectiveOpacity(form), "opacidad efectiva del formulario").toBe(1);
+      expect(await effectiveOpacity(form.getByRole("button", { name: t.submit })), "opacidad efectiva del botón").toBe(1);
       await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
       await form.getByLabel(t.emailLabel, { exact: true }).fill("ana@example.com");
       await form.getByRole("button", { name: t.submit }).click();
 
-      await expect(page.getByRole("heading", { name: t.successTitle })).toBeVisible();
+      const title = page.getByRole("heading", { name: t.successTitle });
+      await expect(title).toBeVisible();
+      expect(await effectiveOpacity(title), "opacidad efectiva del éxito").toBe(1);
       await expect(page.getByRole("form", { name: t.formLabel })).toHaveCount(0);
     });
   });

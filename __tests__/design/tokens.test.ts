@@ -119,6 +119,40 @@ describe("design tokens", () => {
     expect(footer).toContain("--fab-size");
   });
 
+  it("sin JavaScript (@media (scripting: none)) el contenido de Reveal se ve en su lugar final", () => {
+    // Reveal arranca en opacity 0 y solo un JS que corra le pone data-visible: sin JS (o con la hidratación
+    // caída) Servicios, Trabajos, Proceso y Cierre —el formulario incluido— quedarían invisibles.
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    // Cada bloque trae solo reglas planas (un nivel de llaves anidadas).
+    const blocks = [...code.matchAll(/@media \(scripting: none\)\s*{((?:[^{}]*{[^{}]*})*)\s*}/g)].map(({ 1: body, index }) => ({
+      index,
+      rules: [...body.matchAll(/([^{}]+){([^{}]*)}/g)].map(([, selector, declarations]) => ({
+        selectors: selector.split(",").map((s) => s.trim().replace(/\s+/g, " ")),
+        declarations,
+      })),
+    }));
+    expect(blocks.length, "falta @media (scripting: none)").toBeGreaterThan(0);
+
+    const override = (selector: string) =>
+      blocks.flatMap(({ index, rules }) => rules.filter((r) => r.selectors.includes(selector)).map((r) => ({ index, ...r })))[0];
+    // Posición del estado inicial que se anula: el override debe ir DESPUÉS (misma especificidad, gana el último).
+    const base = (selector: string) => code.search(new RegExp(`(?:^|\\n)${selector.replace(/[.\[\]>*]/g, "\\$&")}\\s*{`));
+
+    const content = override("[data-reveal] > *");
+    expect(content, "[data-reveal] > * dentro de @media (scripting: none)").toBeDefined();
+    expect(content.declarations).toMatch(/opacity:\s*1\b/);
+    expect(content.declarations).toMatch(/transform:\s*none/);
+    expect(content.index, "el override va después del estado inicial").toBeGreaterThan(base("[data-reveal] > *"));
+
+    // Los chevrones de Servicios arrancan desplazados con la misma condición (`[data-reveal] .svis__chev--*`).
+    for (const selector of ["[data-reveal] .svis__chev--a", "[data-reveal] .svis__chev--b"]) {
+      const chevron = override(selector);
+      expect(chevron, `${selector} dentro de @media (scripting: none)`).toBeDefined();
+      expect(chevron.declarations).toMatch(/transform:\s*none/);
+      expect(chevron.index, `${selector}: el override va después del estado inicial`).toBeGreaterThan(base(selector));
+    }
+  });
+
   it("el live region del error de formulario nunca se oculta: sin display:none ni :empty que lo saque del árbol de accesibilidad", () => {
     // Un aria-live que nace con contenido (o sale de display:none) no se anuncia en lectores de pantalla.
     const rules = [...css.matchAll(/([^{}]+){([^{}]*)}/g)]

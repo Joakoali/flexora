@@ -282,6 +282,19 @@ html.theme-changing *::after {
   opacity: 1;
   transform: none;
 }
+/* Sin JavaScript (o con la hidratación caída) nadie pone data-visible: el contenido quedaría invisible
+   para siempre, formulario de contacto incluido. Con `scripting: none` se muestra ya en su lugar final;
+   no hace falta `transition: none` porque el estilo inicial no dispara transición. Con JS encendido la
+   media query no matchea y todo sigue igual. Soporte: Chrome/Edge 120, Firefox 113, Safari 17; en los
+   anteriores (el mínimo de Next 16 es Chrome 111 / Firefox 111 / Safari 16.4) la regla no aplica y queda
+   el comportamiento previo, sin empeorar. Los estados iniciales de [data-reveal] que no son opacity
+   (chevrones de Servicios) tienen su override junto a su regla base. */
+@media (scripting: none) {
+  [data-reveal] > * {
+    opacity: 1;
+    transform: none;
+  }
+}
 @keyframes rise-in {
   from { opacity: 0; transform: translateY(var(--reveal-offset)); }
 }
@@ -1212,6 +1225,12 @@ body:has(#hero) {
 [data-reveal] .svis__chev--b { transform: translateX(24px); }
 [data-reveal][data-visible] .svis__chev--a,
 [data-reveal][data-visible] .svis__chev--b { transform: none; }
+/* Mismo caso que arriba: sin JS no hay data-visible. Va acá y no junto al override de Reveal porque tiene
+   la misma especificidad que la regla base y, si viniera antes en el archivo, perdería. */
+@media (scripting: none) {
+  [data-reveal] .svis__chev--a,
+  [data-reveal] .svis__chev--b { transform: none; }
+}
 @media (min-width: 900px) {
   .service__grid {
     grid-template-columns: 160px 1fr minmax(280px, 420px);

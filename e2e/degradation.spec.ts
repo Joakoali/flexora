@@ -1,4 +1,5 @@
-import { expect, test, type Locator } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { effectiveOpacity } from "./helpers";
 
 test("con reduced-motion no hay animaciones corriendo y el campo es estático", async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
@@ -30,16 +31,6 @@ test("sin WebGL el hero muestra el fallback y la página no rompe", async ({ bro
   expect(errors).toEqual([]);
   await ctx.close();
 });
-
-// Opacidad efectiva: la propia por las de todos sus ancestros. La entrada del copy anima el
-// bloque (p. ej. el contenedor del CTA) y no el botón, así que mirar solo la opacidad del
-// elemento daría 1 aunque el usuario lo vea invisible.
-const effectiveOpacity = (el: Locator) =>
-  el.evaluate((node) => {
-    let o = 1;
-    for (let n: Element | null = node; n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
-    return o;
-  });
 
 // El hero siempre está en el primer viewport: su copy (incluido el h1, candidato a LCP) no
 // puede depender de JavaScript ni de la hidratación para dejar de estar en opacity 0.
@@ -79,5 +70,37 @@ test.describe("hero sin JavaScript", () => {
       expect(await effectiveOpacity(hero.getByRole("heading", { level: 1 }))).toBe(1);
       expect(await effectiveOpacity(hero.locator(".btn-primary"))).toBe(1);
     });
+  });
+});
+
+// Reveal deja su contenido en opacity 0 hasta que un IntersectionObserver (JS) le pone data-visible.
+// Sin JS (o con la hidratación caída) eso es contenido invisible para siempre, formulario incluido;
+// `@media (scripting: none)` lo muestra en su lugar final. toBeVisible() ignora la opacidad, de ahí
+// que se compare la opacidad efectiva.
+test.describe("secciones con Reveal sin JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  for (const lang of ["es", "en", "ca"] as const) {
+    test(`${lang}: Servicios, Trabajos, Proceso y Cierre se ven sin JS`, async ({ page }) => {
+      await page.goto(`/${lang}`);
+      const targets = {
+        "h2 de Servicios": page.locator("#services-title"),
+        "paso de Proceso": page.locator("#process .process__step").first(),
+        "portada de una tarjeta de Trabajos": page.locator("#work .work-card__cover").first(),
+        "título de una tarjeta de Trabajos": page.locator("#work .work-card h3").first(),
+        "título del Cierre": page.locator("#closing-title"),
+        "formulario de contacto": page.locator("#contact form"),
+      };
+      for (const [name, target] of Object.entries(targets)) {
+        expect(await effectiveOpacity(target), `opacidad efectiva de ${name}`).toBe(1);
+      }
+    });
+  }
+
+  test("los chevrones de Servicios no quedan desplazados (su estado inicial también depende de data-reveal)", async ({ page }) => {
+    await page.goto("/es");
+    for (const chevron of [page.locator(".svis__chev--a").first(), page.locator(".svis__chev--b").first()]) {
+      await expect(chevron).toHaveCSS("transform", "none");
+    }
   });
 });
