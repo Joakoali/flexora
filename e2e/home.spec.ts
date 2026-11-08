@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const SECTIONS = ["hero", "services", "work", "process", "contact"];
 
@@ -36,8 +36,27 @@ test("/ redirige según Accept-Language", async ({ browser }) => {
   await es.close();
 });
 
+// globals.css oculta .site-header__cta con display:none en <= 640 px a propósito: ahí el CTA vive
+// dentro del panel del menú. Cada modo se verifica donde existe, según el ancho del viewport
+// (el mismo corte que el CSS) y no según el nombre del proyecto de Playwright.
+const CTA_IN_MENU_MAX_WIDTH = 640;
+const WHATSAPP_HREF = /^https:\/\/wa\.me\/\d+\?text=/;
+const isCtaInMenu = (page: Page) => (page.viewportSize()?.width ?? Infinity) <= CTA_IN_MENU_MAX_WIDTH;
+
 test("el CTA del header lleva a WhatsApp", async ({ page }) => {
+  test.skip(isCtaInMenu(page), "En mobile el CTA vive en el panel del menú: lo cubre el test siguiente");
   await page.goto("/es");
   const cta = page.getByRole("banner").getByRole("link", { name: "Hablemos" });
-  await expect(cta).toHaveAttribute("href", /^https:\/\/wa\.me\/\d+\?text=/);
+  await expect(cta).toHaveAttribute("href", WHATSAPP_HREF);
+});
+
+test("en mobile el CTA del panel del menú lleva a WhatsApp", async ({ page }) => {
+  test.skip(!isCtaInMenu(page), "En escritorio el CTA está en el header: lo cubre el test anterior");
+  await page.goto("/es");
+  const header = page.getByRole("banner");
+  // Con el menú cerrado el CTA del header está oculto y el panel ni siquiera está montado.
+  await expect(header.getByRole("link", { name: "Hablemos" })).toHaveCount(0);
+  await header.getByRole("button", { name: "Menú" }).click();
+  const cta = header.locator("#mobile-menu").getByRole("link", { name: "Hablemos" });
+  await expect(cta).toHaveAttribute("href", WHATSAPP_HREF);
 });
