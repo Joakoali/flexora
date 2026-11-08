@@ -24,7 +24,7 @@ Copiá `.env.example` a `.env.local` y completá:
 
 ### Tests end-to-end
 
-`npm run e2e` corre Playwright en dos proyectos (desktop y mobile). Su config hace `npm run build && npm run start` con `CONTACT_DRY_RUN=1`, así que el formulario no manda mails. La primera vez hay que instalar el navegador (`npx playwright install chromium`). Un solo spec: `npx playwright test e2e/contact.spec.ts`. Esas variables solo valen para el servidor que levanta Playwright, así que no lo corras con otro servidor ya escuchando en el puerto 3000: un `dev`/`start` con credenciales reales de Resend en `.env.local` haría que `contact.spec.ts` mande mails de verdad.
+`npm run e2e` corre Playwright en dos proyectos (desktop y mobile). Su config hace `npm run build && npm run start` con `CONTACT_DRY_RUN=1`, así que el formulario no manda mails. La primera vez hay que instalar el navegador (`npx playwright install chromium`). Un solo spec: `npx playwright test e2e/contact.spec.ts`. Además pisa `RESEND_API_KEY` con vacío y nunca reutiliza un servidor ya levantado: esas variables solo valen para el servidor que levanta Playwright, así que con el puerto 3000 ocupado (por ejemplo un `npm run dev` corriendo) el e2e falla en vez de correr contra un servidor sin dry run, que mandaría mails de verdad desde `contact.spec.ts`.
 
 ## Documentación
 
