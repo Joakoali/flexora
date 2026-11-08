@@ -428,7 +428,12 @@ html.theme-changing *::after {
 .site-header[data-menu-open="true"] .site-header__logo {
   opacity: 1;
 }
-@media (max-width: 899px) {
+/* Complemento exacto de (min-width: 900px), la nav de escritorio. No se usa
+   (max-width: 899px): con viewports fraccionarios entre 899 y 900 (zoom, HiDPI)
+   no aplicaría ninguna de las dos y no aparecería ni el menú ni la nav. La sintaxis
+   de rango sigue siendo exacta (899.98px dejaría un hueco) y la soportan todos los
+   navegadores que soporta Next 16 (Chrome/Edge/Firefox 111+, Safari 16.4+). */
+@media (width < 900px) {
   .site-header__menu {
     display: inline-grid;
     place-items: center;
