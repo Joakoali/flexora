@@ -259,22 +259,28 @@ html.theme-changing *::after {
 }
 
 /* ---------- Reveal ---------- */
+/* Gesto "subir y aparecer": desplazamiento --reveal-offset y escalón --reveal-stagger (REVEAL en
+   lib/motion.ts). Lo comparten Reveal (transición), la entrada del copy del hero y el botón flotante
+   de WhatsApp (animación `rise-in`): una sola fuente para los tres. */
 [data-reveal] > * {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(var(--reveal-offset));
   transition:
     opacity var(--dur-slow) var(--ease-out),
     transform var(--dur-slow) var(--ease-out);
 }
-[data-reveal] > *:nth-child(2) { transition-delay: 60ms; }
-[data-reveal] > *:nth-child(3) { transition-delay: 120ms; }
-[data-reveal] > *:nth-child(4) { transition-delay: 180ms; }
-[data-reveal] > *:nth-child(5) { transition-delay: 240ms; }
-[data-reveal] > *:nth-child(6) { transition-delay: 300ms; }
-[data-reveal] > *:nth-child(n + 7) { transition-delay: 360ms; }
+[data-reveal] > *:nth-child(2) { transition-delay: var(--reveal-stagger); }
+[data-reveal] > *:nth-child(3) { transition-delay: calc(var(--reveal-stagger) * 2); }
+[data-reveal] > *:nth-child(4) { transition-delay: calc(var(--reveal-stagger) * 3); }
+[data-reveal] > *:nth-child(5) { transition-delay: calc(var(--reveal-stagger) * 4); }
+[data-reveal] > *:nth-child(6) { transition-delay: calc(var(--reveal-stagger) * 5); }
+[data-reveal] > *:nth-child(n + 7) { transition-delay: calc(var(--reveal-stagger) * 6); }
 [data-reveal][data-visible] > * {
   opacity: 1;
   transform: none;
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(var(--reveal-offset)); }
 }
 
 /* ---------- Reduced motion ---------- */
@@ -515,7 +521,7 @@ html.theme-changing *::after {
 .mobile-menu__list li {
   border-bottom: 1px solid var(--border);
   animation: menu-item-in var(--dur-slow) var(--ease-out) both;
-  animation-delay: calc(80ms + var(--i) * 60ms);
+  animation-delay: calc(var(--menu-delay) + var(--i) * var(--reveal-stagger));
 }
 .mobile-menu__link {
   display: flex;
@@ -546,7 +552,7 @@ html.theme-changing *::after {
 }
 .mobile-menu__foot {
   animation: menu-item-in var(--dur-slow) var(--ease-out) both;
-  animation-delay: calc(80ms + var(--i) * 60ms);
+  animation-delay: calc(var(--menu-delay) + var(--i) * var(--reveal-stagger));
 }
 .mobile-menu__cta {
   width: 100%;
@@ -639,7 +645,7 @@ html.theme-changing *::after {
     border-color var(--dur-base) var(--ease-out),
     color var(--dur-base) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
-  animation: wa-fab-in var(--dur-slow) var(--ease-out) 600ms both;
+  animation: rise-in var(--dur-slow) var(--ease-out) var(--fab-delay) both;
 }
 .wa-fab:active {
   transform: scale(0.97);
@@ -656,9 +662,6 @@ html.theme-changing *::after {
     border-color: var(--whatsapp-brand);
     color: #fff;
   }
-}
-@keyframes wa-fab-in {
-  from { opacity: 0; transform: translateY(12px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .wa-fab { animation: none; }
@@ -806,23 +809,20 @@ body:has(#hero) {
   justify-items: start;
   gap: clamp(1rem, 2.4vh, 1.5rem);
 }
-/* Entrada escalonada (fade + 12 px, 60 ms entre elementos: el mismo gesto que Reveal) en CSS
-   puro. El hero está siempre en el primer viewport, así que no necesita IntersectionObserver,
-   y con Reveal el h1 (candidato a LCP) nacía en opacity 0 hasta hidratar y sin JS no
-   aparecía nunca. `backwards` retiene el `from` durante el delay (sin parpadeo previo). No se
+/* Entrada escalonada (`rise-in`: fade + --reveal-offset, --reveal-stagger entre elementos: el mismo
+   gesto que Reveal) en CSS puro. El hero está siempre en el primer viewport, así que no necesita
+   IntersectionObserver, y con Reveal el h1 (candidato a LCP) nacía en opacity 0 hasta hidratar y sin
+   JS no aparecía nunca. `backwards` retiene el `from` durante el delay (sin parpadeo previo). No se
    usa `forwards`/`both`: dejarían la animación aplicada tras terminar y, en Chromium, el hijo
    animado pasa a ser backdrop root, con lo que el backdrop-filter de los chips (.hero__chip,
    dentro de .hero__proof) deja de difuminar lo que hay detrás. El estado `to` ya es el natural. */
 .hero__copy > * {
-  animation: hero-copy-in var(--dur-slow) var(--ease-out) backwards;
+  animation: rise-in var(--dur-slow) var(--ease-out) backwards;
 }
-.hero__copy > :nth-child(2) { animation-delay: 60ms; }
-.hero__copy > :nth-child(3) { animation-delay: 120ms; }
-.hero__copy > :nth-child(4) { animation-delay: 180ms; }
-.hero__copy > :nth-child(n + 5) { animation-delay: 240ms; }
-@keyframes hero-copy-in {
-  from { opacity: 0; transform: translateY(12px); }
-}
+.hero__copy > :nth-child(2) { animation-delay: var(--reveal-stagger); }
+.hero__copy > :nth-child(3) { animation-delay: calc(var(--reveal-stagger) * 2); }
+.hero__copy > :nth-child(4) { animation-delay: calc(var(--reveal-stagger) * 3); }
+.hero__copy > :nth-child(n + 5) { animation-delay: calc(var(--reveal-stagger) * 4); }
 /* Velo suave detrás del texto: sube la legibilidad sin tapar el campo. */
 .hero__copy::before {
   content: "";
@@ -1004,7 +1004,8 @@ body:has(#hero) {
   }
   .hero__copy { opacity: 1; transform: none; }
   /* La regla global solo acorta la duración: el delay escalonado seguiría reteniendo el
-     `from` (opacity 0) hasta 240 ms. Sin animación el copy aparece completo de entrada. */
+     `from` (opacity 0) hasta 4 × --reveal-stagger (240 ms). Sin animación el copy aparece completo
+     de entrada. */
   .hero__copy > * { animation: none; }
   html { animation: none; }
   /* Mismo selector que la declaración base: un valor propio de body no se pisa
@@ -1093,8 +1094,8 @@ body:has(#hero) {
   display: block;
   width: 100%;
   height: auto;
-  animation: showcase-scroll 16s ease-in-out infinite alternate;
-  animation-delay: calc(var(--i) * -4s);
+  animation: showcase-scroll var(--showcase-loop) var(--ease-loop) infinite alternate;
+  animation-delay: calc(var(--i) * var(--showcase-loop-phase) * -1);
 }
 @keyframes showcase-scroll {
   0%, 8% { transform: translateY(0); }
