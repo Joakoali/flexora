@@ -14,20 +14,49 @@
      (spec 3.1 pide contraste AA y reserva --accent-soft a rings y texto chico).
      Oscuro: --accent sobre --bg da 3.69:1, --accent-soft da 8.73:1. */
   --accent-text: var(--accent-soft);
+  /* Errores de formulario. Oscuro: 6.7:1 sobre --surface (#111114). */
+  --danger: #ff6b6b;
   --switch-half: #09090b;
+  /* Sombra de las ventanas del hero: en oscuro, profundidad + un resplandor violeta. */
+  --showcase-shadow:
+    0 32px 70px -24px rgb(0 0 0 / 0.65),
+    0 0 60px -14px rgb(122 59 255 / 0.28);
 
   --header-h: 72px;
   --container-max: clamp(1440px, 75vw, 2400px);
   --gutter: clamp(16px, 4vw, 64px);
+  /* Ritmo vertical único de las secciones (Servicios, Trabajos, Proceso, Cierre). */
+  --section-y: clamp(4rem, 8vw, 7rem);
+  /* Botón flotante de WhatsApp. */
+  --fab-size: 52px;
+  --fab-offset: clamp(1rem, 2vw, 1.5rem);
+  /* Verde de marca de WhatsApp: fijo, no forma parte de la paleta temable de Flexora. */
+  --whatsapp-brand: #25d366;
 
+  /* Tokens de movimiento: espejo de lib/motion.ts (fuente única). Si cambia un valor allá, cambia acá;
+     __tests__/design/tokens.test.ts comprueba la correspondencia. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Loops ambientales largos: espejo de EASE_LOOP (equivale al keyword `ease-in-out`). */
+  --ease-loop: cubic-bezier(0.42, 0, 0.58, 1);
   --dur-fast: 120ms;
   --dur-base: 200ms;
   --dur-slow: 500ms;
+  /* Gesto "subir y aparecer" (Reveal, copy del hero, botón flotante): espejo de REVEAL. */
+  --reveal-offset: 12px;
+  --reveal-stagger: 60ms;
+  /* Entrada del showcase del hero y su loop de scroll: espejo de SHOWCASE. */
+  --dur-showcase: 900ms;
+  --showcase-delay: 350ms;
+  --showcase-stagger: 140ms;
+  --showcase-loop: 16s;
+  --showcase-loop-phase: 4s;
+  /* Delay base de los ítems del menú mobile (espejo de MENU) y del botón flotante (espejo de FAB). */
+  --menu-delay: 80ms;
+  --fab-delay: 600ms;
 
   --text-display: clamp(3.5rem, 11vw, 10rem);
-  --text-h2: clamp(2rem, 5vw, 4.5rem);
+  --text-h2: clamp(1.625rem, 3.4vw, 3rem);
   --text-h3: clamp(1.375rem, 2.2vw, 1.75rem);
   --text-body: clamp(1rem, 1.05vw, 1.125rem);
   --text-label: 0.75rem;
@@ -47,7 +76,13 @@
   --accent-soft: #8a5cff;
   /* Claro: --accent da 5.97:1 y --accent-soft sólo 3.83:1, así que se invierte. */
   --accent-text: var(--accent);
+  /* Claro: 5.8:1 sobre --surface (#ffffff). */
+  --danger: #c2253a;
   --switch-half: #f6f5fa;
+  /* En claro: sombra violeta suave, sin negro puro. */
+  --showcase-shadow:
+    0 30px 60px -26px rgb(60 30 140 / 0.38),
+    0 10px 24px -14px rgb(60 30 140 / 0.22);
 }
 
 @theme inline {
@@ -59,6 +94,7 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
+  --color-danger: var(--danger);
   --font-display: var(--font-anybody);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -68,6 +104,19 @@
 html {
   scroll-behavior: auto;
   -webkit-text-size-adjust: 100%;
+  /* WCAG 2.4.11 (foco no oculto): el header fijo y el botón flotante de WhatsApp tapan lo que queda debajo.
+     Sin estos paddings el navegador da por visible todo lo que está dentro de la ventana y no scrollea al
+     enfocar, así que un campo enfocado al borde quedaba detrás de ellos. */
+  --scroll-clear-top: calc(var(--header-h) + 1rem);
+  scroll-padding-top: var(--scroll-clear-top);
+  scroll-padding-bottom: calc(var(--fab-size) + var(--fab-offset));
+}
+/* Las anclas (#services, #work, #process, #contact) siguen aterrizando con la sección al ras del borde
+   superior, como antes del scroll-padding: el padding propio de la sección deja el título a 64–112 px
+   del borde según el ancho (el header mide 72 px), y el scroll-padding de arriba, pensado para el
+   foco, las correría ~88 px más abajo. El margen negativo lo cancela solo para el salto a ancla. */
+section[id] {
+  scroll-margin-top: calc(-1 * var(--scroll-clear-top));
 }
 
 body {
@@ -112,7 +161,7 @@ html.theme-changing *::after {
 }
 
 .section {
-  padding-block: clamp(4rem, 10vw, 9rem);
+  padding-block: var(--section-y);
 }
 
 .hairline {
@@ -223,22 +272,45 @@ html.theme-changing *::after {
 }
 
 /* ---------- Reveal ---------- */
+/* Gesto "subir y aparecer": desplazamiento --reveal-offset y escalón --reveal-stagger (REVEAL en
+   lib/motion.ts). Lo comparten Reveal (transición), la entrada del copy del hero y el botón flotante
+   de WhatsApp (animación `rise-in`): una sola fuente para los tres. El botón usa el desplazamiento pero
+   no el escalón (su delay es --fab-delay). El menú mobile reutiliza solo el escalón en sus ítems
+   (`.mobile-menu__list li`, `.mobile-menu__foot`); su desplazamiento es propio (`menu-item-in`, 16px),
+   así que cambiar REVEAL.staggerMs también mueve el menú, a propósito. */
 [data-reveal] > * {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(var(--reveal-offset));
   transition:
     opacity var(--dur-slow) var(--ease-out),
     transform var(--dur-slow) var(--ease-out);
 }
-[data-reveal] > *:nth-child(2) { transition-delay: 60ms; }
-[data-reveal] > *:nth-child(3) { transition-delay: 120ms; }
-[data-reveal] > *:nth-child(4) { transition-delay: 180ms; }
-[data-reveal] > *:nth-child(5) { transition-delay: 240ms; }
-[data-reveal] > *:nth-child(6) { transition-delay: 300ms; }
-[data-reveal] > *:nth-child(n + 7) { transition-delay: 360ms; }
+[data-reveal] > *:nth-child(2) { transition-delay: var(--reveal-stagger); }
+[data-reveal] > *:nth-child(3) { transition-delay: calc(var(--reveal-stagger) * 2); }
+[data-reveal] > *:nth-child(4) { transition-delay: calc(var(--reveal-stagger) * 3); }
+[data-reveal] > *:nth-child(5) { transition-delay: calc(var(--reveal-stagger) * 4); }
+[data-reveal] > *:nth-child(6) { transition-delay: calc(var(--reveal-stagger) * 5); }
+[data-reveal] > *:nth-child(n + 7) { transition-delay: calc(var(--reveal-stagger) * 6); }
 [data-reveal][data-visible] > * {
   opacity: 1;
   transform: none;
+}
+/* Sin JavaScript nadie pone data-visible: el contenido quedaría invisible para siempre, formulario de
+   contacto incluido. Con `scripting: none` se muestra ya en su lugar final; no hace falta `transition:
+   none` porque el estilo inicial no dispara transición. Con JS encendido la media query no matchea y
+   todo sigue igual: si la hidratación se rompe con JS activo, el contenido de Reveal sigue dependiendo
+   de data-visible y esto no lo cubre. Soporte: Chrome/Edge 120, Firefox 113, Safari 17; en los
+   anteriores (el mínimo de Next 16 es Chrome 111 / Firefox 111 / Safari 16.4) la regla no aplica y queda
+   el comportamiento previo, sin empeorar. Los estados iniciales de [data-reveal] que no son opacity
+   (chevrones de Servicios) tienen su override junto a su regla base. */
+@media (scripting: none) {
+  [data-reveal] > * {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(var(--reveal-offset)); }
 }
 
 /* ---------- Reduced motion ---------- */
@@ -330,20 +402,57 @@ html.theme-changing *::after {
 .site-header__nav {
   display: none;
   justify-content: center;
-  gap: 2rem;
+  gap: 2.25rem;
   font-size: 0.9375rem;
+}
+.site-header__nav .text-link {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+/* Subrayado fino en el acento (en vez del color del texto), un poco separado. */
+.site-header__nav .text-link::after {
+  bottom: -4px;
+  background: var(--accent-text);
+}
+/* Al recorrer el nav, los demás links bajan para dejar al activo en foco. */
+@media (hover: hover) {
+  .site-header__nav:is(:hover, :focus-within) .text-link:not(:hover, :focus-visible) {
+    opacity: 0.55;
+  }
 }
 .site-header__tools {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  /* Sin nav (mobile) las herramientas caerían en la columna central. */
+  justify-self: end;
 }
 .lang-switch {
   display: inline-flex;
-  gap: 0.5rem;
+  /* Sin gap: los targets de 24px van pegados y la separación visual entre los
+     códigos sale de su padding y del centrado (~8px, como antes). */
+  gap: 0;
   font-family: var(--font-mono);
   font-size: var(--text-label);
   letter-spacing: 0.08em;
+}
+/* Cada código es un target de al menos 24x24px (WCAG 2.2, 2.5.8), también el
+   idioma actual (un <span>) para que la fila no cambie de tamaño al navegar. */
+.lang-switch__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  padding-inline: 0.25rem;
+}
+/* El subrayado del .text-link se ancla al borde del target, que ahora es más
+   grande que el texto: se lo acota al ancho del código y se lo sube a su base. */
+.lang-switch__item.text-link::after {
+  left: 0.25rem;
+  width: calc(100% - 0.5rem);
+  bottom: 1px;
 }
 .lang-switch__item[aria-current="true"] {
   color: var(--fg);
@@ -363,9 +472,6 @@ html.theme-changing *::after {
   .site-header__tools {
     gap: 0.5rem;
   }
-  .lang-switch {
-    gap: 0.375rem;
-  }
   .site-header__cta {
     min-height: 40px;
     padding-inline: 0.875rem;
@@ -373,9 +479,132 @@ html.theme-changing *::after {
   }
 }
 
+/* ---------- Menú mobile ---------- */
+.site-header__menu {
+  display: none;
+}
+.site-header[data-menu-open="true"] {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+/* Con el menú abierto el logo se ve siempre, aunque el wordmark del hero todavía
+   no haya aterrizado: el panel lo tapa. */
+.site-header[data-menu-open="true"] .site-header__logo {
+  opacity: 1;
+}
+/* (width < 900px) es el complemento exacto de (min-width: 900px), la nav de escritorio.
+   Con (max-width: 899px) quedaría un hueco en viewports fraccionarios entre 899 y 900
+   (zoom, HiDPI) y no aparecería ni el menú ni la nav. */
+@media (width < 900px) {
+  .site-header__menu {
+    display: inline-grid;
+    place-items: center;
+    position: relative;
+    width: 44px;
+    height: 44px;
+    margin-right: -0.5rem;
+    border-radius: var(--radius-md);
+    color: var(--fg);
+  }
+  .site-header__menu-bar {
+    grid-area: 1 / 1;
+    width: 22px;
+    height: 1.5px;
+    border-radius: 1px;
+    background: currentColor;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .site-header__menu-bar:first-child { transform: translateY(-4px); }
+  .site-header__menu-bar:last-child { transform: translateY(4px); }
+  .site-header__menu[aria-expanded="true"] .site-header__menu-bar:first-child { transform: rotate(45deg); }
+  .site-header__menu[aria-expanded="true"] .site-header__menu-bar:last-child { transform: rotate(-45deg); }
+}
+@media (max-width: 640px) {
+  /* El CTA vive dentro del panel: sin él entran logo, idioma, tema y menú. */
+  .site-header__cta {
+    display: none;
+  }
+}
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: calc(var(--header-h) + 1.5rem) var(--gutter) max(1.5rem, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: color-mix(in oklab, var(--bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(28px);
+  backdrop-filter: blur(28px);
+  animation: menu-in var(--dur-slow) var(--ease-out) both;
+}
+@media (min-width: 900px) {
+  .mobile-menu { display: none; }
+}
+.mobile-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mobile-menu__list li {
+  border-bottom: 1px solid var(--border);
+  animation: menu-item-in var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(var(--menu-delay) + var(--i) * var(--reveal-stagger));
+}
+.mobile-menu__link {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 1rem;
+  color: var(--fg);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variation-settings: "wdth" 125;
+  font-size: clamp(2.25rem, 11vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  transition: color var(--dur-base) var(--ease-out);
+}
+.mobile-menu__link:active,
+.mobile-menu__link:focus-visible {
+  color: var(--accent-text);
+}
+.mobile-menu__index {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  font-variation-settings: normal;
+  color: var(--accent-text);
+}
+.mobile-menu__foot {
+  animation: menu-item-in var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(var(--menu-delay) + var(--i) * var(--reveal-stagger));
+}
+.mobile-menu__cta {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.0625rem;
+}
+@keyframes menu-in {
+  from { opacity: 0; }
+}
+@keyframes menu-item-in {
+  from { opacity: 0; transform: translateY(16px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu,
+  .mobile-menu__list li,
+  .mobile-menu__foot { animation: none; }
+  .site-header__menu-bar { transition: none; }
+}
+
 /* ---------- Process ---------- */
 .process__title {
-  max-width: 18ch;
+  text-wrap: balance;
 }
 .process__steps {
   margin-top: clamp(2.5rem, 5vw, 4rem);
@@ -403,7 +632,9 @@ html.theme-changing *::after {
 /* ---------- Footer ---------- */
 .site-footer {
   margin-top: auto;
-  padding-block: 2rem;
+  padding-top: 2rem;
+  /* Deja lugar al botón flotante de WhatsApp para que no tape el texto legal. */
+  padding-bottom: calc(var(--fab-size) + var(--fab-offset) + 1rem);
 }
 .site-footer__inner {
   display: flex;
@@ -422,6 +653,48 @@ html.theme-changing *::after {
 .site-footer__legal {
   font-size: 0.875rem;
   color: var(--fg-muted);
+}
+
+/* ---------- Botón flotante de WhatsApp ---------- */
+.wa-fab {
+  position: fixed;
+  z-index: 40; /* bajo el header (50): con el menú mobile abierto queda tapado */
+  right: max(var(--fab-offset), env(safe-area-inset-right));
+  bottom: max(var(--fab-offset), env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  width: var(--fab-size);
+  height: var(--fab-size);
+  background: var(--surface);
+  color: var(--accent-text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--showcase-shadow);
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+  animation: rise-in var(--dur-slow) var(--ease-out) var(--fab-delay) both;
+}
+.wa-fab:active {
+  transform: scale(0.97);
+}
+/* Foco por teclado igual que el hover; el hover real sólo donde hay puntero. */
+.wa-fab:focus-visible {
+  background: var(--whatsapp-brand);
+  border-color: var(--whatsapp-brand);
+  color: #fff;
+}
+@media (hover: hover) {
+  .wa-fab:hover {
+    background: var(--whatsapp-brand);
+    border-color: var(--whatsapp-brand);
+    color: #fff;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wa-fab { animation: none; }
 }
 
 /* ---------- FlexField ---------- */
@@ -450,6 +723,11 @@ html.theme-changing *::after {
 }
 
 /* ---------- Hero ---------- */
+@property --wdth {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 140;
+}
 @property --hero-p {
   syntax: "<number>";
   inherits: true;
@@ -470,13 +748,13 @@ body:has(#hero) {
   --logo-opacity: clamp(0, (var(--hero-p) - 0.85) * 6.67, 1);
 }
 
-/* Camino CSS: la variable la anima el scroll del documento en los primeros 40vh
+/* Camino CSS: la variable la anima el scroll del documento en los primeros 20vh
    (viaje corto: la marca ya arranca cerca de su tamaño y posición finales). */
 @supports (animation-timeline: scroll()) {
   html {
     animation: hero-progress linear both;
     animation-timeline: scroll(root);
-    animation-range: 0 40vh;
+    animation-range: 0 20vh;
   }
   @keyframes hero-progress {
     from { --hero-p: 0; }
@@ -486,7 +764,7 @@ body:has(#hero) {
 
 .hero {
   position: relative;
-  height: 140vh; /* 40vh de viaje + 100vh de escena sticky */
+  height: 120vh; /* 20vh de viaje + 100vh de escena sticky */
 }
 .hero__sticky {
   position: sticky;
@@ -504,21 +782,28 @@ body:has(#hero) {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr;
   padding-top: var(--header-h);
-  padding-bottom: clamp(2rem, 6vh, 5rem);
+  /* Sin relleno inferior: el bloque de texto queda centrado de verdad en la escena
+     (el mismo aire arriba, bajo el wordmark, que abajo). */
 }
 .hero__wordmark {
+  /* El viaje y la convergencia (color, wdth, proporción) terminan al 85% de
+     --hero-p, donde empieza el crossfade con el logo del header: así, mientras
+     se cruzan, los dos están exactamente superpuestos y no hay doble imagen. */
+  --hero-q: clamp(0, calc(var(--hero-p) / 0.85), 1);
   justify-self: start;
   align-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 0.32em;
+  /* Gap y tamaño del texto convergen a la proporción del logo del header (gap
+     0.35 y texto 0.63 del símbolo, ver .logo): 0.32em -> 0.287em y 1em -> 0.517em. */
+  gap: calc(0.32em - 0.033em * var(--hero-q));
   /* Chica y arriba: es una firma, no el titular. Arranca cerca de su tamaño y
      posición finales (el logo del header), así el viaje al scrollear es corto. */
   font-size: clamp(1.5rem, 3.2vw, 2.75rem);
   transform-origin: center;
   transform:
-    translate(calc(var(--wm-x) * var(--hero-p)), calc(var(--wm-y) * var(--hero-p)))
-    scale(calc(1 + (var(--wm-scale) - 1) * var(--hero-p)));
+    translate(calc(var(--wm-x) * var(--hero-q)), calc(var(--wm-y) * var(--hero-q)))
+    scale(calc(1 + (var(--wm-scale) - 1) * var(--hero-q)));
   opacity: clamp(0, 1 - (var(--hero-p) - 0.85) * 6.67, 1);
   will-change: transform, opacity;
 }
@@ -531,30 +816,197 @@ body:has(#hero) {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 1em;
+  /* --wdth lo mueve el puntero (FlexWordmark); al viajar al header converge a
+     wdth 150, el valor fijo del logo, para que el traspaso no cambie la forma. */
+  font-variation-settings: "wdth" calc(var(--wdth) + (150 - var(--wdth)) * var(--hero-q));
+  font-size: calc(1em - 0.483em * var(--hero-q));
+  /* La tinta del texto HTML asienta ~0.09em más arriba que la del SVG del logo
+     con la misma caja (línea base): se compensa al converger. */
+  transform: translateY(calc(0.088em * var(--hero-q)));
   line-height: 0.9;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: var(--fg);
 }
+.hero__wordmark-flex {
+  color: color-mix(in oklab, var(--fg), var(--accent) calc(var(--hero-q) * 100%));
+}
 .hero__copy {
+  position: relative;
+  isolation: isolate;
   align-self: center;
   display: grid;
-  gap: 1.5rem;
+  justify-items: start;
+  gap: clamp(1rem, 2.4vh, 1.5rem);
+}
+/* Entrada escalonada (`rise-in`: fade + --reveal-offset, --reveal-stagger entre elementos: el mismo
+   gesto que Reveal) en CSS puro. El hero está siempre en el primer viewport, así que no necesita
+   IntersectionObserver, y con Reveal el h1 (candidato a LCP) nacía en opacity 0 hasta hidratar y sin
+   JS no aparecía nunca. `backwards` retiene el `from` durante el delay (sin parpadeo previo). No se
+   usa `forwards`/`both`: dejarían la animación aplicada tras terminar y, en Chromium, el hijo
+   animado pasa a ser backdrop root, con lo que el backdrop-filter de los chips (.hero__chip,
+   dentro de .hero__proof) deja de difuminar lo que hay detrás. El estado `to` ya es el natural. */
+.hero__copy > * {
+  animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+}
+.hero__copy > :nth-child(2) { animation-delay: var(--reveal-stagger); }
+.hero__copy > :nth-child(3) { animation-delay: calc(var(--reveal-stagger) * 2); }
+.hero__copy > :nth-child(4) { animation-delay: calc(var(--reveal-stagger) * 3); }
+.hero__copy > :nth-child(n + 5) { animation-delay: calc(var(--reveal-stagger) * 4); }
+/* Velo suave detrás del texto: sube la legibilidad sin tapar el campo. */
+.hero__copy::before {
+  content: "";
+  position: absolute;
+  inset: -12% -8% -12% -12%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 70% at 30% 50%,
+    color-mix(in oklab, var(--bg) 55%, transparent),
+    transparent 75%
+  );
+}
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.hero__eyebrow::before {
+  content: "";
+  width: 1.5rem;
+  height: 1px;
+  background: var(--accent-text);
 }
 .hero__tagline {
   max-width: 20ch;
+  /* Un escalón por debajo de .h2 para que el titular largo respire y el
+     wordmark y los CTA ganen peso relativo; en pantallas bajas cede alto
+     antes de pisar el logo. */
+  font-size: min(clamp(2rem, 4vw, 3.5rem), 8.5vh);
+  line-height: 1.05;
+}
+/* El titular nuevo es largo: en mobile baja un escalón para que el bloque entre
+   en la escena sticky, y en celulares bajos se omite la línea de proyectos
+   (lo menos crítico) para que los CTA y chips no queden cortados. */
+@media (max-width: 640px) {
+  .hero__tagline {
+    font-size: clamp(1.625rem, 7.8vw, 2rem);
+  }
 }
 .hero__subcopy {
-  max-width: 42ch;
+  max-width: 56ch;
   font-size: var(--text-body);
-  line-height: 1.5;
+  line-height: 1.65;
+  letter-spacing: 0.005em;
   color: var(--fg-muted);
+}
+.hero__cta {
+  display: grid;
+  gap: 0.75rem;
 }
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+.hero__arrow {
+  flex: none;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.btn:hover .hero__arrow {
+  transform: translateX(3px);
+}
+.hero__note {
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+}
+.hero__proof {
+  display: grid;
+  gap: 0.75rem;
+}
+.hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hero__chip {
+  --chip-bg: color-mix(in oklab, var(--bg) 60%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(var(--chip-bg), var(--chip-bg)) padding-box,
+    linear-gradient(135deg, color-mix(in oklab, var(--accent) 70%, transparent), var(--border)) border-box;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 0.875rem;
+  color: var(--fg);
+}
+.hero__chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-text);
+}
+.hero__projects {
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+}
+@media (max-width: 640px) and (max-height: 700px) {
+  .hero__copy { gap: 0.75rem; }
+  .hero__copy .hero__projects {
+    display: none;
+  }
+}
+@media (max-width: 640px) and (max-height: 600px) {
+  .hero__copy .hero__proof {
+    display: none;
+  }
+}
+/* Pantallas bajas (celulares apaisados, ventanas chatas): el límite es el alto y no el
+   ancho, así que estos cortes valen a cualquier ancho. El copy mide ~400-450 px y la escena
+   es 100dvh con overflow hidden: lo que se pasa queda cortado. Se sacrifica por orden:
+   primero la línea de proyectos (≤ 600 px, como la regla angosta: con un corte más bajo el
+   copy quedaba pegado al wordmark justo por encima), después los chips (≤ 500 px) y, en los
+   más bajos, se achican titular e interlineado. El titular, los dos CTA y su nota nunca se
+   ocultan. */
+@media (max-height: 600px) {
+  .hero__copy { gap: 0.75rem; }
+  .hero__copy .hero__projects {
+    display: none;
+  }
+}
+@media (max-height: 500px) {
+  .hero__copy .hero__proof {
+    display: none;
+  }
+}
+@media (max-height: 440px) {
+  .hero__copy { gap: 0.5rem; }
+  .hero__tagline {
+    /* Sin el tope de 20ch: con 20ch el corte de línea cae justo al borde y, según el
+       tamaño, el titular salta de 3 a 4 líneas (+30 px) de golpe. */
+    max-width: none;
+    font-size: min(clamp(2rem, 4vw, 3.5rem), 7.5vh);
+  }
+  .hero__subcopy { line-height: 1.45; }
+  .hero__cta { gap: 0.5rem; }
+}
+/* Mismo tope de alto pero con el escalón angosto: el bloque de arriba tiene la misma
+   especificidad que el de ≤ 640 px y, al ir después, le pisaría el valor con uno mayor
+   (a 320 px de ancho el titular pasaba de 26 a 32 px). 7.5vh baja el titular de 3 a 2 líneas
+   (~27 px) hasta ≈ 360 px de alto; la base usa 8.5vh. */
+@media (max-width: 640px) and (max-height: 440px) {
+  .hero__tagline {
+    font-size: min(clamp(1.625rem, 7.8vw, 2rem), 7.5vh);
+  }
 }
 
 /* Sin puntero: el wordmark respira solo entre 125 y 150. */
@@ -563,8 +1015,8 @@ body:has(#hero) {
     animation: breathe 6s var(--ease-in-out) infinite alternate;
   }
   @keyframes breathe {
-    from { font-variation-settings: "wdth" 125; }
-    to { font-variation-settings: "wdth" 150; }
+    from { --wdth: 125; }
+    to { --wdth: 150; }
   }
 }
 
@@ -577,9 +1029,14 @@ body:has(#hero) {
   }
   .hero__wordmark-text {
     animation: none;
+    --wdth: 140 !important;
     font-variation-settings: "wdth" 140 !important;
   }
   .hero__copy { opacity: 1; transform: none; }
+  /* La regla global solo acorta la duración: el delay escalonado seguiría reteniendo el
+     `from` (opacity 0) hasta 4 × --reveal-stagger (240 ms). Sin animación el copy aparece completo
+     de entrada. */
+  .hero__copy > * { animation: none; }
   html { animation: none; }
   /* Mismo selector que la declaración base: un valor propio de body no se pisa
      desde :root. Sin hero (o sin :has()) no hay declaración y gana el
@@ -587,12 +1044,110 @@ body:has(#hero) {
   body:has(#hero) { --logo-opacity: 1; }
 }
 
+/* ---------- Hero showcase ---------- */
+.hero-showcase {
+  display: none;
+  pointer-events: none;
+}
+@media (min-width: 1280px) {
+  .hero-showcase {
+    display: block;
+    position: absolute;
+    z-index: 1;
+    right: var(--gutter);
+    top: 54%;
+    translate: 0 -50%;
+    /* % del contenedor (que tiene tope), no vw: así no invade el texto en 1920+. */
+    width: clamp(400px, 31%, 620px);
+    aspect-ratio: 1 / 0.92;
+  }
+}
+.hero-showcase__layer {
+  position: absolute;
+}
+/* Cascada: GG Propiedades al frente abajo, Adocmat en el medio, Control Gastos
+   al fondo arriba. El orden del DOM es el de los datos; z-index fija la pila. */
+.hero-showcase__layer--0 { left: 0; bottom: 0; width: 76%; z-index: 3; }
+.hero-showcase__layer--1 { right: 0; top: 16%; width: 66%; z-index: 2; }
+.hero-showcase__layer--2 { left: 12%; top: 0; width: 56%; z-index: 1; }
+.hero-showcase__win {
+  --win-bg: color-mix(in oklab, var(--surface) 74%, transparent);
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background:
+    linear-gradient(var(--win-bg), var(--win-bg)) padding-box,
+    linear-gradient(140deg, color-mix(in oklab, var(--accent) 65%, transparent), var(--border) 60%) border-box;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--showcase-shadow);
+  animation: showcase-in var(--dur-showcase) var(--ease-out) both;
+  animation-delay: calc(var(--showcase-delay) + var(--i) * var(--showcase-stagger));
+}
+.hero-showcase__layer--0 .hero-showcase__win { rotate: -2deg; }
+.hero-showcase__layer--1 .hero-showcase__win { rotate: 2.5deg; opacity: 0.94; }
+.hero-showcase__layer--2 .hero-showcase__win { rotate: -1deg; opacity: 0.82; }
+@keyframes showcase-in {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+}
+.hero-showcase__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 70%, transparent);
+}
+.hero-showcase__bar .work-card__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+.hero-showcase__url {
+  flex: 1;
+  margin-left: 0.5rem;
+  padding: 0.0625rem 0.625rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
+  color: var(--fg-muted);
+  font-size: 0.6875rem;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hero-showcase__view {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  container-type: size;
+}
+.hero-showcase__view img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: showcase-scroll var(--showcase-loop) var(--ease-loop) infinite alternate;
+  animation-delay: calc(var(--i) * var(--showcase-loop-phase) * -1);
+}
+@keyframes showcase-scroll {
+  0%, 8% { transform: translateY(0); }
+  92%, 100% { transform: translateY(calc(-100% + 100cqh)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-showcase__win { animation: none; }
+  .hero-showcase__view img { animation: none; }
+}
+
 /* ---------- Marquee ---------- */
 .marquee {
   position: relative;
   z-index: 1;
   background: var(--bg);
-  padding-block: clamp(1.25rem, 3vw, 2.5rem);
+  /* La escena del hero mide 100dvh y su texto va centrado, así que en pantallas
+     altas queda una banda vacía bajo el texto antes del marquee. Se sube el
+     marquee sobre ese hueco (la escena sticky y el viaje del logo no cambian):
+     0 hasta ~814px de alto y crece 0.44px por cada px extra, lo que deja el
+     hueco cerca de --section-y (medido de 390x844 a 1920x1080). */
+  margin-top: calc(-1 * max(0px, (100dvh - 814px) * 0.44));
+  padding-block: clamp(1rem, 2vw, 1.75rem);
   overflow: hidden;
   border-bottom: 1px solid var(--border);
   cursor: grab;
@@ -615,9 +1170,9 @@ body:has(#hero) {
 .marquee__item {
   display: inline-flex;
   align-items: center;
-  gap: clamp(1rem, 3vw, 2.5rem);
-  padding-inline-end: clamp(1rem, 3vw, 2.5rem);
-  font-size: clamp(2rem, 6vw, 5.5rem);
+  gap: clamp(1rem, 2.4vw, 2rem);
+  padding-inline-end: clamp(1rem, 2.4vw, 2rem);
+  font-size: clamp(1.25rem, 2.2vw, 2rem);
   font-variation-settings: "wdth" 130;
   color: var(--fg-muted);
   white-space: nowrap;
@@ -642,7 +1197,7 @@ body:has(#hero) {
   background: var(--bg);
 }
 .services__title {
-  max-width: 16ch;
+  text-wrap: balance;
 }
 .services__list {
   margin-top: clamp(2.5rem, 5vw, 4rem);
@@ -684,6 +1239,12 @@ body:has(#hero) {
 [data-reveal] .svis__chev--b { transform: translateX(24px); }
 [data-reveal][data-visible] .svis__chev--a,
 [data-reveal][data-visible] .svis__chev--b { transform: none; }
+/* Mismo caso que arriba: sin JS no hay data-visible. Va acá y no junto al override de Reveal porque tiene
+   la misma especificidad que la regla base y, si viniera antes en el archivo, perdería. */
+@media (scripting: none) {
+  [data-reveal] .svis__chev--a,
+  [data-reveal] .svis__chev--b { transform: none; }
+}
 @media (min-width: 900px) {
   .service__grid {
     grid-template-columns: 160px 1fr minmax(280px, 420px);
@@ -697,15 +1258,19 @@ body:has(#hero) {
   color: var(--fg-muted);
 }
 .work__title {
-  max-width: 16ch;
+  text-wrap: balance;
 }
 .work__grid {
   margin-top: clamp(2.5rem, 5vw, 4rem);
   display: grid;
+  /* minmax(0,·): una columna `auto` crece al max-content de la tarjeta (la URL del frame
+     es nowrap) y a 320 px empuja la página a scroll horizontal. */
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(2rem, 4vw, 3.5rem);
 }
 .work-card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
 }
 .work-card__cover {
@@ -784,12 +1349,19 @@ body:has(#hero) {
   color: var(--fg-muted);
 }
 .work-card__meta {
-  display: grid;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 0.375rem;
 }
-@media (min-width: 900px) {
-  .work__grid { grid-template-columns: 1fr 1fr; }
-  .work-card:nth-child(even) { transform: translateY(clamp(2rem, 6vw, 5rem)); }
+/* "Ver sitio" al pie: las tarjetas quedan parejas aunque cambie la cantidad de tags. */
+.work-card__meta > a {
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+@media (min-width: 1100px) {
+  .work__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {
   [data-reveal][data-visible] .work-card__window img { animation: none; }
@@ -799,7 +1371,6 @@ body:has(#hero) {
 .closing {
   position: relative;
   overflow: hidden;
-  min-height: 80vh;
   display: grid;
   /* minmax(0,·): sin esto la columna implícita crece al max-content del título
      y el contenido (con su párrafo) se sale del viewport. */
@@ -810,20 +1381,28 @@ body:has(#hero) {
 .closing__content {
   position: relative;
   z-index: 1;
-  padding-block: clamp(4rem, 10vw, 8rem);
+  padding-block: var(--section-y);
   display: grid;
   gap: 1.5rem;
 }
-.closing__title {
-  /* Medido: "HABLEMOS" en Anybody wdth 140 mide 7.96× el font-size ("LET'S TALK"
-     7.70×). Es una sola palabra: no puede envolver, así que el tamaño tiene que
-     entrar entre los gutters. Con gutter 4vw el ancho útil es 92vw, y
-     92 / 7.96 = 11.5vw; 11.2vw deja margen. El techo (10rem = 160px) es el
-     máximo de display que fija el spec 3.3 y entra en el container de 1440. */
-  font-size: clamp(2.25rem, 11.2vw, 10rem);
-}
 .closing__desc {
   font-size: clamp(1.125rem, 1.6vw, 1.5rem);
+}
+.closing__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+.closing__intro {
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+}
+@media (min-width: 900px) {
+  .closing__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 .closing__actions {
   display: flex;
@@ -833,4 +1412,153 @@ body:has(#hero) {
 }
 .closing__email {
   color: var(--fg-muted);
+}
+
+/* ---------- Contact form ---------- */
+.contact-form {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+.contact-form__form {
+  --contact-gap: 1.25rem;
+  display: grid;
+  gap: var(--contact-gap);
+}
+.contact-form__field {
+  display: grid;
+  gap: 0.5rem;
+}
+.contact-form__label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--fg);
+}
+.contact-form__optional {
+  font-weight: 400;
+  color: var(--fg-muted);
+}
+.contact-form__input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.625rem 0.875rem;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  /* --fg-muted y no --border: el borde de un input tiene que llegar a 3:1 (WCAG 1.4.11). */
+  border: 1px solid var(--fg-muted);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+.contact-form__input::placeholder {
+  color: var(--fg-muted);
+}
+.contact-form__input:hover {
+  border-color: var(--fg);
+}
+.contact-form__input:focus-visible {
+  border-color: var(--accent);
+}
+.contact-form__input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.contact-form__textarea {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+.contact-form__group {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.contact-form__group legend {
+  padding: 0;
+  margin-bottom: 0.75rem;
+}
+.contact-form__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.contact-form__chip {
+  position: relative;
+  display: inline-flex;
+}
+.contact-form__chip-input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.contact-form__chip-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.9375rem;
+  color: var(--fg);
+  border: 1px solid var(--fg-muted);
+  border-radius: 999px;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out);
+}
+.contact-form__chip-input:hover + .contact-form__chip-label {
+  border-color: var(--fg);
+}
+.contact-form__chip-input:checked + .contact-form__chip-label {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+/* El input es invisible (opacity 0): el anillo de foco global se dibuja en la pastilla. */
+.contact-form__chip-input:focus-visible + .contact-form__chip-label {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 3px;
+}
+.contact-form__error,
+.contact-form__form-error {
+  font-size: 0.875rem;
+  color: var(--danger);
+}
+/* El live region (.contact-form__form-status) está siempre y mide 0 vacío: el aire de abajo lo trae
+   el mensaje, así no suma un hueco extra del gap del grid cuando no hay error. .contact-form__actions
+   agrupa status y submit en un solo ítem del grid: el gap del grid no los separa, solo este margen. */
+.contact-form__form-error {
+  margin: 0 0 var(--contact-gap);
+}
+.contact-form__form-error .text-link {
+  color: var(--fg);
+}
+.contact-form__submit {
+  display: flex;
+  justify-content: flex-end;
+}
+.contact-form__hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.contact-form__success {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+.contact-form__success-body {
+  color: var(--fg-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-form__input,
+  .contact-form__chip-label {
+    transition: none;
+  }
 }

@@ -1,9 +1,12 @@
 import { match } from "@formatjs/intl-localematcher";
 import Negotiator from "negotiator";
 
-export const locales = ["es", "en"] as const;
+export const locales = ["es", "en", "ca"] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "es";
+
+/** Etiqueta visible en el selector de idioma (la URL y hreflang usan el código ISO). */
+export const localeShortLabel: Record<Locale, string> = { es: "ES", en: "EN", ca: "CAT" };
 
 export function isLocale(value: string): value is Locale {
   return (locales as readonly string[]).includes(value);

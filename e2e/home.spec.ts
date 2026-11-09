@@ -1,6 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const SECTIONS = ["hero", "services", "work", "process", "contact"];
+
+// La entrada del copy del hero (fade + 12 px, animación CSS) tiene que terminar antes de medirlo
+// o de mirar qué animaciones le quedan aplicadas.
+const heroCopyEntryDone = (page: Page) =>
+  page.locator(".hero__copy").evaluate((el) =>
+    Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)),
+  );
 
 for (const lang of ["es", "en"] as const) {
   test(`home ${lang}: secciones, sin errores, sin scroll horizontal`, async ({ page }) => {
@@ -22,6 +29,89 @@ for (const lang of ["es", "en"] as const) {
   });
 }
 
+// WCAG 1.4.10 (Reflow): a 320 px de ancho CSS la página no puede scrollear en horizontal.
+// Aparte del test de arriba porque ese corre al ancho del proyecto (1280 en escritorio) y
+// acá se mide en el límite: un hijo de grilla con nowrap que ensancha una columna `auto`
+// solo se nota a este ancho. Se compara contra el ancho pedido y no contra innerWidth: en
+// emulación mobile el viewport de layout crece hasta el contenido (innerWidth pasa a 347)
+// y un desborde real quedaría enmascarado.
+const REFLOW_WIDTH = 320;
+for (const lang of ["es", "en", "ca"] as const) {
+  test(`home ${lang}: sin scroll horizontal a ${REFLOW_WIDTH} px (reflow)`, async ({ page }) => {
+    await page.setViewportSize({ width: REFLOW_WIDTH, height: 640 });
+    await page.goto(`/${lang}`);
+    await page.evaluate(() => document.fonts.ready);
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(scrollWidth).toBeLessThanOrEqual(REFLOW_WIDTH + 1);
+  });
+}
+
+// La entrada del copy no puede dejar su animación aplicada al terminar (nada de fill-mode
+// `both`/`forwards`): en Chromium un elemento con animación de opacity/transform aplicada es
+// backdrop root, y el backdrop-filter de los chips (dentro de .hero__proof) pasa a difuminar
+// solo el interior del bloque y no el campo de atrás.
+test("hero: al terminar la entrada ningún hijo del copy conserva una animación aplicada", async ({ page }) => {
+  await page.goto("/es");
+  const children = page.locator(".hero__copy > *");
+  await expect(children).not.toHaveCount(0);
+  await heroCopyEntryDone(page);
+  const retained = await children.evaluateAll((els) =>
+    els.filter((el) => el.getAnimations().length > 0).map((el) => el.className || el.tagName),
+  );
+  expect(retained).toEqual([]);
+});
+
+// Pantallas bajas (celulares apaisados y una ventana chata): con más de 640 px de ancho no corren
+// los fallbacks de ancho del hero, y la escena es 100dvh con overflow hidden, así que lo que se
+// pasa del alto queda cortado (no scrolleable). El copy entero, con sus CTA, tiene que entrar sin
+// pisar el wordmark de arriba. Los celulares miden <= 430 px de alto; 1280x501 es el único que
+// ejercita el bloque de alto medio (oculta la línea de proyectos): sin él desborda ~31 px.
+const SHORT_VIEWPORTS = [
+  { width: 844, height: 390 },
+  { width: 667, height: 375 },
+  { width: 740, height: 360 },
+  { width: 915, height: 412 },
+  { width: 932, height: 430 },
+  { width: 1280, height: 501 },
+];
+for (const viewport of SHORT_VIEWPORTS) {
+  test.describe(`hero a ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport });
+
+    for (const lang of ["es", "en", "ca"] as const) {
+      test(`${lang}: el copy y los CTA entran en la escena`, async ({ page }) => {
+        await page.goto(`/${lang}`);
+        await page.evaluate(() => document.fonts.ready);
+        // La entrada del copy desplaza 12 px: se mide con la animación terminada.
+        await heroCopyEntryDone(page);
+        const box = async (selector: string) => {
+          const b = await page.locator(selector).boundingBox();
+          if (!b) throw new Error(`${selector} no tiene caja`);
+          return { top: b.y, bottom: b.y + b.height };
+        };
+        const scene = await box(".hero__sticky");
+        const wordmark = await box(".hero__wordmark");
+        const copy = await box(".hero__copy");
+        expect(copy.bottom).toBeLessThanOrEqual(scene.bottom);
+        expect(copy.top).toBeGreaterThanOrEqual(wordmark.bottom);
+        expect((await box(".hero__actions .btn-primary")).bottom).toBeLessThanOrEqual(scene.bottom);
+        expect((await box(".hero__actions .btn-secondary")).bottom).toBeLessThanOrEqual(scene.bottom);
+        // Medir el copy no alcanza: si el titular o la nota pasaran a display:none el bloque se
+        // achicaría y las cajas de arriba seguirían entrando. Nunca se sacrifican.
+        for (const selector of [
+          ".hero__tagline",
+          ".hero__subcopy",
+          ".hero__note",
+          ".hero__actions .btn-primary",
+          ".hero__actions .btn-secondary",
+        ]) {
+          await expect(page.locator(selector)).toBeVisible();
+        }
+      });
+    }
+  });
+}
+
 test("/ redirige según Accept-Language", async ({ browser }) => {
   const en = await browser.newContext({ locale: "en-US", extraHTTPHeaders: { "Accept-Language": "en-US,en;q=0.9" } });
   const p1 = await en.newPage();
@@ -36,8 +126,43 @@ test("/ redirige según Accept-Language", async ({ browser }) => {
   await es.close();
 });
 
+// globals.css oculta .site-header__cta con display:none en <= 640 px a propósito: ahí el CTA vive
+// dentro del panel del menú. Cada modo se verifica donde existe, según el ancho del viewport
+// (el mismo corte que el CSS) y no según el nombre del proyecto de Playwright.
+const CTA_IN_MENU_MAX_WIDTH = 640;
+const WHATSAPP_HREF = /^https:\/\/wa\.me\/\d+\?text=/;
+const isCtaInMenu = (page: Page) => (page.viewportSize()?.width ?? Infinity) <= CTA_IN_MENU_MAX_WIDTH;
+
 test("el CTA del header lleva a WhatsApp", async ({ page }) => {
+  test.skip(isCtaInMenu(page), "En mobile el CTA vive en el panel del menú: lo cubre el test siguiente");
   await page.goto("/es");
   const cta = page.getByRole("banner").getByRole("link", { name: "Hablemos" });
-  await expect(cta).toHaveAttribute("href", /^https:\/\/wa\.me\/\d+\?text=/);
+  await expect(cta).toHaveAttribute("href", WHATSAPP_HREF);
+});
+
+test("en mobile el CTA del panel del menú lleva a WhatsApp", async ({ page }) => {
+  test.skip(!isCtaInMenu(page), "En escritorio el CTA está en el header: lo cubre el test anterior");
+  await page.goto("/es");
+  const header = page.getByRole("banner");
+  // Con el menú cerrado el CTA del header está oculto y el panel ni siquiera está montado.
+  await expect(header.getByRole("link", { name: "Hablemos" })).toHaveCount(0);
+  await header.getByRole("button", { name: "Menú" }).click();
+  const cta = header.locator("#mobile-menu").getByRole("link", { name: "Hablemos" });
+  await expect(cta).toHaveAttribute("href", WHATSAPP_HREF);
+});
+
+// Las anclas de la nav dejan cada sección al ras del borde superior de la ventana (el padding de la sección
+// despeja el título del header). El `scroll-padding-top` de html existe para el foco (WCAG 2.4.11) y, sin
+// compensarlo en las secciones, correría las anclas ~88 px más abajo.
+test("las anclas dejan la sección al ras del borde superior, sin sumar el scroll-padding del foco", async ({ page }) => {
+  await page.goto("/es");
+  await page.evaluate(() => document.fonts.ready);
+  for (const id of ["services", "work", "process", "contact"]) {
+    // Navegar por hash es lo mismo que clicar el link: no todas las anclas tienen link en el header o el menú.
+    await page.evaluate((hash) => {
+      location.hash = hash;
+    }, id);
+    const top = () => page.locator(`#${id}`).evaluate((el) => Math.abs(Math.round(el.getBoundingClientRect().top)));
+    await expect.poll(top, { message: `borde superior de #${id}` }).toBe(0);
+  }
 });

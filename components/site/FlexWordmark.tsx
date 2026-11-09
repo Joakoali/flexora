@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useMotionValue, useMotionValueEvent, useReducedMotion, useSpring } from "motion/react";
 import { SPRING_FOLLOW } from "@/lib/motion";
 import { FlexMark } from "./FlexMark";
@@ -8,9 +8,11 @@ import { FlexMark } from "./FlexMark";
 const WDTH_MIN = 110;
 const WDTH_MAX = 150;
 const WDTH_REST = 140;
+// Largo del tramo que el logo del header pinta de acento ("FLEX" en FLEXORA).
+const FLEX_LEN = 4;
 
 export function FlexWordmark({ text }: { text: string }) {
-  const ref = useRef<HTMLHeadingElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const raw = useMotionValue(WDTH_REST);
   const wdth = useSpring(raw, SPRING_FOLLOW);
@@ -29,7 +31,7 @@ export function FlexWordmark({ text }: { text: string }) {
   useMotionValueEvent(wdth, "change", (v) => {
     const el = ref.current;
     if (!el) return;
-    el.style.fontVariationSettings = `"wdth" ${v}`;
+    el.style.setProperty("--wdth", String(v));
     const rounded = Math.round(v);
     if (rounded !== display) setDisplay(rounded);
   });
@@ -37,14 +39,16 @@ export function FlexWordmark({ text }: { text: string }) {
   return (
     <div className="hero__wordmark">
       <FlexMark className="hero__wordmark-mark" />
-      <h1
+      <div
         ref={ref}
         className="hero__wordmark-text"
         data-wdth={display}
-        style={{ fontVariationSettings: `"wdth" ${WDTH_REST}` }}
+        style={{ "--wdth": WDTH_REST } as CSSProperties}
       >
-        {text}
-      </h1>
+        {/* "FLEX" viaja de blanco a violeta con --hero-p: al aterrizar es idéntico al logo del header. */}
+        <span className="hero__wordmark-flex">{text.slice(0, FLEX_LEN)}</span>
+        {text.slice(FLEX_LEN)}
+      </div>
     </div>
   );
 }

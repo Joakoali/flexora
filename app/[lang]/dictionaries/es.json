@@ -9,6 +9,7 @@
     "contact": "Contacto",
     "cta": "Hablemos",
     "home": "Ir al inicio",
+    "menu": "Menú",
     "primary": "Navegación principal"
   },
   "theme": {
@@ -18,13 +19,22 @@
   "lang": {
     "label": "Idioma",
     "es": "Español",
-    "en": "English"
+    "en": "English",
+    "ca": "Català"
+  },
+  "whatsappFab": {
+    "label": "Escribinos por WhatsApp"
   },
   "hero": {
-    "tagline": "Webs, marketing y marca para negocios que quieren crecer.",
-    "subcopy": "Diseño, desarrollo y marketing digital trabajando juntos, no por separado, para que cada pieza sume a tus resultados.",
-    "primary": "Hablemos",
+    "eyebrow": "Estudio digital · Barcelona",
+    "tagline": "Soluciones digitales para hacer crecer tu negocio y tu equipo.",
+    "subcopy": "Diseñamos y desarrollamos webs, apps, herramientas internas y estrategias digitales para que tu negocio destaque, funcione mejor y crezca.",
+    "primary": "Contanos tu proyecto",
+    "primaryNote": "Te respondemos por WhatsApp en el día.",
     "secondary": "Ver trabajos",
+    "disciplines": ["Desarrollo", "Marketing", "Marca"],
+    "disciplinesLabel": "Disciplinas",
+    "projectsPrefix": "Hecho para",
     "whatsappMessage": "Hola Flexora, quiero hablar sobre un proyecto."
   },
   "clients": {
@@ -101,7 +111,38 @@
     "description": "Contanos qué querés lograr. Te respondemos el mismo día.",
     "primary": "Escribir por WhatsApp",
     "emailLabel": "o por mail a",
-    "email": "info@flexoradesign.com"
+    "email": "info@flexoradesign.com",
+    "form": {
+      "formLabel": "Formulario de contacto",
+      "nameLabel": "Nombre",
+      "emailLabel": "Email",
+      "projectLegend": "¿Qué necesitás?",
+      "optional": "(opcional)",
+      "messageLabel": "Mensaje",
+      "messagePlaceholder": "Contanos un poco del proyecto",
+      "submit": "Enviar",
+      "sending": "Enviando…",
+      "successTitle": "¡Listo!",
+      "successBody": "Recibimos tu mensaje. Te respondemos en el día.",
+      "sendAnother": "Enviar otro mensaje",
+      "honeypotLabel": "Dejar vacío",
+      "projectTypes": {
+        "website": "Sitio web",
+        "landing": "Landing page",
+        "ecommerce": "E-commerce",
+        "webapp": "Web app",
+        "mobile": "App móvil",
+        "other": "Otro"
+      },
+      "errors": {
+        "required": "Este campo es obligatorio.",
+        "invalid": "Ingresá un email válido.",
+        "too_long": "Es demasiado largo.",
+        "send_failed": "No pudimos enviarlo. Probá de nuevo o",
+        "sendFailedLink": "escribinos por WhatsApp.",
+        "too_fast": "Enviaste el formulario muy rápido. Probá de nuevo en un momento."
+      }
+    }
   },
   "footer": {
     "rights": "Todos los derechos reservados.",

@@ -28,4 +28,14 @@ describe("Button", () => {
     fireEvent.click(button);
     expect(onClick).toHaveBeenCalledOnce();
   });
+  it("acepta type=submit y por defecto sigue siendo button", () => {
+    render(
+      <>
+        <Button type="submit">Enviar</Button>
+        <Button>Otro</Button>
+      </>,
+    );
+    expect(screen.getByRole("button", { name: "Enviar" }).getAttribute("type")).toBe("submit");
+    expect(screen.getByRole("button", { name: "Otro" }).getAttribute("type")).toBe("button");
+  });
 });

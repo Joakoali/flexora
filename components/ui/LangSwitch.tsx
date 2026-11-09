@@ -1,9 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { locales, switchLocalePath, type Locale } from "@/lib/i18n";
+import { localeShortLabel, locales, switchLocalePath, type Locale } from "@/lib/i18n";
 
-type Props = { locale: Locale; labels: { label: string; es: string; en: string } };
+type Props = { locale: Locale; labels: { label: string } & Record<Locale, string> };
 
 export function LangSwitch({ locale, labels }: Props) {
   const pathname = usePathname() ?? "/";
@@ -12,7 +12,7 @@ export function LangSwitch({ locale, labels }: Props) {
       {locales.map((l) =>
         l === locale ? (
           <span key={l} aria-current="true" className="lang-switch__item">
-            {l.toUpperCase()}
+            {localeShortLabel[l]}
           </span>
         ) : (
           <a
@@ -23,7 +23,7 @@ export function LangSwitch({ locale, labels }: Props) {
             aria-label={labels[l]}
             className="lang-switch__item text-link"
           >
-            {l.toUpperCase()}
+            {localeShortLabel[l]}
           </a>
         ),
       )}

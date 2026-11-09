@@ -9,6 +9,7 @@
     "contact": "Contact",
     "cta": "Let's talk",
     "home": "Go to home",
+    "menu": "Menu",
     "primary": "Main navigation"
   },
   "theme": {
@@ -18,13 +19,22 @@
   "lang": {
     "label": "Language",
     "es": "Español",
-    "en": "English"
+    "en": "English",
+    "ca": "Català"
+  },
+  "whatsappFab": {
+    "label": "Message us on WhatsApp"
   },
   "hero": {
-    "tagline": "Web, marketing and brand for businesses that want to grow.",
-    "subcopy": "Design, development, and digital marketing working together, not apart, so every piece adds to your results.",
-    "primary": "Let's talk",
+    "eyebrow": "Digital studio · Barcelona",
+    "tagline": "Digital solutions to grow your business and your team.",
+    "subcopy": "We design and build websites, apps, internal tools and digital strategies so your business stands out, runs better and grows.",
+    "primary": "Tell us about your project",
+    "primaryNote": "We reply on WhatsApp the same day.",
     "secondary": "See work",
+    "disciplines": ["Development", "Marketing", "Brand"],
+    "disciplinesLabel": "Disciplines",
+    "projectsPrefix": "Built for",
     "whatsappMessage": "Hi Flexora, I'd like to talk about a project."
   },
   "clients": {
@@ -101,7 +111,38 @@
     "description": "Tell us what you want to achieve. We reply the same day.",
     "primary": "Message on WhatsApp",
     "emailLabel": "or email us at",
-    "email": "info@flexoradesign.com"
+    "email": "info@flexoradesign.com",
+    "form": {
+      "formLabel": "Contact form",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "projectLegend": "What do you need?",
+      "optional": "(optional)",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Tell us a bit about the project",
+      "submit": "Send",
+      "sending": "Sending…",
+      "successTitle": "Done!",
+      "successBody": "We got your message. We'll reply the same day.",
+      "sendAnother": "Send another message",
+      "honeypotLabel": "Leave empty",
+      "projectTypes": {
+        "website": "Website",
+        "landing": "Landing page",
+        "ecommerce": "E-commerce",
+        "webapp": "Web app",
+        "mobile": "Mobile app",
+        "other": "Other"
+      },
+      "errors": {
+        "required": "This field is required.",
+        "invalid": "Enter a valid email.",
+        "too_long": "This is too long.",
+        "send_failed": "We couldn't send it. Try again or",
+        "sendFailedLink": "message us on WhatsApp.",
+        "too_fast": "That was a bit too fast. Try again in a moment."
+      }
+    }
   },
   "footer": {
     "rights": "All rights reserved.",

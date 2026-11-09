@@ -18,10 +18,12 @@ export const work: WorkItem[] = [
     coverAlt: {
       es: "Captura de ggpropiedades.com",
       en: "Screenshot of ggpropiedades.com",
+      ca: "Captura de ggpropiedades.com",
     },
     description: {
       es: "Plataforma inmobiliaria con buscador avanzado y gestión de propiedades.",
       en: "Real estate platform with advanced search and property management.",
+      ca: "Plataforma immobiliària amb cercador avançat i gestió de propietats.",
     },
     tags: ["Next.js", "React", "TypeScript", "Tailwind", "Prisma", "Supabase", "NextAuth", "Cloudflare"],
     siteUrl: "https://ggpropiedades.com",
@@ -33,10 +35,12 @@ export const work: WorkItem[] = [
     coverAlt: {
       es: "Captura de Adocmat",
       en: "Screenshot of Adocmat",
+      ca: "Captura d'Adocmat",
     },
     description: {
       es: "Landing institucional con panel de administración y formulario de contacto.",
       en: "Institutional landing page with an admin panel and contact form.",
+      ca: "Landing institucional amb panell d'administració i formulari de contacte.",
     },
     tags: ["React", "TypeScript", "Vite", "Supabase", "Tailwind", "EmailJS"],
     siteUrl: "https://adocmat.com",
@@ -48,10 +52,12 @@ export const work: WorkItem[] = [
     coverAlt: {
       es: "Captura de Control Gastos",
       en: "Screenshot of Control Gastos",
+      ca: "Captura de Control Gastos",
     },
     description: {
       es: "App de control de gastos con gráficos y categorías.",
       en: "Expense tracking app with charts and categories.",
+      ca: "App de control de despeses amb gràfics i categories.",
     },
     tags: ["React", "TypeScript", "Vite", "Tailwind", "Firebase"],
     siteUrl: "https://control-gastos-nine-zeta.vercel.app",

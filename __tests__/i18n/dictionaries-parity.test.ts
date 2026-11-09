@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import es from "@/app/[lang]/dictionaries/es.json";
 import en from "@/app/[lang]/dictionaries/en.json";
+import ca from "@/app/[lang]/dictionaries/ca.json";
 
 function keyPaths(value: unknown, prefix = ""): string[] {
   if (Array.isArray(value)) {
@@ -15,8 +16,9 @@ function keyPaths(value: unknown, prefix = ""): string[] {
 }
 
 describe("diccionarios", () => {
-  it("es y en tienen exactamente las mismas claves y tamaños de lista", () => {
+  it("es, en y ca tienen exactamente las mismas claves y tamaños de lista", () => {
     expect(keyPaths(en).sort()).toEqual(keyPaths(es).sort());
+    expect(keyPaths(ca).sort()).toEqual(keyPaths(es).sort());
   });
 
   it("ningún string está vacío", () => {
@@ -27,5 +29,6 @@ describe("diccionarios", () => {
     };
     check(es, "es");
     check(en, "en");
+    check(ca, "ca");
   });
 });
