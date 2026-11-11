@@ -219,6 +219,64 @@ layout queda:
 - El `FlexField` de fondo no cambia.
 - Se mantiene la animación `Reveal` existente sobre el contenido.
 
+> **Actualización 2026-11-11: recomposición del cierre.** El diagrama y los cortes de arriba quedan como
+> registro; el layout vigente es este.
+>
+> **Problema.** Con dos columnas iguales alineadas arriba, la introducción medía ~110 px contra un
+> formulario de ~630 px: quedaban ~520 px vacíos debajo de WhatsApp/mail (medido a 1280, 1440 y 1920).
+> Además el título ya no es el "HABLEMOS" de ancho completo: desde
+> `2026-11-07-jerarquia-y-ritmo-design.md` es un `h2` y entra en una columna.
+>
+> **Layout vigente.**
+>
+> ```
+> ┌───────────────────────── #contact ─────────────────────────┐
+> │ Hablemos              │ Nombre          Email              │
+> │ Contanos qué querés…  │ [____________]  [____________]     │
+> │                       │ ¿Qué necesitás?  (chips…)          │
+> │        (aire)         │ Mensaje                            │
+> │                       │ [______________________________]   │
+> │ [Escribir por WA]     │                                    │
+> │ o por mail a …        │                          [Enviar]  │
+> └────────────────────────────────────────────────────────────┘
+> ```
+>
+> - **≥1100px:** dos columnas `5fr / 7fr`. La introducción toma el alto del formulario y lo reparte
+>   (`align-content: space-between`): `.closing__head` (título + frase) arriba y `.closing__actions`
+>   (WhatsApp, y el mail debajo) abajo, al ras del panel.
+> - **<1100px:** apilado: título → frase → WhatsApp/mail → formulario a todo el ancho.
+> - **Nombre y Email en una fila** cuando el panel tiene 30rem o más de ancho interno: container query
+>   sobre `.contact-form`, no media query. Aplica también al panel ancho de la versión apilada (tablets);
+>   en celulares en vertical siguen apilados.
+> - El título pasó a ser hijo de `.closing__intro`; `.closing__grid` ya no existe (la grilla es
+>   `.closing__content`). El orden del documento no cambió: título → frase → WhatsApp → mail → formulario.
+>
+> **Por qué 1100 y no 900.** Entre 900 y 1099 px la columna del formulario no llega a los 30rem internos:
+> Nombre y Email no entran en fila y el formulario sigue midiendo ~630 px (634 px a 1080 de ancho con el
+> layout anterior, que ahí dejaba 455 px de hueco). Anclar WhatsApp/mail abajo no lo arregla: el mismo
+> vacío queda entre los dos bloques. 1100 ya era un corte del sitio (grilla de Trabajos).
+>
+> **Medidas (es; en y ca dan lo mismo).** Aire entre los dos bloques de la introducción: 326 px a 1100,
+> 312 a 1280, 251 a 1440, 260 a 1920. Alto de la sección: 908 → 740 px a 1280, 931 → 711 a 1440,
+> 951 → 728 a 1920. A 390 px no cambia nada (1049 px).
+>
+> **Consecuencias conocidas.**
+>
+> - La sección más el footer miden 877 px a 1920 de ancho: en una ventana más alta que eso, el ancla
+>   `#contact` no llega al tope (a 1920×1080 la sección arranca 203 px más abajo). Se aceptó: contacto y
+>   footer entran completos en una pantalla.
+> - En el estado de éxito, en dos columnas, el panel se estira al alto de la introducción (259 px a 1440).
+> - `align-items: start` en la grilla del formulario es necesario: sin él, el error de un campo estira la
+>   celda vecina y su input crece de 48 a ~63 px.
+>
+> **Tests.** `e2e/closing.spec.ts` (apilado o dos columnas, al ras del panel y fila Nombre/Email, por
+> viewport), `e2e/contact.spec.ts` ("en fila, el error de un campo no deforma al vecino") y
+> `__tests__/components/Closing.test.tsx` (bloques de la introducción y orden de lectura).
+>
+> **Descartado por ahora.** Llenar la columna con contenido nuevo: no hay foto real en el repo y el texto
+> posible repite Proceso o la marquesina. Si se consigue un testimonio real de un cliente (frase, nombre y
+> empresa), va entre la frase y WhatsApp, como pieza aparte con su spec.
+
 ### Estilo
 
 - CSS BEM + variables en `globals.css`, como el resto del sitio (no Tailwind utilities).

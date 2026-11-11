@@ -211,6 +211,46 @@ for (const lang of ["es", "en", "ca"] as const) {
   });
 }
 
+// Nombre y Email comparten fila cuando el panel tiene ancho (ver e2e/closing.spec.ts). El mensaje de error
+// se suma solo a la celda del campo que falló: si la celda vecina se estirara para igualar el alto de la
+// fila, su input crecería con ella y los dos campos quedarían de distinto alto.
+test.describe("contacto: en fila, el error de un campo no deforma al vecino", () => {
+  test.use({ viewport: { width: 1280, height: 720 } });
+
+  const t = es.closing.form;
+
+  test("con error solo en Email, Nombre conserva su alto y los dos inputs siguen alineados", async ({ page }) => {
+    await page.goto("/es");
+    const form = page.getByRole("form", { name: t.formLabel });
+    await form.scrollIntoViewIfNeeded();
+    const name = form.getByLabel(t.nameLabel, { exact: true });
+    const email = form.getByLabel(t.emailLabel, { exact: true });
+    const rect = (input: Locator) =>
+      input.evaluate((el) => {
+        const { top, left, right, height } = el.getBoundingClientRect();
+        return { top, left, right, height };
+      });
+
+    await name.fill("Ana Test");
+    // type=email del navegador acepta "ana@example"; el servidor exige un punto en el dominio.
+    await email.fill("ana@example");
+    const nameBefore = await rect(name);
+    // Precondición: están en la misma fila. Apilados, el error de Email no tiene vecino que deformar.
+    expect((await rect(email)).left, "Email debe estar a la derecha de Nombre, en la misma fila").toBeGreaterThan(
+      nameBefore.right,
+    );
+
+    await waitTimeGate(form);
+    await form.getByRole("button", { name: t.submit }).click();
+    await expect(form.getByText(t.errors.invalid)).toBeVisible();
+
+    const [nameAfter, emailAfter] = [await rect(name), await rect(email)];
+    expect(nameAfter.height, "Nombre conserva su alto").toBe(nameBefore.height);
+    expect(emailAfter.height, "Email mide lo mismo que Nombre").toBe(nameAfter.height);
+    expect(Math.abs(emailAfter.top - nameAfter.top), "los dos inputs siguen a la misma altura").toBeLessThanOrEqual(1);
+  });
+});
+
 // WCAG 2.4.11 (foco no oculto): el header fijo (72 px) y el botón flotante de WhatsApp no pueden tapar el
 // elemento enfocado. Sin scroll-padding el navegador da por "visible" todo lo que está dentro de la ventana,
 // aunque esté debajo del header o del botón, y no scrollea. Se mide en una ventana baja (844x390), donde el

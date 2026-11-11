@@ -19,19 +19,19 @@ export function Closing({
     <section id="contact" className="closing" aria-labelledby="closing-title">
       <FlexField variant="closing" />
       <Reveal className="container-site closing__content">
-        <h2 id="closing-title" className="h2 closing__title">{t.title}</h2>
-        <div className="closing__grid">
-          <div className="closing__intro">
+        <div className="closing__intro">
+          <div className="closing__head">
+            <h2 id="closing-title" className="h2 closing__title">{t.title}</h2>
             <p className="closing__desc measure">{t.description}</p>
-            <div className="closing__actions">
-              <Button href={whatsappHref} external>{t.primary}</Button>
-              <p className="closing__email">
-                {t.emailLabel} <TextLink href={`mailto:${t.email}`}>{t.email}</TextLink>
-              </p>
-            </div>
           </div>
-          <ContactForm t={t.form} locale={locale} whatsappHref={whatsappHref} />
+          <div className="closing__actions">
+            <Button href={whatsappHref} external>{t.primary}</Button>
+            <p className="closing__email">
+              {t.emailLabel} <TextLink href={`mailto:${t.email}`}>{t.email}</TextLink>
+            </p>
+          </div>
         </div>
+        <ContactForm t={t.form} locale={locale} whatsappHref={whatsappHref} />
       </Reveal>
     </section>
   );

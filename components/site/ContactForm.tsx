@@ -117,7 +117,7 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
             <input id={`${id}-website`} type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
           </div>
 
-          <div className="contact-form__field">
+          <div className="contact-form__field contact-form__field--half">
             <label htmlFor={`${id}-name`} className="contact-form__label">
               {t.nameLabel}
             </label>
@@ -136,7 +136,7 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
             {fieldError("name")}
           </div>
 
-          <div className="contact-form__field">
+          <div className="contact-form__field contact-form__field--half">
             <label htmlFor={`${id}-email`} className="contact-form__label">
               {t.emailLabel}
             </label>

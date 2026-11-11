@@ -1383,32 +1383,41 @@ body:has(#hero) {
   z-index: 1;
   padding-block: var(--section-y);
   display: grid;
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
 }
 .closing__desc {
   font-size: clamp(1.125rem, 1.6vw, 1.5rem);
 }
-.closing__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: start;
-}
-.closing__intro {
+/* Introducción: dos bloques, el título con la frase (.closing__head) y WhatsApp/mail (.closing__actions). */
+.closing__intro,
+.closing__head {
   display: grid;
   gap: 1.5rem;
   align-content: start;
-}
-@media (min-width: 900px) {
-  .closing__grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
 }
 .closing__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 1.5rem;
+}
+/* Dos columnas: la introducción toma el alto del formulario y lo reparte, con el título y la frase arriba
+   y WhatsApp/mail abajo, al ras del panel. Alineada arriba, como estaba, dejaba ~520 px vacíos debajo.
+   Recién desde 1100px: más angosto, el panel no llega al ancho en que Nombre y Email comparten fila
+   (ver .contact-form), el formulario vuelve a medir ~630 px y el hueco reaparece. Por debajo va apilado. */
+@media (min-width: 1100px) {
+  .closing__content {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+  .closing__intro {
+    align-content: space-between;
+  }
+  .closing__actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 }
 .closing__email {
   color: var(--fg-muted);
@@ -1417,6 +1426,9 @@ body:has(#hero) {
 /* ---------- Contact form ---------- */
 .contact-form {
   position: relative;
+  /* Las filas del formulario dependen del ancho del panel y no del viewport: el mismo panel va angosto en
+     una columna de escritorio y ancho cuando el cierre se apila. */
+  container-type: inline-size;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -1426,6 +1438,22 @@ body:has(#hero) {
   --contact-gap: 1.25rem;
   display: grid;
   gap: var(--contact-gap);
+}
+/* Con 30rem de ancho interno, Nombre y Email (.contact-form__field--half) comparten fila: cada input queda
+   en ~230 px o más y el formulario baja ~100 px. El resto de los campos sigue a todo el ancho.
+   align-items: start: el mensaje de error alarga solo la celda de su campo; estirada, la celda vecina
+   repartiría ese alto entre sus filas y su input crecería (de 48 a ~63 px). */
+@container (min-width: 30rem) {
+  .contact-form__form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .contact-form__form > * {
+    grid-column: 1 / -1;
+  }
+  .contact-form__form > .contact-form__field--half {
+    grid-column: auto;
+  }
 }
 .contact-form__field {
   display: grid;
