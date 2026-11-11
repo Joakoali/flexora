@@ -7,7 +7,7 @@ formulario de contacto en `Closing`, el hero premium, la nav con más peso, el
 menú hamburguesa mobile, el catalán (`/ca`) y el botón flotante de WhatsApp. Un
 code review dejó 15 hallazgos. La rama `fix/pr4-review-fixes` parte de `a6bacaa`
 (la punta de la PR; `git log --oneline a6bacaa..HEAD`), los corrige en tareas
-chicas, una por tema, y se pushea al fork; el merge a `main` espera.
+chicas, una por tema, y se pushea al fork. La #4 se mergeó a `main` el 2026-11-09 (`3baaff6`).
 
 Decisiones del dueño en esta ronda:
 
@@ -120,13 +120,27 @@ Hallazgos nuevos de la ronda (aparecieron al verificar los fixes):
 
 El repo no tiene CI de tests (el único workflow es `.github/workflows/react-doctor.yml`): la verificación es local.
 
-## 5. Checklist previa al merge a `main` (pendiente del dueño)
+## 5. Checklist del merge a `main` (mergeada el 2026-11-09, `3baaff6`)
 
-- [ ] Cargar `RESEND_API_KEY`, `CONTACT_TO_EMAIL` y `CONTACT_FROM_EMAIL` en Vercel, en producción y en preview. Con
+- [x] Cargar `RESEND_API_KEY`, `CONTACT_TO_EMAIL` y `CONTACT_FROM_EMAIL` en Vercel, en producción y en preview. Con
   `onboarding@resend.dev` como remitente, Resend solo entrega a la casilla dueña de la cuenta. Sin esas variables el
-  formulario falla cerrado: mensaje `send_failed` con link a WhatsApp.
-- [ ] Autorizar el deploy de Vercel para la PR del fork.
-- [ ] Cerrar la #3 como superada por la #4.
+  formulario falla cerrado: mensaje `send_failed` con link a WhatsApp. Se cargaron el 2026-11-09 (producción 19:18Z,
+  preview 19:20Z), **después** del deploy de `3baaff6` (17:25Z). Vercel aplica las variables solo a los deploys nuevos:
+  hasta el redeploy del 2026-11-11 el formulario de producción fallaba cerrado y el `canonical` apuntaba a `localhost`.
+  Verificado el 2026-11-11 en `https://flexora-liard.vercel.app/es`: un POST sin JS devolvió "¡Listo!" y el mail de
+  prueba llegó a la casilla de `CONTACT_TO_EMAIL`.
+- [x] Autorizar el deploy de Vercel para la PR del fork. Ya no aplica: la #4 se mergeó y `main` se desplegó a producción
+  (`3baaff6`, 2026-11-09, estado de Vercel `success`).
+- [x] Cerrar la #3 como superada por la #4. Cerrada el 2026-11-09 con un comentario que lo explica.
+- [ ] Reemplazar los datos provisionales por los definitivos que entreguen los profesionales. Qué tocar en cada caso:
+  - **Mail de destino del formulario:** `CONTACT_TO_EMAIL` y `CONTACT_FROM_EMAIL` en Vercel. Con `onboarding@resend.dev`
+    como remitente, Resend solo entrega a la casilla dueña de la cuenta: con otro destinatario hay que verificar un
+    dominio en Resend y usarlo como remitente.
+  - **Mail visible en el sitio:** está escrito en los tres diccionarios (`app/[lang]/dictionaries/{es,en,ca}.json`, clave
+    `email`, hoy `info@flexoradesign.com`), no sale de una variable: es un cambio de código.
+  - **WhatsApp:** `NEXT_PUBLIC_WHATSAPP_NUMBER` en Vercel (hoy sin definir: se usa `DEFAULT_NUMBER` de `lib/whatsapp.ts`).
+    Si se cambia el default en el código, actualizar también `__tests__/components/WhatsAppFab.test.tsx`, que lo repite.
+  - Todo cambio de variable en Vercel necesita un redeploy para aplicarse (`vercel redeploy <url> --target production`).
 
 ## 6. Seguimientos conocidos (con dimensionamiento)
 
