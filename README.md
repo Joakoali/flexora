@@ -31,5 +31,6 @@ Copiá `.env.example` a `.env.local` y completá:
 - Spec de diseño: `docs/superpowers/specs/2026-09-07-flexora-home-design.md`
 - Plan de implementación: `docs/superpowers/plans/2026-09-07-flexora-home.md`
 - Formulario de contacto: `docs/superpowers/specs/2026-09-29-contact-form-design.md`
+- Formulario con email, WhatsApp o los dos: `docs/superpowers/specs/2026-11-20-contact-reach-design.md`
 - Review de la PR #4 (decisiones técnicas y seguimientos): `docs/superpowers/specs/2026-11-08-pr4-review-fixes.md`
 - Los textos viven en `app/[lang]/dictionaries/{es,en,ca}.json`.

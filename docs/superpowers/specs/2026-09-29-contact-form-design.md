@@ -467,3 +467,20 @@ ronda: `2026-11-08-pr4-review-fixes.md`.
 
 Detalle, motivos y seguimientos de toda la ronda:
 `docs/superpowers/specs/2026-11-08-pr4-review-fixes.md`.
+
+## Cambios posteriores (2026-11-20, email o WhatsApp)
+
+El formulario pasó a pedir **email, WhatsApp o los dos** (al menos uno). Detalle
+y decisiones: `2026-11-20-contact-reach-design.md`.
+
+- Email deja de ser obligatorio y se suma el campo `whatsapp` (`type="tel"`).
+  Sin ninguno de los dos, error del par `reach: "need_one"`, validado solo en
+  el servidor.
+- `normalizeWhatsapp` deja el número en dígitos con código de país. Sin prefijo
+  solo se acepta un número español (9 dígitos que empiezan con 6–9), al que se
+  le suma el 34.
+- Nombre va a todo el ancho. Email y WhatsApp comparten fila dentro del grupo
+  "¿Cómo te contactamos?" (`.contact-form__pair`), con la misma container query
+  de 30rem que antes juntaba Nombre y Email.
+- El mail suma la línea `WhatsApp: +34… · https://wa.me/34…`, y `Reply-To`
+  solo va si hay email.
