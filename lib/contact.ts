@@ -18,12 +18,34 @@ export const MIN_FILL_MS = 2000;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export type ContactField = "name" | "email" | "message";
-export type FieldErrorCode = "required" | "too_long" | "invalid";
+export type ContactField = "name" | "email" | "whatsapp" | "message";
+export type FieldErrorCode = "required" | "too_long" | "invalid" | "invalid_phone";
+export type ReachErrorCode = "need_one";
 export type FormErrorCode = "send_failed" | "too_fast";
-export type ContactErrors = Partial<Record<ContactField, FieldErrorCode>> & { form?: FormErrorCode };
-export type ContactValues = { name: string; email: string; projectTypes: ProjectType[]; message: string };
-export type ContactData = ContactValues & { locale: Locale };
+export type ContactErrors = Partial<Record<ContactField, FieldErrorCode>> & {
+  /** Ni email ni WhatsApp: el error es del par, no de un campo. */
+  reach?: ReachErrorCode;
+  form?: FormErrorCode;
+};
+/** Lo que la persona escribió, sin validar: para volver a llenar el form. */
+export type ContactValues = {
+  name: string;
+  email: string;
+  whatsapp: string;
+  projectTypes: ProjectType[];
+  message: string;
+};
+/** Lo validado, listo para el mail. */
+export type ContactData = {
+  name: string;
+  /** null: no dejó email. */
+  email: string | null;
+  /** Dígitos con código de país ("34604164897"); null: no dejó WhatsApp. */
+  whatsapp: string | null;
+  projectTypes: ProjectType[];
+  message: string;
+  locale: Locale;
+};
 export type ContactState =
   | { status: "idle" }
   | { status: "success" }
@@ -48,6 +70,8 @@ export function readContactValues(formData: FormData): ContactValues {
     // El nombre va al asunto del mail: una sola línea.
     name: text(formData, "name").replace(/\s+/g, " "),
     email: text(formData, "email"),
+    // Tal cual lo tipeó (con trim): normalizarlo es cosa de validateContact.
+    whatsapp: text(formData, "whatsapp"),
     projectTypes: projectTypes(formData),
     // El navegador manda los saltos del textarea como CRLF (2 caracteres) pero maxLength
     // los cuenta como 1: normalizamos a LF para que el límite del servidor sea el mismo.
@@ -57,22 +81,40 @@ export function readContactValues(formData: FormData): ContactValues {
 
 export function validateContact(
   formData: FormData,
-): { ok: true; data: ContactData } | { ok: false; errors: ContactErrors; values: ContactValues } {
+):
+  | { ok: true; data: ContactData; values: ContactValues }
+  | { ok: false; errors: ContactErrors; values: ContactValues } {
   const values = readContactValues(formData);
 
   const errors: ContactErrors = {};
   if (!values.name) errors.name = "required";
   else if (values.name.length > LIMITS.name) errors.name = "too_long";
 
-  if (!values.email) errors.email = "required";
-  else if (values.email.length > LIMITS.email || !EMAIL_RE.test(values.email)) errors.email = "invalid";
+  if (values.email && (values.email.length > LIMITS.email || !EMAIL_RE.test(values.email))) errors.email = "invalid";
+
+  const whatsapp = values.whatsapp ? normalizeWhatsapp(values.whatsapp) : null;
+  if (values.whatsapp && !whatsapp) errors.whatsapp = "invalid_phone";
+
+  // Email o WhatsApp, al menos uno. Si uno está escrito pero mal, ya tiene su propio error.
+  if (!values.email && !values.whatsapp) errors.reach = "need_one";
 
   if (values.message.length > LIMITS.message) errors.message = "too_long";
 
   if (Object.keys(errors).length > 0) return { ok: false, errors, values };
 
   const lang = text(formData, "lang");
-  return { ok: true, data: { ...values, locale: isLocale(lang) ? lang : defaultLocale } };
+  return {
+    ok: true,
+    data: {
+      name: values.name,
+      email: values.email || null,
+      whatsapp,
+      projectTypes: values.projectTypes,
+      message: values.message,
+      locale: isLocale(lang) ? lang : defaultLocale,
+    },
+    values,
+  };
 }
 
 /** Honeypot (`website`): un humano nunca lo ve, así que cualquier contenido delata a un bot. */
@@ -96,19 +138,22 @@ export function isTooFast(formData: FormData, now: number): boolean {
   return elapsed >= 0 && elapsed < MIN_FILL_MS;
 }
 
-export function buildEmail(data: ContactData): { subject: string; text: string; replyTo: string } {
+export function buildEmail(data: ContactData): { subject: string; text: string; replyTo?: string } {
   const types = data.projectTypes.map((type) => PROJECT_TYPE_LABELS_ES[type]).join(", ");
   const subject = types ? `Nuevo contacto: ${data.name} · ${types}` : `Nuevo contacto: ${data.name}`;
   const body = [
     `Nombre: ${data.name}`,
-    `Email: ${data.email}`,
+    `Email: ${data.email ?? "—"}`,
+    // El link abre el chat con un toque. Solo lleva dígitos ya normalizados: nada que inyectar en la URL.
+    `WhatsApp: ${data.whatsapp ? `+${data.whatsapp} · https://wa.me/${data.whatsapp}` : "—"}`,
     `Qué necesita: ${types || "—"}`,
     `Idioma del sitio: ${data.locale}`,
     "",
     "Mensaje:",
     data.message || "—",
   ].join("\n");
-  return { subject, text: body, replyTo: data.email };
+  // Sin email no hay a quién responder por mail: el equipo responde desde el link de WhatsApp.
+  return data.email ? { subject, text: body, replyTo: data.email } : { subject, text: body };
 }
 
 /**

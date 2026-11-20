@@ -58,7 +58,7 @@ describe("ContactForm", () => {
     actionMock.mockResolvedValue({
       status: "error",
       errors: { email: "invalid" },
-      values: { name: "Ana", email: "mal", projectTypes: ["webapp"], message: "hola" },
+      values: { name: "Ana", email: "mal", whatsapp: "", projectTypes: ["webapp"], message: "hola" },
     });
     const { form } = setup();
     fireEvent.change(screen.getByLabelText(t.nameLabel), { target: { value: "  Ana  " } });
@@ -82,7 +82,7 @@ describe("ContactForm", () => {
     actionMock.mockResolvedValue({
       status: "error",
       errors: { form: "send_failed" },
-      values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+      values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "" },
     });
     const { form } = setup();
     await submit(form);
@@ -113,7 +113,7 @@ describe("ContactForm", () => {
       actionMock.mockResolvedValue({
         status: "error",
         errors: { form: "send_failed" },
-        values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+        values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "" },
       });
       const { form } = setup();
       const before = liveRegion(form)!;
@@ -131,7 +131,7 @@ describe("ContactForm", () => {
       actionMock.mockResolvedValue({
         status: "error",
         errors: { form: "too_fast" },
-        values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+        values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "" },
       });
       const { form } = setup();
       const before = liveRegion(form)!;
@@ -145,7 +145,7 @@ describe("ContactForm", () => {
       actionMock.mockResolvedValue({
         status: "error",
         errors: { email: "invalid" },
-        values: { name: "Ana", email: "mal", projectTypes: [], message: "" },
+        values: { name: "Ana", email: "mal", whatsapp: "", projectTypes: [], message: "" },
       });
       const { form } = setup();
       await submit(form);
@@ -160,7 +160,7 @@ describe("ContactForm", () => {
     actionMock.mockResolvedValue({
       status: "error",
       errors: { form: "too_fast" },
-      values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "hola" },
+      values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "hola" },
     });
     const { form } = setup();
     await submit(form);
