@@ -294,6 +294,15 @@ describe("buildEmail", () => {
     expect(r).not.toHaveProperty("replyTo");
   });
 
+  it("sin email: el asunto termina en '· solo WhatsApp' (la respuesta por costumbre se perdería)", () => {
+    expect(buildEmail({ ...base, email: null, whatsapp: "34604164897", projectTypes: ["landing"] }).subject).toBe(
+      "Nuevo contacto: Ana · Landing page · solo WhatsApp",
+    );
+    expect(buildEmail({ ...base, email: null, whatsapp: "34604164897" }).subject).toBe(
+      "Nuevo contacto: Ana · solo WhatsApp",
+    );
+  });
+
   it("con chips (etiquetas en español) y mensaje, aunque el sitio esté en inglés", () => {
     const r = buildEmail({ ...base, projectTypes: ["ecommerce", "webapp"], message: "Hola\nqué tal", locale: "en" });
     expect(r.subject).toBe("Nuevo contacto: Ana · E-commerce, Web app");
@@ -321,6 +330,9 @@ describe("normalizeWhatsapp", () => {
     ["912 345 678", "34912345678"],
     ["+54 9 11 2345-6789", "5491123456789"],
     ["+1 (555) 123-4567", "15551234567"],
+    ["+44 (0)7700 900123", "447700900123"],
+    ["34604164897", "34604164897"],
+    ["34 604 16 48 97", "34604164897"],
   ])("%s → %s", (raw, expected) => {
     expect(normalizeWhatsapp(raw)).toBe(expected);
   });
@@ -328,7 +340,8 @@ describe("normalizeWhatsapp", () => {
   it.each([
     ["+34 60416489", "un +34 con 8 dígitos"],
     ["11 2345 6789", "sin prefijo y no es español"],
-    ["34604164897", "código de país sin +"],
+    ["34912345678", "34 + fijo sin + (solo móviles)"],
+    ["34991234567", "34 + 9…: podría ser un móvil de Brasil"],
     ["512 345 678", "sin prefijo, empieza con 5"],
     ["+1234567", "7 dígitos"],
     ["+1234567890123456", "16 dígitos"],

@@ -140,7 +140,11 @@ export function isTooFast(formData: FormData, now: number): boolean {
 
 export function buildEmail(data: ContactData): { subject: string; text: string; replyTo?: string } {
   const types = data.projectTypes.map((type) => PROJECT_TYPE_LABELS_ES[type]).join(", ");
-  const subject = types ? `Nuevo contacto: ${data.name} · ${types}` : `Nuevo contacto: ${data.name}`;
+  // Sin email el mail sale sin Reply-To: quien responda por costumbre escribe a CONTACT_FROM_EMAIL y la respuesta
+  // se pierde. El asunto avisa que hay que contestar por WhatsApp.
+  const subject =
+    (types ? `Nuevo contacto: ${data.name} · ${types}` : `Nuevo contacto: ${data.name}`) +
+    (data.email ? "" : " · solo WhatsApp");
   const body = [
     `Nombre: ${data.name}`,
     `Email: ${data.email ?? "—"}`,
@@ -165,14 +169,19 @@ export function buildEmail(data: ContactData): { subject: string; text: string; 
 export function normalizeWhatsapp(raw: string): string | null {
   if (raw.length > LIMITS.whatsapp) return null;
   // Separadores habituales (espacios, puntos, guiones, paréntesis): se descartan.
-  const compact = raw.replace(/[\s().-]/g, "");
+  // "(0)" es el prefijo troncal que se marca solo dentro del país (+44 (0)7700…): en formato internacional sobra.
+  const compact = raw.replace(/\(0\)/g, "").replace(/[\s().-]/g, "");
   if (!/^\+?\d+$/.test(compact)) return null;
 
   const digits = compact.replace(/^\+/, "");
   let intl: string;
   if (compact.startsWith("+")) intl = digits;
   else if (digits.startsWith("00")) intl = digits.slice(2);
-  else return /^[6-9]\d{8}$/.test(digits) ? `34${digits}` : null;
+  else if (/^[6-9]\d{8}$/.test(digits)) return `34${digits}`;
+  // Alguien de España que puso el 34 pero no el +: se acepta solo si sigue un móvil (6 o 7), para no tomar como
+  // español un número nacional de otro país que empiece con 34 (p. ej. móviles de Brasil, área 34: 349…).
+  else if (/^34[67]\d{8}$/.test(digits)) return digits;
+  else return null;
 
   // E.164: hasta 15 dígitos contando el código de país, que nunca empieza con 0. Menos de 8 no es un número real.
   if (!/^[1-9]\d{7,14}$/.test(intl)) return null;
