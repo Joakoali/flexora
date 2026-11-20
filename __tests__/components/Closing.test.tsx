@@ -61,4 +61,13 @@ describe("Closing", () => {
       expect(follows, `el elemento ${i + 1} debe ir después del ${i}`).not.toBe(0);
     }
   });
+
+  it("antepone al h2 un rótulo decorativo dentro del bloque del título", () => {
+    render(<Closing t={es.closing} whatsappHref="https://wa.me/1?text=x" locale="es" />);
+    const h2 = screen.getByRole("heading", { level: 2, name: es.closing.title });
+    const tag = h2.previousElementSibling;
+    expect(tag?.className).toContain("section-tag");
+    expect(tag?.textContent).toBe(es.closing.tag);
+    expect(tag?.getAttribute("aria-hidden")).toBe("true");
+  });
 });

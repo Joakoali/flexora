@@ -204,6 +204,32 @@ html.theme-changing *::after {
   color: var(--fg-muted);
 }
 
+/* Rótulo de sección sobre cada h2: punto de acento, nombre y una hairline que llena el ancho. */
+.section-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.section-tag::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-text);
+}
+.section-tag::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+/* .closing__head ya separa sus hijos con gap. */
+.closing__head .section-tag {
+  margin-bottom: 0;
+}
+
 .measure {
   max-width: 62ch;
 }

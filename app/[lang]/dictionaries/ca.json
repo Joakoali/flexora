@@ -42,6 +42,7 @@
   },
   "services": {
     "title": "Tres disciplines, un sol equip.",
+    "tag": "Serveis",
     "items": [
       {
         "index": "01",
@@ -83,10 +84,12 @@
   },
   "work": {
     "title": "Projectes reals, en producció.",
+    "tag": "Treballs",
     "viewCase": "Veure el lloc"
   },
   "process": {
     "title": "Senzill de principi a fi.",
+    "tag": "Procés",
     "steps": [
       {
         "title": "Escoltem",
@@ -108,6 +111,7 @@
   },
   "closing": {
     "title": "Parlem",
+    "tag": "Contacte",
     "description": "Explica'ns què vols aconseguir. Et responem el mateix dia.",
     "primary": "Escriure per WhatsApp",
     "emailLabel": "o per correu a",
