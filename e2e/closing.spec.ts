@@ -3,7 +3,7 @@ import { effectiveOpacity } from "./helpers";
 
 // Layout del cierre (#contact). Con dos columnas iguales alineadas arriba, la introducción (~110 px) quedaba
 // contra un formulario de ~630 px y sobraban ~520 px vacíos debajo de WhatsApp/mail. Ahora la introducción
-// reparte el alto del formulario (título y frase arriba, WhatsApp y mail abajo, al ras del panel) y el
+// reparte el alto del formulario (rótulo, título y frase arriba, WhatsApp y mail abajo, al ras del panel) y el
 // formulario se compacta: Email y WhatsApp comparten fila cuando el panel tiene ancho para eso.
 // Las dos columnas solo valen donde el formulario entra compacto. A 1024 px el panel de una columna de
 // escritorio es demasiado angosto para la fila Email/WhatsApp, el formulario se alarga y el hueco
@@ -35,7 +35,8 @@ async function measure(page: Page) {
       return { top, bottom, left, right };
     };
     return {
-      title: box("#closing-title"),
+      // .closing__head: rótulo de sección, título y frase. Es el bloque que se alinea con el panel.
+      head: box(".closing__head"),
       actions: box(".closing__actions"),
       panel: box(".contact-form"),
       name: box('input[name="name"]'),
@@ -50,10 +51,10 @@ for (const { width, height, columns, inputs } of CASES) {
     test.use({ viewport: { width, height } });
 
     if (columns === 2) {
-      test("dos columnas: título arriba y WhatsApp/mail abajo, al ras del panel del formulario", async ({ page }) => {
-        const { title, actions, panel } = await measure(page);
+      test("dos columnas: rótulo y título arriba y WhatsApp/mail abajo, al ras del panel del formulario", async ({ page }) => {
+        const { head, actions, panel } = await measure(page);
         expect(panel.left, "el formulario va a la derecha de la introducción").toBeGreaterThan(actions.right);
-        expect(Math.abs(title.top - panel.top), "el título arranca a la altura del panel").toBeLessThanOrEqual(ALIGNED);
+        expect(Math.abs(head.top - panel.top), "el rótulo arranca a la altura del panel").toBeLessThanOrEqual(ALIGNED);
         expect(
           Math.abs(actions.bottom - panel.bottom),
           "WhatsApp/mail terminan a la altura del panel: no queda hueco debajo",
@@ -61,10 +62,10 @@ for (const { width, height, columns, inputs } of CASES) {
       });
     } else {
       test("apilado: la introducción arriba y el formulario debajo, desde el mismo margen", async ({ page }) => {
-        const { title, actions, panel } = await measure(page);
-        expect(actions.top, "WhatsApp/mail van debajo del título").toBeGreaterThanOrEqual(title.bottom);
+        const { head, actions, panel } = await measure(page);
+        expect(actions.top, "WhatsApp/mail van debajo del título y la frase").toBeGreaterThanOrEqual(head.bottom);
         expect(panel.top, "el formulario va debajo de WhatsApp/mail").toBeGreaterThanOrEqual(actions.bottom);
-        expect(Math.abs(panel.left - title.left), "el formulario arranca en el margen del título").toBeLessThanOrEqual(ALIGNED);
+        expect(Math.abs(panel.left - head.left), "el formulario arranca en el margen del título").toBeLessThanOrEqual(ALIGNED);
       });
     }
 
