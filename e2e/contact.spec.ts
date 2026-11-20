@@ -52,6 +52,19 @@ for (const lang of ["es", "en", "ca"] as const) {
     await expect(again.getByLabel(t.nameLabel, { exact: true })).toBeFocused();
   });
 
+  test(`contacto ${lang}: envío con solo WhatsApp (sin email) muestra el éxito`, async ({ page }) => {
+    await page.goto(`/${lang}`);
+    const form = page.getByRole("form", { name: t.formLabel });
+    await form.scrollIntoViewIfNeeded();
+
+    await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+    await form.getByLabel(t.whatsappLabel, { exact: true }).fill("604 16 48 97");
+    await waitTimeGate(form);
+    await form.getByRole("button", { name: t.submit }).click();
+
+    await expect(page.getByRole("heading", { name: t.successTitle })).toBeVisible();
+  });
+
   test(`contacto ${lang}: al cargar la página, incluso llegando por #contact, no roba el foco`, async ({ page }) => {
     await page.goto(`/${lang}#contact`);
     const form = page.getByRole("form", { name: t.formLabel });
@@ -208,10 +221,28 @@ for (const lang of ["es", "en", "ca"] as const) {
       await expect(again.getByLabel(t.nameLabel, { exact: true })).toHaveValue("Ana Test");
       await expect(again.getByLabel(t.emailLabel, { exact: true })).toHaveValue("ana@example");
     });
+
+    test("sin email ni WhatsApp: vuelve a #contact con el error del par a la vista y el nombre conservado", async ({
+      page,
+    }) => {
+      await page.goto(`/${lang}`);
+      const form = page.getByRole("form", { name: t.formLabel });
+      await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+      await form.getByRole("button", { name: t.submit }).click();
+
+      const again = page.getByRole("form", { name: t.formLabel });
+      const error = again.getByText(t.errors.need_one);
+      await expect(error).toBeVisible();
+      expect(page.url()).toMatch(new RegExp(`/${lang}#contact$`));
+      await expect(error).toBeInViewport({ ratio: 1 });
+      await expect(again.getByLabel(t.nameLabel, { exact: true })).toHaveValue("Ana Test");
+      await expect(again.getByLabel(t.emailLabel, { exact: true })).toHaveAttribute("aria-invalid", "true");
+      await expect(again.getByLabel(t.whatsappLabel, { exact: true })).toHaveAttribute("aria-invalid", "true");
+    });
   });
 }
 
-// Nombre y Email comparten fila cuando el panel tiene ancho (ver e2e/closing.spec.ts). El mensaje de error
+// Email y WhatsApp comparten fila cuando el panel tiene ancho (ver e2e/closing.spec.ts). El mensaje de error
 // se suma solo a la celda del campo que falló: si la celda vecina se estirara para igualar el alto de la
 // fila, su input crecería con ella y los dos campos quedarían de distinto alto.
 test.describe("contacto: en fila, el error de un campo no deforma al vecino", () => {
@@ -219,35 +250,38 @@ test.describe("contacto: en fila, el error de un campo no deforma al vecino", ()
 
   const t = es.closing.form;
 
-  test("con error solo en Email, Nombre conserva su alto y los dos inputs siguen alineados", async ({ page }) => {
+  test("con error solo en WhatsApp, Email conserva su alto y los dos inputs siguen alineados", async ({ page }) => {
     await page.goto("/es");
     const form = page.getByRole("form", { name: t.formLabel });
     await form.scrollIntoViewIfNeeded();
-    const name = form.getByLabel(t.nameLabel, { exact: true });
     const email = form.getByLabel(t.emailLabel, { exact: true });
+    const whatsapp = form.getByLabel(t.whatsappLabel, { exact: true });
     const rect = (input: Locator) =>
       input.evaluate((el) => {
         const { top, left, right, height } = el.getBoundingClientRect();
         return { top, left, right, height };
       });
 
-    await name.fill("Ana Test");
-    // type=email del navegador acepta "ana@example"; el servidor exige un punto en el dominio.
-    await email.fill("ana@example");
-    const nameBefore = await rect(name);
-    // Precondición: están en la misma fila. Apilados, el error de Email no tiene vecino que deformar.
-    expect((await rect(email)).left, "Email debe estar a la derecha de Nombre, en la misma fila").toBeGreaterThan(
-      nameBefore.right,
+    await form.getByLabel(t.nameLabel, { exact: true }).fill("Ana Test");
+    await email.fill("ana@example.com");
+    // Sin prefijo y sin forma de número español: el servidor lo rechaza (invalid_phone).
+    await whatsapp.fill("11 2345 6789");
+    const emailBefore = await rect(email);
+    // Precondición: están en la misma fila. Apilados, el error de WhatsApp no tiene vecino que deformar.
+    expect((await rect(whatsapp)).left, "WhatsApp debe estar a la derecha de Email, en la misma fila").toBeGreaterThan(
+      emailBefore.right,
     );
 
     await waitTimeGate(form);
     await form.getByRole("button", { name: t.submit }).click();
-    await expect(form.getByText(t.errors.invalid)).toBeVisible();
+    await expect(form.getByText(t.errors.invalid_phone)).toBeVisible();
 
-    const [nameAfter, emailAfter] = [await rect(name), await rect(email)];
-    expect(nameAfter.height, "Nombre conserva su alto").toBe(nameBefore.height);
-    expect(emailAfter.height, "Email mide lo mismo que Nombre").toBe(nameAfter.height);
-    expect(Math.abs(emailAfter.top - nameAfter.top), "los dos inputs siguen a la misma altura").toBeLessThanOrEqual(1);
+    const [emailAfter, whatsappAfter] = [await rect(email), await rect(whatsapp)];
+    expect(emailAfter.height, "Email conserva su alto").toBe(emailBefore.height);
+    expect(whatsappAfter.height, "WhatsApp mide lo mismo que Email").toBe(emailAfter.height);
+    expect(Math.abs(whatsappAfter.top - emailAfter.top), "los dos inputs siguen a la misma altura").toBeLessThanOrEqual(
+      1,
+    );
   });
 });
 

@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  LIMITS,
   buildEmail,
   isHoneypotFilled,
   isTooFast,
+  normalizeWhatsapp,
   readContactValues,
   validateContact,
   type ContactData,
+  type ContactErrors,
 } from "@/lib/contact";
 
 function fd(entries: Record<string, string | string[]>): FormData {
@@ -20,13 +23,18 @@ const valid = { name: "Ana", email: "ana@example.com", lang: "es" };
 
 describe("readContactValues", () => {
   it("devuelve los valores con trim y sin validar nada (ni siquiera lo obligatorio)", () => {
-    expect(readContactValues(fd({}))).toEqual({ name: "", email: "", projectTypes: [], message: "" });
+    expect(readContactValues(fd({}))).toEqual({ name: "", email: "", whatsapp: "", projectTypes: [], message: "" });
     expect(readContactValues(fd({ name: "  Ana  ", email: " mal ", message: "  hola  " }))).toEqual({
       name: "Ana",
       email: "mal",
+      whatsapp: "",
       projectTypes: [],
       message: "hola",
     });
+  });
+
+  it("WhatsApp: solo trim, tal cual lo tipeó (normalizar es cosa de validateContact)", () => {
+    expect(readContactValues(fd({ whatsapp: "  (+34) 604-16 48 97 " })).whatsapp).toBe("(+34) 604-16 48 97");
   });
 
   it("colapsa el whitespace interno del nombre (una sola línea)", () => {
@@ -46,11 +54,17 @@ describe("readContactValues", () => {
     const f = new FormData();
     f.append("name", new File(["x"], "x.txt"));
     f.append("projectType", new File(["x"], "x.txt"));
-    expect(readContactValues(f)).toEqual({ name: "", email: "", projectTypes: [], message: "" });
+    expect(readContactValues(f)).toEqual({ name: "", email: "", whatsapp: "", projectTypes: [], message: "" });
   });
 
   it("es lo mismo que validateContact devuelve en values", () => {
-    const f = fd({ name: " Ana  Pérez ", email: "mal", projectType: ["mobile", "x"], message: " hola\r\nchau " });
+    const f = fd({
+      name: " Ana  Pérez ",
+      email: "mal",
+      whatsapp: " 11 2345 ",
+      projectType: ["mobile", "x"],
+      message: " hola\r\nchau ",
+    });
     const r = validateContact(f);
     expect(!r.ok && r.values).toEqual(readContactValues(f));
   });
@@ -61,7 +75,8 @@ describe("validateContact", () => {
     const r = validateContact(fd({ name: "  Ana  ", email: " ana@example.com ", lang: "en" }));
     expect(r).toEqual({
       ok: true,
-      data: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "", locale: "en" },
+      data: { name: "Ana", email: "ana@example.com", whatsapp: null, projectTypes: [], message: "", locale: "en" },
+      values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "" },
     });
   });
 
@@ -81,10 +96,7 @@ describe("validateContact", () => {
     expect(!long.ok && long.errors.name).toBe("too_long");
   });
 
-  it("email vacío → required; mal formado → invalid; >254 → invalid", () => {
-    const empty = validateContact(fd({ ...valid, email: "" }));
-    expect(!empty.ok && empty.errors.email).toBe("required");
-
+  it("email mal formado → invalid; >254 → invalid", () => {
     for (const bad of ["ana", "ana@", "ana@example", "ana @example.com", "@example.com"]) {
       const r = validateContact(fd({ ...valid, email: bad }));
       expect(!r.ok && r.errors.email, bad).toBe("invalid");
@@ -138,8 +150,63 @@ describe("validateContact", () => {
     expect(r).toEqual({
       ok: false,
       errors: { email: "invalid" },
-      values: { name: "Ana", email: "mal", projectTypes: ["mobile"], message: "hola" },
+      values: { name: "Ana", email: "mal", whatsapp: "", projectTypes: ["mobile"], message: "hola" },
     });
+  });
+});
+
+describe("validateContact: email, WhatsApp o los dos", () => {
+  const base = { name: "Ana", lang: "es" };
+
+  it("solo email → ok, sin WhatsApp", () => {
+    const r = validateContact(fd({ ...base, email: "ana@example.com" }));
+    expect(r.ok && r.data).toMatchObject({ email: "ana@example.com", whatsapp: null });
+  });
+
+  it("solo WhatsApp → ok, sin email y con el número normalizado; values guarda lo tipeado", () => {
+    const r = validateContact(fd({ ...base, whatsapp: " 604 16 48 97 " }));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.data).toMatchObject({ email: null, whatsapp: "34604164897" });
+    expect(r.values.whatsapp).toBe("604 16 48 97");
+  });
+
+  it("los dos → ok con los dos", () => {
+    const r = validateContact(fd({ ...base, email: "ana@example.com", whatsapp: "+54 9 11 2345-6789" }));
+    expect(r.ok && r.data).toMatchObject({ email: "ana@example.com", whatsapp: "5491123456789" });
+  });
+
+  it("ninguno (o solo espacios) → need_one, sin errores de campo en Email ni WhatsApp", () => {
+    // Tipado explícito: inferido, {} suma `email?: undefined` y no entra en Record<string, string>.
+    const blanks: Record<string, string>[] = [{}, { email: "  ", whatsapp: "  " }];
+    for (const blank of blanks) {
+      const r = validateContact(fd({ ...base, ...blank }));
+      expect(!r.ok && r.errors, JSON.stringify(blank)).toEqual({ reach: "need_one" });
+    }
+  });
+
+  it("un campo escrito y mal tiene su propio error y no need_one", () => {
+    const cases: [Record<string, string>, ContactErrors][] = [
+      [{ email: "mal" }, { email: "invalid" }],
+      [{ whatsapp: "11 2345 6789" }, { whatsapp: "invalid_phone" }],
+      [{ email: "mal", whatsapp: "11 2345 6789" }, { email: "invalid", whatsapp: "invalid_phone" }],
+      // Un email válido no excusa un número mal escrito: el equipo respondería a un número equivocado.
+      [{ email: "ana@example.com", whatsapp: "11 2345 6789" }, { whatsapp: "invalid_phone" }],
+    ];
+    for (const [fields, errors] of cases) {
+      const r = validateContact(fd({ ...base, ...fields }));
+      expect(!r.ok && r.errors, JSON.stringify(fields)).toEqual(errors);
+    }
+  });
+
+  it("nombre vacío y ningún contacto → los dos errores juntos", () => {
+    const r = validateContact(fd({ lang: "es" }));
+    expect(!r.ok && r.errors).toEqual({ name: "required", reach: "need_one" });
+  });
+
+  it("WhatsApp de más de 30 caracteres → invalid_phone", () => {
+    const r = validateContact(fd({ ...base, whatsapp: `+34${" ".repeat(19)}604164897` }));
+    expect(!r.ok && r.errors).toEqual({ whatsapp: "invalid_phone" });
   });
 });
 
@@ -189,7 +256,14 @@ describe("isTooFast", () => {
 });
 
 describe("buildEmail", () => {
-  const base: ContactData = { name: "Ana", email: "ana@example.com", projectTypes: [], message: "", locale: "es" };
+  const base: ContactData = {
+    name: "Ana",
+    email: "ana@example.com",
+    whatsapp: null,
+    projectTypes: [],
+    message: "",
+    locale: "es",
+  };
 
   it("sin chips ni mensaje", () => {
     expect(buildEmail(base)).toEqual({
@@ -198,6 +272,7 @@ describe("buildEmail", () => {
       text: [
         "Nombre: Ana",
         "Email: ana@example.com",
+        "WhatsApp: —",
         "Qué necesita: —",
         "Idioma del sitio: es",
         "",
@@ -205,6 +280,27 @@ describe("buildEmail", () => {
         "—",
       ].join("\n"),
     });
+  });
+
+  it("con WhatsApp: el número con + y el link wa.me para abrir el chat", () => {
+    const r = buildEmail({ ...base, whatsapp: "34604164897" });
+    expect(r.text).toContain("\nWhatsApp: +34604164897 · https://wa.me/34604164897\n");
+    expect(r.replyTo).toBe("ana@example.com");
+  });
+
+  it("sin email: 'Email: —' y sin replyTo (no hay a quién responder por mail)", () => {
+    const r = buildEmail({ ...base, email: null, whatsapp: "34604164897" });
+    expect(r.text).toContain("\nEmail: —\n");
+    expect(r).not.toHaveProperty("replyTo");
+  });
+
+  it("sin email: el asunto termina en '· solo WhatsApp' (la respuesta por costumbre se perdería)", () => {
+    expect(buildEmail({ ...base, email: null, whatsapp: "34604164897", projectTypes: ["landing"] }).subject).toBe(
+      "Nuevo contacto: Ana · Landing page · solo WhatsApp",
+    );
+    expect(buildEmail({ ...base, email: null, whatsapp: "34604164897" }).subject).toBe(
+      "Nuevo contacto: Ana · solo WhatsApp",
+    );
   });
 
   it("con chips (etiquetas en español) y mensaje, aunque el sitio esté en inglés", () => {
@@ -222,5 +318,42 @@ describe("buildEmail", () => {
     const { text } = buildEmail(v.data);
     expect(text.includes("\r")).toBe(false);
     expect(text.endsWith("Mensaje:\nHola\nqué tal")).toBe(true);
+  });
+});
+
+describe("normalizeWhatsapp", () => {
+  it.each([
+    ["+34 604 16 48 97", "34604164897"],
+    ["0034 604164897", "34604164897"],
+    ["(+34) 604-164-897", "34604164897"],
+    ["604 164 897", "34604164897"],
+    ["912 345 678", "34912345678"],
+    ["+54 9 11 2345-6789", "5491123456789"],
+    ["+1 (555) 123-4567", "15551234567"],
+    ["+44 (0)7700 900123", "447700900123"],
+    ["34604164897", "34604164897"],
+    ["34 604 16 48 97", "34604164897"],
+  ])("%s → %s", (raw, expected) => {
+    expect(normalizeWhatsapp(raw)).toBe(expected);
+  });
+
+  it.each([
+    ["+34 60416489", "un +34 con 8 dígitos"],
+    ["11 2345 6789", "sin prefijo y no es español"],
+    ["34912345678", "34 + fijo sin + (solo móviles)"],
+    ["34991234567", "34 + 9…: podría ser un móvil de Brasil"],
+    ["512 345 678", "sin prefijo, empieza con 5"],
+    ["+1234567", "7 dígitos"],
+    ["+1234567890123456", "16 dígitos"],
+    ["604 ABC 897", "letras"],
+    ["6+04164897", "+ en el medio"],
+  ])("%s → null (%s)", (raw) => {
+    expect(normalizeWhatsapp(raw)).toBeNull();
+  });
+
+  it("mide el largo crudo: 30 caracteres pasa, 31 → null aunque los dígitos sirvan", () => {
+    expect(LIMITS.whatsapp).toBe(30);
+    expect(normalizeWhatsapp(`+34${" ".repeat(18)}604164897`)).toBe("34604164897");
+    expect(normalizeWhatsapp(`+34${" ".repeat(19)}604164897`)).toBeNull();
   });
 });

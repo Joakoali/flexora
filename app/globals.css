@@ -1439,8 +1439,8 @@ body:has(#hero) {
 }
 /* Dos columnas: la introducción toma el alto del formulario y lo reparte, con el título y la frase arriba
    y WhatsApp/mail abajo, al ras del panel. Alineada arriba, como estaba, dejaba ~520 px vacíos debajo.
-   Recién desde 1100px: más angosto, el panel no llega al ancho en que Nombre y Email comparten fila
-   (ver .contact-form), el formulario vuelve a medir ~630 px y el hueco reaparece. Por debajo va apilado. */
+   Recién desde 1100px: más angosto, el panel no llega al ancho en que Email y WhatsApp comparten fila
+   (ver .contact-form__pair), el formulario se alarga y el hueco reaparece. Por debajo va apilado. */
 @media (min-width: 1100px) {
   .closing__content {
     grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
@@ -1474,20 +1474,18 @@ body:has(#hero) {
   display: grid;
   gap: var(--contact-gap);
 }
-/* Con 30rem de ancho interno, Nombre y Email (.contact-form__field--half) comparten fila: cada input queda
-   en ~230 px o más y el formulario baja ~100 px. El resto de los campos sigue a todo el ancho.
+/* Email y WhatsApp (.contact-form__pair, dentro del grupo "¿Cómo te contactamos?"). Con 30rem de ancho
+   interno comparten fila: cada input queda en ~230 px o más. El resto de los campos va a todo el ancho.
    align-items: start: el mensaje de error alarga solo la celda de su campo; estirada, la celda vecina
    repartiría ese alto entre sus filas y su input crecería (de 48 a ~63 px). */
+.contact-form__pair {
+  display: grid;
+  gap: var(--contact-gap);
+}
 @container (min-width: 30rem) {
-  .contact-form__form {
+  .contact-form__pair {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
-  }
-  .contact-form__form > * {
-    grid-column: 1 / -1;
-  }
-  .contact-form__form > .contact-form__field--half {
-    grid-column: auto;
   }
 }
 .contact-form__field {

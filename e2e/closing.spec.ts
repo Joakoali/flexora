@@ -4,9 +4,9 @@ import { effectiveOpacity } from "./helpers";
 // Layout del cierre (#contact). Con dos columnas iguales alineadas arriba, la introducción (~110 px) quedaba
 // contra un formulario de ~630 px y sobraban ~520 px vacíos debajo de WhatsApp/mail. Ahora la introducción
 // reparte el alto del formulario (título y frase arriba, WhatsApp y mail abajo, al ras del panel) y el
-// formulario se compacta: Nombre y Email comparten fila cuando el panel tiene ancho para eso.
+// formulario se compacta: Email y WhatsApp comparten fila cuando el panel tiene ancho para eso.
 // Las dos columnas solo valen donde el formulario entra compacto. A 1024 px el panel de una columna de
-// escritorio es demasiado angosto para la fila Nombre/Email, el formulario vuelve a medir ~630 px y el hueco
+// escritorio es demasiado angosto para la fila Email/WhatsApp, el formulario se alarga y el hueco
 // reaparece: ahí va apilado. El viewport se fija en cada caso (el corte es por ancho, no por proyecto).
 const CASES = [
   { width: 390, height: 844, columns: 1, inputs: "apilados" },
@@ -40,6 +40,7 @@ async function measure(page: Page) {
       panel: box(".contact-form"),
       name: box('input[name="name"]'),
       email: box('input[name="email"]'),
+      whatsapp: box('input[name="whatsapp"]'),
     };
   });
 }
@@ -68,15 +69,17 @@ for (const { width, height, columns, inputs } of CASES) {
     }
 
     if (inputs === "fila") {
-      test("Nombre y Email comparten fila", async ({ page }) => {
-        const { name, email } = await measure(page);
-        expect(Math.abs(name.top - email.top), "Nombre y Email a la misma altura").toBeLessThanOrEqual(1);
-        expect(email.left, "Email va a la derecha de Nombre").toBeGreaterThan(name.right);
+      test("Email y WhatsApp comparten fila, y Nombre ocupa el ancho del par", async ({ page }) => {
+        const { name, email, whatsapp } = await measure(page);
+        expect(Math.abs(email.top - whatsapp.top), "Email y WhatsApp a la misma altura").toBeLessThanOrEqual(1);
+        expect(whatsapp.left, "WhatsApp va a la derecha de Email").toBeGreaterThan(email.right);
+        expect(Math.abs(name.left - email.left), "Nombre arranca donde Email").toBeLessThanOrEqual(ALIGNED);
+        expect(Math.abs(name.right - whatsapp.right), "Nombre termina donde WhatsApp").toBeLessThanOrEqual(ALIGNED);
       });
     } else {
-      test("Nombre y Email van apilados: en una fila quedarían demasiado angostos", async ({ page }) => {
-        const { name, email } = await measure(page);
-        expect(email.top, "Email va debajo de Nombre").toBeGreaterThanOrEqual(name.bottom);
+      test("Email y WhatsApp van apilados: en una fila quedarían demasiado angostos", async ({ page }) => {
+        const { email, whatsapp } = await measure(page);
+        expect(whatsapp.top, "WhatsApp va debajo de Email").toBeGreaterThanOrEqual(email.bottom);
       });
     }
   });
