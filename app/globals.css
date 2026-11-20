@@ -974,15 +974,6 @@ body:has(#hero) {
   font-size: 0.875rem;
   color: var(--fg);
 }
-/* Con cuatro chips, en mobile (~390 px) el último caía a una segunda línea y empujaba el bloque
-   contra el borde inferior de la escena sticky: se compacta el chip para que entren en una fila. */
-@media (max-width: 640px) {
-  .hero__chips { gap: 0.375rem; }
-  .hero__chip {
-    gap: 0.375rem;
-    padding-inline: 0.625rem;
-  }
-}
 .hero__chip::before {
   content: "";
   width: 6px;

@@ -24,12 +24,6 @@ describe("Hero", () => {
     expect(projects.getAttribute("href")).toBe("#work");
   });
 
-  it("suma IA como cuarto chip, después de Marca", () => {
-    render(<HeroScrollProvider><Hero t={es.hero} whatsappHref="#" /></HeroScrollProvider>);
-    const chips = screen.getByRole("list", { name: es.hero.disciplinesLabel }).querySelectorAll("li");
-    expect(Array.from(chips, (li) => li.textContent)).toEqual(["Desarrollo", "Marketing", "Marca", "IA"]);
-  });
-
   it("conserva el campo WebGL y el wordmark", () => {
     const { container } = render(<HeroScrollProvider><Hero t={es.hero} whatsappHref="#" /></HeroScrollProvider>);
     expect(container.querySelector('[data-variant="hero"]')).toBeTruthy();
