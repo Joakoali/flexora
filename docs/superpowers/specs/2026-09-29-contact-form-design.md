@@ -478,9 +478,10 @@ y decisiones: `2026-11-20-contact-reach-design.md`.
   el servidor.
 - `normalizeWhatsapp` deja el número en dígitos con código de país. Sin prefijo
   solo se acepta un número español (9 dígitos que empiezan con 6–9), al que se
-  le suma el 34.
+  le suma el 34, o un `34` + móvil (6 o 7) escrito sin el `+`. Un `(0)` de
+  prefijo troncal se descarta.
 - Nombre va a todo el ancho. Email y WhatsApp comparten fila dentro del grupo
   "¿Cómo te contactamos?" (`.contact-form__pair`), con la misma container query
   de 30rem que antes juntaba Nombre y Email.
 - El mail suma la línea `WhatsApp: +34… · https://wa.me/34…`, y `Reply-To`
-  solo va si hay email.
+  solo va si hay email. Sin email, el asunto termina en ` · solo WhatsApp`.

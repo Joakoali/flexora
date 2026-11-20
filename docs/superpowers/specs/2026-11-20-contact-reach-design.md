@@ -20,10 +20,12 @@ una preferencia de canal. Si deja los dos, el equipo elige por dónde responder.
 - Se puede enviar con solo Email, con solo WhatsApp o con los dos. Sin ninguno
   de los dos, el formulario muestra un único error para el par.
 - Un número español escrito sin prefijo (`604 16 48 97`) llega como
-  `+34604164897`. Un número de otro país sin prefijo se rechaza con un mensaje
-  que pide el prefijo.
+  `+34604164897`, y también uno que ya trae el 34 sin el `+` (`34604164897`).
+  Un número de otro país sin prefijo se rechaza con un mensaje que pide el
+  prefijo.
 - El mail trae el WhatsApp con un link `wa.me` para abrir el chat con un toque.
-  Sin email, el mail sale sin `Reply-To`.
+  Sin email, el mail sale sin `Reply-To` y el asunto termina en
+  ` · solo WhatsApp`.
 - Sigue funcionando sin JavaScript, incluido el error de "al menos uno".
 - Pasan el test de paridad de diccionarios, el scan de axe y los e2e de layout
   del cierre (`e2e/closing.spec.ts`) con la fila compartida ahora entre Email
@@ -35,7 +37,7 @@ una preferencia de canal. Si deja los dos, el equipo elige por dónde responder.
 |---|---|
 | Qué elige la persona | Solo qué datos deja. Sin preferencia de canal. |
 | Interacción | Los dos campos siempre a la vista, cada uno opcional, regla "al menos uno". Se descartaron un selector de canal que revela campos (un paso más, el form salta, estados raros con campos ocultos) y un campo único "email o WhatsApp" (no permite los dos). |
-| Mercado | Casi todo España. Sin prefijo se asume +34 si el número tiene forma de número español. Con `+` o `00` se respeta el prefijo. |
+| Mercado | Casi todo España. Sin prefijo se asume +34 si el número tiene forma de número español; un `34` + móvil (6 o 7) sin `+` también se acepta. Con `+` o `00` se respeta el prefijo. |
 | Dónde se valida "al menos uno" | Solo en el servidor (HTML no tiene una regla nativa para eso). Igual con y sin JS. |
 | Layout | Nombre a todo el ancho; debajo, un grupo "¿Cómo te contactamos? (uno o los dos)" con Email y WhatsApp lado a lado. Aprobado sobre capturas de un mockup inyectado en la página real (1440, 1100, 768 y 390 px, oscuro y claro, con los dos errores). |
 | Formato del número en el mail | `+` y los dígitos (`+34604164897`), sin agrupar. |
@@ -114,15 +116,18 @@ Función pura exportada. Recibe el valor ya recortado y no vacío. Devuelve los
 dígitos con código de país, o `null` si no es un número aceptable.
 
 1. Si `raw.length > LIMITS.whatsapp` → `null`.
-2. `compact` = `raw` sin espacios, puntos, guiones ni paréntesis
-   (`/[\s().-]/g`).
+2. `compact` = `raw` sin el literal `(0)` (prefijo troncal que se marca solo
+   dentro del país: `+44 (0)7700…`) y después sin espacios, puntos, guiones ni
+   paréntesis (`/[\s().-]/g`).
 3. Si `compact` no cumple `^\+?\d+$` → `null` (letras, `+` en el medio, otros
    símbolos).
 4. Prefijo, mirando `compact` (`digits` = `compact` sin el `+` inicial):
    - `compact` empieza con `+` → `intl` = `digits`.
    - `compact` empieza con `00` → `intl` = `digits` sin el `00` inicial.
    - Si no, no tiene prefijo: si `digits` cumple `^[6-9]\d{8}$` → devuelve
-     `"34" + digits`. Si no → `null`.
+     `"34" + digits`. Si cumple `^34[67]\d{8}$` (alguien de España que puso el
+     34 pero no el `+`; solo móviles 6/7, para no chocar con móviles de Brasil,
+     área 34: `349…`) → devuelve `digits`. Si no → `null`.
 5. `intl` tiene que cumplir `^[1-9]\d{7,14}$` (8 a 15 dígitos en total, E.164, el
    código de país no empieza con 0). Si no → `null`.
 6. Si `intl` empieza con `34`, tiene que cumplir `^34[6-9]\d{8}$`. Si no → `null`.
@@ -139,7 +144,11 @@ dígitos con código de país, o `null` si no es un número aceptable.
 | `+1 (555) 123-4567` | `15551234567` |
 | `+34 60416489` (8 dígitos) | `null` |
 | `11 2345 6789` (sin prefijo, no español) | `null` |
-| `34604164897` (sin `+`) | `null` |
+| `+44 (0)7700 900123` | `447700900123` |
+| `34604164897` (sin `+`) | `34604164897` |
+| `34 604 16 48 97` (sin `+`) | `34604164897` |
+| `34912345678` (34 + fijo, sin `+`) | `null` |
+| `34991234567` (34 + 9…, sin `+`) | `null` |
 | `512 345 678` (sin prefijo, empieza con 5) | `null` |
 | `+1234567` (7 dígitos) | `null` |
 | `+1234567890123456` (16 dígitos) | `null` |
@@ -273,7 +282,9 @@ Mensaje:
 ```
 
 - `Email: —` si no hay email; `WhatsApp: —` si no hay WhatsApp.
-- El asunto no cambia (`Nuevo contacto: {nombre}` + ` · {tipos}`).
+- El asunto es `Nuevo contacto: {nombre}` + ` · {tipos}`; sin email suma
+  ` · solo WhatsApp` al final (con o sin tipos), porque sin `Reply-To` una
+  respuesta por costumbre iría a `CONTACT_FROM_EMAIL` y se perdería.
 - `buildEmail` devuelve `{ subject, text, replyTo? }`: `replyTo` solo si hay
   email.
 - `EmailMessage.replyTo` pasa a `replyTo?: string`. `sendEmail` incluye
@@ -345,3 +356,9 @@ Mensaje:
 - `2026-09-29-contact-form-design.md`: sección final
   "Cambios posteriores (2026-11-20, email o WhatsApp)" que resuma el cambio y
   apunte a este spec.
+
+## Ajustes tras la revisión final (2026-11-20)
+
+- `(0)` de prefijo troncal: `+44 (0)7700 900123` dejaba un 0 de más y generaba un link `wa.me` muerto sin aviso; ahora se descarta antes de compactar.
+- `34` + móvil (6/7) sin `+` se acepta (decisión del dueño): el mensaje de error pide el prefijo a quien ya puso el 34; solo 6/7 para no tomar como español un móvil de Brasil (`349…`).
+- Asunto ` · solo WhatsApp` sin email (decisión del dueño): sin `Reply-To` una respuesta por costumbre va a `CONTACT_FROM_EMAIL` y se pierde.
