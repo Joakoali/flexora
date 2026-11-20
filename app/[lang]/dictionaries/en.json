@@ -32,7 +32,7 @@
     "primary": "Tell us about your project",
     "primaryNote": "We reply on WhatsApp the same day.",
     "secondary": "See work",
-    "disciplines": ["Development", "Marketing", "Brand"],
+    "disciplines": ["Development", "Marketing", "Brand", "AI"],
     "disciplinesLabel": "Disciplines",
     "projectsPrefix": "Built for",
     "whatsappMessage": "Hi Flexora, I'd like to talk about a project."
