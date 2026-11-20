@@ -48,6 +48,17 @@ describe("sendEmail", () => {
     expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
+  it("sin replyTo (la persona dejó solo WhatsApp) no manda reply_to", async () => {
+    fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+    const withoutReplyTo: EmailMessage = { from: msg.from, to: msg.to, subject: msg.subject, text: msg.text };
+    await expect(sendEmail(withoutReplyTo)).resolves.toEqual({ ok: true });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    // Ni siquiera vacío: Resend rechaza un reply_to "" y el lead se perdería.
+    expect(body).not.toHaveProperty("reply_to");
+    expect(body).toEqual({ from: msg.from, to: [msg.to], subject: msg.subject, text: msg.text });
+  });
+
   it("respuesta no-2xx → { ok: false } y loguea status sin la API key", async () => {
     fetchMock.mockResolvedValue(new Response('{"message":"invalid"}', { status: 422 }));
     await expect(sendEmail(msg)).resolves.toEqual({ ok: false });

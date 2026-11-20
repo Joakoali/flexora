@@ -78,7 +78,7 @@ describe("contactAction", () => {
     expect(r).toEqual({
       status: "error",
       errors: { form: "too_fast" },
-      values: { name: "Ana", email: "ana@example.com", projectTypes: ["webapp"], message: "Hola" },
+      values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: ["webapp"], message: "Hola" },
     });
     expect(sendEmail).not.toHaveBeenCalled();
   });
@@ -88,7 +88,7 @@ describe("contactAction", () => {
     expect(r).toEqual({
       status: "error",
       errors: { name: "required", email: "invalid" },
-      values: { name: "", email: "mal", projectTypes: ["webapp"], message: "Hola" },
+      values: { name: "", email: "mal", whatsapp: "", projectTypes: ["webapp"], message: "Hola" },
     });
     expect(sendEmail).not.toHaveBeenCalled();
   });
@@ -105,7 +105,7 @@ describe("contactAction", () => {
     expect(r).toEqual({
       status: "error",
       errors: { name: "required", email: "invalid" },
-      values: { name: "", email: "mal", projectTypes: ["webapp"], message: "Hola" },
+      values: { name: "", email: "mal", whatsapp: "", projectTypes: ["webapp"], message: "Hola" },
     });
     expect(sendEmail).not.toHaveBeenCalled();
   });
@@ -118,7 +118,7 @@ describe("contactAction", () => {
       expect(r).toEqual({
         status: "error",
         errors: { form: "send_failed" },
-        values: { name: "Ana", email: "ana@example.com", projectTypes: ["webapp"], message: "Hola" },
+        values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: ["webapp"], message: "Hola" },
       });
       expect(sendEmail).not.toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalled();
@@ -136,5 +136,42 @@ describe("contactAction", () => {
     sendEmail.mockResolvedValue({ ok: false });
     const r = await contactAction(IDLE, form());
     expect(r).toMatchObject({ status: "error", errors: { form: "send_failed" } });
+  });
+
+  it("solo WhatsApp → success, envía sin replyTo y con el link wa.me", async () => {
+    await expect(contactAction(IDLE, form({ email: "", whatsapp: "604 16 48 97" }))).resolves.toEqual({
+      status: "success",
+    });
+    expect(sendEmail).toHaveBeenCalledOnce();
+    const sent = sendEmail.mock.calls[0][0];
+    expect(sent).not.toHaveProperty("replyTo");
+    expect(sent.text).toContain("https://wa.me/34604164897");
+  });
+
+  it("ni email ni WhatsApp → need_one sin enviar", async () => {
+    const r = await contactAction(IDLE, form({ email: "" }));
+    expect(r).toEqual({
+      status: "error",
+      errors: { reach: "need_one" },
+      values: { name: "Ana", email: "", whatsapp: "", projectTypes: ["webapp"], message: "Hola" },
+    });
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("too_fast y send_failed devuelven el WhatsApp tal cual se tipeó, no normalizado", async () => {
+    const tooFast = await contactAction(IDLE, form({ whatsapp: "604 16 48 97", startedAt: String(Date.now()) }));
+    expect(tooFast).toMatchObject({
+      status: "error",
+      errors: { form: "too_fast" },
+      values: { whatsapp: "604 16 48 97" },
+    });
+
+    sendEmail.mockResolvedValue({ ok: false });
+    const failed = await contactAction(IDLE, form({ whatsapp: "604 16 48 97" }));
+    expect(failed).toMatchObject({
+      status: "error",
+      errors: { form: "send_failed" },
+      values: { whatsapp: "604 16 48 97" },
+    });
   });
 });

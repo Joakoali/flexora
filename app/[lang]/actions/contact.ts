@@ -10,8 +10,9 @@ export async function contactAction(_prev: ContactState, formData: FormData): Pr
   const result = validateContact(formData);
   if (!result.ok) return { status: "error", errors: result.errors, values: result.values };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { locale: _locale, ...values } = result.data;
+  // Para volver a llenar el form va lo que la persona tipeó, no lo normalizado (result.data): el WhatsApp
+  // vuelve como lo escribió ("604 16 48 97") y no como "34604164897".
+  const { values } = result;
 
   // Una persona real puede mandar en <2 s (autofill + Enter): no se descarta en silencio,
   // se le pide reintentar conservando lo que escribió. Va después de validar para que

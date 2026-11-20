@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import type { ContactState } from "@/lib/contact";
+import { LIMITS, type ContactState } from "@/lib/contact";
 
 const actionMock = vi.fn<(prev: ContactState, formData: FormData) => Promise<ContactState>>();
 vi.mock("@/app/[lang]/actions/contact", () => ({
@@ -12,6 +12,8 @@ import es from "@/app/[lang]/dictionaries/es.json";
 
 const t = es.closing.form;
 const WA = "https://wa.me/1?text=x";
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const reachGroup = () => screen.getByRole("group", { name: new RegExp(`^${escapeRe(t.reachLegend)}`) });
 
 function setup() {
   const utils = render(<ContactForm t={t} locale="es" whatsappHref={WA} />);
@@ -41,6 +43,89 @@ describe("ContactForm", () => {
     expect(screen.getByRole("checkbox", { name: t.projectTypes.webapp })).toHaveProperty("value", "webapp");
   });
 
+  it("Email y WhatsApp van en un grupo con legend y aclaración, y ninguno es obligatorio por sí solo", () => {
+    setup();
+    const group = reachGroup();
+    expect(group.textContent).toContain(t.reachHint);
+    const email = within(group).getByLabelText(t.emailLabel) as HTMLInputElement;
+    const whatsapp = within(group).getByLabelText(t.whatsappLabel) as HTMLInputElement;
+
+    expect(email.type).toBe("email");
+    expect(email.required).toBe(false);
+
+    expect(whatsapp.name).toBe("whatsapp");
+    expect(whatsapp.type).toBe("tel");
+    expect(whatsapp.required).toBe(false);
+    expect(whatsapp.getAttribute("autocomplete")).toBe("tel");
+    expect(whatsapp.placeholder).toBe(t.whatsappPlaceholder);
+    expect(whatsapp.maxLength).toBe(LIMITS.whatsapp);
+
+    // Nombre queda fuera del grupo y sigue obligatorio.
+    const name = screen.getByLabelText(t.nameLabel) as HTMLInputElement;
+    expect(group.contains(name)).toBe(false);
+    expect(name.required).toBe(true);
+  });
+
+  it("need_one: marca Email y WhatsApp, los asocia a un único mensaje dentro del grupo y enfoca el Email", async () => {
+    actionMock.mockResolvedValue({
+      status: "error",
+      errors: { reach: "need_one" },
+      values: { name: "Ana", email: "", whatsapp: "", projectTypes: [], message: "" },
+    });
+    const { form } = setup();
+    await submit(form);
+
+    const email = screen.getByLabelText(t.emailLabel);
+    const whatsapp = screen.getByLabelText(t.whatsappLabel);
+    await waitFor(() => expect(email.getAttribute("aria-invalid")).toBe("true"));
+    expect(whatsapp.getAttribute("aria-invalid")).toBe("true");
+
+    const describedBy = email.getAttribute("aria-describedby")!;
+    expect(whatsapp.getAttribute("aria-describedby")).toBe(describedBy);
+    const message = document.getElementById(describedBy)!;
+    expect(message.textContent).toBe(t.errors.need_one);
+    expect(screen.getAllByText(t.errors.need_one)).toHaveLength(1);
+    expect(reachGroup().contains(message)).toBe(true);
+
+    expect(document.activeElement).toBe(email);
+    expect(screen.getByLabelText(t.nameLabel).getAttribute("aria-invalid")).toBeNull();
+  });
+
+  it("Nombre vacío + need_one: el foco va al Nombre, que va primero", async () => {
+    actionMock.mockResolvedValue({
+      status: "error",
+      errors: { name: "required", reach: "need_one" },
+      values: { name: "", email: "", whatsapp: "", projectTypes: [], message: "" },
+    });
+    const { form } = setup();
+    await submit(form);
+
+    const name = screen.getByLabelText(t.nameLabel);
+    await waitFor(() => expect(name.getAttribute("aria-invalid")).toBe("true"));
+    expect(document.activeElement).toBe(name);
+    expect(screen.getByLabelText(t.emailLabel).getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("invalid_phone: el mensaje va asociado al WhatsApp, el Email no se marca y vuelve lo tipeado", async () => {
+    actionMock.mockResolvedValue({
+      status: "error",
+      errors: { whatsapp: "invalid_phone" },
+      values: { name: "Ana", email: "", whatsapp: "11 2345 6789", projectTypes: [], message: "" },
+    });
+    const { form } = setup();
+    await submit(form);
+
+    const whatsapp = screen.getByLabelText(t.whatsappLabel) as HTMLInputElement;
+    await waitFor(() => expect(whatsapp.getAttribute("aria-invalid")).toBe("true"));
+    expect(document.getElementById(whatsapp.getAttribute("aria-describedby")!)!.textContent).toBe(
+      t.errors.invalid_phone,
+    );
+    expect(screen.getByLabelText(t.emailLabel).getAttribute("aria-invalid")).toBeNull();
+    expect(screen.queryByText(t.errors.need_one)).toBeNull();
+    expect(document.activeElement).toBe(whatsapp);
+    expect(whatsapp.value).toBe("11 2345 6789");
+  });
+
   it("el honeypot queda fuera de la accesibilidad y del tab", () => {
     const { container } = setup();
     const hp = container.querySelector<HTMLInputElement>('input[name="website"]')!;
@@ -58,7 +143,7 @@ describe("ContactForm", () => {
     actionMock.mockResolvedValue({
       status: "error",
       errors: { email: "invalid" },
-      values: { name: "Ana", email: "mal", projectTypes: ["webapp"], message: "hola" },
+      values: { name: "Ana", email: "mal", whatsapp: "", projectTypes: ["webapp"], message: "hola" },
     });
     const { form } = setup();
     fireEvent.change(screen.getByLabelText(t.nameLabel), { target: { value: "  Ana  " } });
@@ -82,7 +167,7 @@ describe("ContactForm", () => {
     actionMock.mockResolvedValue({
       status: "error",
       errors: { form: "send_failed" },
-      values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+      values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "" },
     });
     const { form } = setup();
     await submit(form);
@@ -113,7 +198,7 @@ describe("ContactForm", () => {
       actionMock.mockResolvedValue({
         status: "error",
         errors: { form: "send_failed" },
-        values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+        values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "" },
       });
       const { form } = setup();
       const before = liveRegion(form)!;
@@ -131,7 +216,7 @@ describe("ContactForm", () => {
       actionMock.mockResolvedValue({
         status: "error",
         errors: { form: "too_fast" },
-        values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "" },
+        values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "" },
       });
       const { form } = setup();
       const before = liveRegion(form)!;
@@ -145,7 +230,7 @@ describe("ContactForm", () => {
       actionMock.mockResolvedValue({
         status: "error",
         errors: { email: "invalid" },
-        values: { name: "Ana", email: "mal", projectTypes: [], message: "" },
+        values: { name: "Ana", email: "mal", whatsapp: "", projectTypes: [], message: "" },
       });
       const { form } = setup();
       await submit(form);
@@ -160,7 +245,7 @@ describe("ContactForm", () => {
     actionMock.mockResolvedValue({
       status: "error",
       errors: { form: "too_fast" },
-      values: { name: "Ana", email: "ana@example.com", projectTypes: [], message: "hola" },
+      values: { name: "Ana", email: "ana@example.com", whatsapp: "", projectTypes: [], message: "hola" },
     });
     const { form } = setup();
     await submit(form);
@@ -178,6 +263,7 @@ describe("ContactForm", () => {
     const { form } = setup();
     fireEvent.change(screen.getByLabelText(t.nameLabel), { target: { value: "  Ana   Pérez " } });
     fireEvent.change(screen.getByLabelText(t.emailLabel), { target: { value: "ana@example.com" } });
+    fireEvent.change(screen.getByLabelText(t.whatsappLabel), { target: { value: " 604 16 48 97 " } });
     fireEvent.click(screen.getByRole("checkbox", { name: t.projectTypes.webapp }));
     fireEvent.change(screen.getByLabelText(new RegExp(t.messageLabel)), { target: { value: "hola" } });
     await submit(form);
@@ -186,6 +272,7 @@ describe("ContactForm", () => {
     expect(screen.getByRole("link", { name: t.errors.sendFailedLink }).getAttribute("href")).toBe(WA);
     expect((screen.getByLabelText(t.nameLabel) as HTMLInputElement).value).toBe("Ana Pérez");
     expect((screen.getByLabelText(t.emailLabel) as HTMLInputElement).value).toBe("ana@example.com");
+    expect((screen.getByLabelText(t.whatsappLabel) as HTMLInputElement).value).toBe("604 16 48 97");
     expect((screen.getByRole("checkbox", { name: t.projectTypes.webapp }) as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText(new RegExp(t.messageLabel)) as HTMLTextAreaElement).value).toBe("hola");
     expect(consoleError).toHaveBeenCalledWith(expect.stringContaining("[contact]"), expect.any(TypeError));

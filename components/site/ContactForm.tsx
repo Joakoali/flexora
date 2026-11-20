@@ -11,7 +11,8 @@ import { TextLink } from "@/components/ui/TextLink";
 type Props = { t: Dictionary["closing"]["form"]; locale: Locale; whatsappHref: string };
 
 const INITIAL_STATE: ContactState = { status: "idle" };
-const FIELD_ORDER: ContactField[] = ["name", "email", "message"];
+// Orden visual del form: el foco va al primer campo con problema.
+const FIELD_ORDER: ContactField[] = ["name", "email", "whatsapp", "message"];
 
 /**
  * La action del servidor nunca lanza, pero el POST puede fallar antes de llegar (sin conexión,
@@ -86,7 +87,8 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
     if (state.status === "success") {
       successTitleRef.current?.focus();
     } else if (state.status === "error") {
-      const first = FIELD_ORDER.find((field) => state.errors[field]);
+      // need_one es del par Email/WhatsApp: cuenta como error del Email, el primero del par.
+      const first = FIELD_ORDER.find((field) => state.errors[field] || (field === "email" && state.errors.reach));
       if (first) formRef.current?.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
     }
   }, [state]);
@@ -95,8 +97,14 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
   // React 19 resetea el form después de cada envío: los valores vuelven vía defaultValue.
   const values = state.status === "error" ? state.values : undefined;
 
-  const fieldA11y = (field: ContactField) =>
-    errors[field] ? { "aria-invalid": true as const, "aria-describedby": `${id}-${field}-error` } : {};
+  const reachErrorId = `${id}-reach-error`;
+  const fieldA11y = (field: ContactField) => {
+    if (errors[field]) return { "aria-invalid": true as const, "aria-describedby": `${id}-${field}-error` };
+    // need_one es del par: marca los dos inputs y los dos apuntan al mismo mensaje, debajo del par.
+    if (errors.reach && (field === "email" || field === "whatsapp"))
+      return { "aria-invalid": true as const, "aria-describedby": reachErrorId };
+    return {};
+  };
   const fieldError = (field: ContactField) => {
     const code = errors[field];
     return code ? (
@@ -117,7 +125,7 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
             <input id={`${id}-website`} type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
           </div>
 
-          <div className="contact-form__field contact-form__field--half">
+          <div className="contact-form__field">
             <label htmlFor={`${id}-name`} className="contact-form__label">
               {t.nameLabel}
             </label>
@@ -136,23 +144,55 @@ function ContactFormBody({ t, locale, whatsappHref, focusNameOnMount, onSendAnot
             {fieldError("name")}
           </div>
 
-          <div className="contact-form__field contact-form__field--half">
-            <label htmlFor={`${id}-email`} className="contact-form__label">
-              {t.emailLabel}
-            </label>
-            <input
-              id={`${id}-email`}
-              name="email"
-              type="email"
-              required
-              maxLength={LIMITS.email}
-              autoComplete="email"
-              defaultValue={values?.email}
-              className="contact-form__input"
-              {...fieldA11y("email")}
-            />
-            {fieldError("email")}
-          </div>
+          {/* Email o WhatsApp, al menos uno: ninguno es required y la regla la valida el servidor (HTML no tiene
+              una nativa para "al menos uno de estos dos"), igual con y sin JS. */}
+          <fieldset className="contact-form__group">
+            <legend className="contact-form__label">
+              {t.reachLegend} <span className="contact-form__optional">{t.reachHint}</span>
+            </legend>
+            <div className="contact-form__pair">
+              <div className="contact-form__field">
+                <label htmlFor={`${id}-email`} className="contact-form__label">
+                  {t.emailLabel}
+                </label>
+                <input
+                  id={`${id}-email`}
+                  name="email"
+                  type="email"
+                  maxLength={LIMITS.email}
+                  autoComplete="email"
+                  defaultValue={values?.email}
+                  className="contact-form__input"
+                  {...fieldA11y("email")}
+                />
+                {fieldError("email")}
+              </div>
+
+              <div className="contact-form__field">
+                <label htmlFor={`${id}-whatsapp`} className="contact-form__label">
+                  {t.whatsappLabel}
+                </label>
+                {/* Sin pattern: el mensaje nativo saldría en el idioma del navegador. Valida el servidor. */}
+                <input
+                  id={`${id}-whatsapp`}
+                  name="whatsapp"
+                  type="tel"
+                  maxLength={LIMITS.whatsapp}
+                  autoComplete="tel"
+                  placeholder={t.whatsappPlaceholder}
+                  defaultValue={values?.whatsapp}
+                  className="contact-form__input"
+                  {...fieldA11y("whatsapp")}
+                />
+                {fieldError("whatsapp")}
+              </div>
+            </div>
+            {errors.reach && (
+              <p id={reachErrorId} className="contact-form__error">
+                {t.errors[errors.reach]}
+              </p>
+            )}
+          </fieldset>
 
           <fieldset className="contact-form__group">
             <legend className="contact-form__label">

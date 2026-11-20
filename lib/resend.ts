@@ -1,4 +1,4 @@
-export type EmailMessage = { from: string; to: string; replyTo: string; subject: string; text: string };
+export type EmailMessage = { from: string; to: string; replyTo?: string; subject: string; text: string };
 
 const RESEND_URL = "https://api.resend.com/emails";
 export const RESEND_TIMEOUT_MS = 10_000;
@@ -35,7 +35,8 @@ export async function sendEmail(msg: EmailMessage): Promise<{ ok: boolean }> {
       body: JSON.stringify({
         from: msg.from,
         to: [msg.to],
-        reply_to: msg.replyTo,
+        // Sin email de la persona no va reply_to: ni siquiera vacío, Resend lo rechaza y el lead se pierde.
+        ...(msg.replyTo ? { reply_to: msg.replyTo } : {}),
         subject: msg.subject,
         text: msg.text,
       }),
