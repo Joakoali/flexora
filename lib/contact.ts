@@ -163,8 +163,9 @@ export function buildEmail(data: ContactData): { subject: string; text: string; 
 /**
  * Normaliza el WhatsApp que escribió la persona a dígitos con código de país ("34604164897"), o null si no
  * es un número aceptable. Recibe el valor ya recortado y no vacío.
- * Casi todos escriben desde España: sin prefijo solo se acepta un número español (9 dígitos que empiezan
- * con 6-9) y se le suma el 34. Un número de otro país sin prefijo no se puede adivinar y se rechaza.
+ * Con prefijo (+ o 00) se respeta el código de país. Casi todos escriben desde España: sin prefijo se acepta un
+ * número español de 9 dígitos que empieza con 6-9 (se le suma el 34) o el 34 seguido de un móvil (6 o 7). Un número
+ * de otro país sin prefijo no se puede adivinar y se rechaza. Un "(0)" troncal (+44 (0)7700…) se descarta.
  */
 export function normalizeWhatsapp(raw: string): string | null {
   if (raw.length > LIMITS.whatsapp) return null;
