@@ -13,7 +13,7 @@ export const PROJECT_TYPE_LABELS_ES: Record<ProjectType, string> = {
   other: "Otro",
 };
 
-export const LIMITS = { name: 80, email: 254, message: 2000 } as const;
+export const LIMITS = { name: 80, email: 254, whatsapp: 30, message: 2000 } as const;
 export const MIN_FILL_MS = 2000;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -109,4 +109,29 @@ export function buildEmail(data: ContactData): { subject: string; text: string; 
     data.message || "—",
   ].join("\n");
   return { subject, text: body, replyTo: data.email };
+}
+
+/**
+ * Normaliza el WhatsApp que escribió la persona a dígitos con código de país ("34604164897"), o null si no
+ * es un número aceptable. Recibe el valor ya recortado y no vacío.
+ * Casi todos escriben desde España: sin prefijo solo se acepta un número español (9 dígitos que empiezan
+ * con 6-9) y se le suma el 34. Un número de otro país sin prefijo no se puede adivinar y se rechaza.
+ */
+export function normalizeWhatsapp(raw: string): string | null {
+  if (raw.length > LIMITS.whatsapp) return null;
+  // Separadores habituales (espacios, puntos, guiones, paréntesis): se descartan.
+  const compact = raw.replace(/[\s().-]/g, "");
+  if (!/^\+?\d+$/.test(compact)) return null;
+
+  const digits = compact.replace(/^\+/, "");
+  let intl: string;
+  if (compact.startsWith("+")) intl = digits;
+  else if (digits.startsWith("00")) intl = digits.slice(2);
+  else return /^[6-9]\d{8}$/.test(digits) ? `34${digits}` : null;
+
+  // E.164: hasta 15 dígitos contando el código de país, que nunca empieza con 0. Menos de 8 no es un número real.
+  if (!/^[1-9]\d{7,14}$/.test(intl)) return null;
+  // Un +34 tiene que ser un número español completo: atrapa el dígito de menos o de más.
+  if (intl.startsWith("34") && !/^34[6-9]\d{8}$/.test(intl)) return null;
+  return intl;
 }

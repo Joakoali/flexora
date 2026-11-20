@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  LIMITS,
   buildEmail,
   isHoneypotFilled,
   isTooFast,
+  normalizeWhatsapp,
   readContactValues,
   validateContact,
   type ContactData,
@@ -222,5 +224,38 @@ describe("buildEmail", () => {
     const { text } = buildEmail(v.data);
     expect(text.includes("\r")).toBe(false);
     expect(text.endsWith("Mensaje:\nHola\nqué tal")).toBe(true);
+  });
+});
+
+describe("normalizeWhatsapp", () => {
+  it.each([
+    ["+34 604 16 48 97", "34604164897"],
+    ["0034 604164897", "34604164897"],
+    ["(+34) 604-164-897", "34604164897"],
+    ["604 164 897", "34604164897"],
+    ["912 345 678", "34912345678"],
+    ["+54 9 11 2345-6789", "5491123456789"],
+    ["+1 (555) 123-4567", "15551234567"],
+  ])("%s → %s", (raw, expected) => {
+    expect(normalizeWhatsapp(raw)).toBe(expected);
+  });
+
+  it.each([
+    ["+34 60416489", "un +34 con 8 dígitos"],
+    ["11 2345 6789", "sin prefijo y no es español"],
+    ["34604164897", "código de país sin +"],
+    ["512 345 678", "sin prefijo, empieza con 5"],
+    ["+1234567", "7 dígitos"],
+    ["+1234567890123456", "16 dígitos"],
+    ["604 ABC 897", "letras"],
+    ["6+04164897", "+ en el medio"],
+  ])("%s → null (%s)", (raw) => {
+    expect(normalizeWhatsapp(raw)).toBeNull();
+  });
+
+  it("mide el largo crudo: 30 caracteres pasa, 31 → null aunque los dígitos sirvan", () => {
+    expect(LIMITS.whatsapp).toBe(30);
+    expect(normalizeWhatsapp(`+34${" ".repeat(18)}604164897`)).toBe("34604164897");
+    expect(normalizeWhatsapp(`+34${" ".repeat(19)}604164897`)).toBeNull();
   });
 });
