@@ -4,7 +4,7 @@
 
 **Goal:** Pasar `app/[lang]/dictionaries/es.json` de voseo rioplatense a tú peninsular y dejar un test que impida que el voseo vuelva.
 
-**Architecture:** Un test nuevo (`__tests__/i18n/es-register.test.ts`) recorre todos los strings de `es.json` contra una lista explícita de formas de voseo. Se escribe primero y falla; después se editan las 12 cadenas del diccionario hasta que pasa. No cambia ninguna clave, así que la paridad con en/ca no se toca.
+**Architecture:** Un test nuevo (`__tests__/i18n/es-register.test.ts`) recorre todos los strings de `es.json` contra una lista explícita de formas de voseo. Se escribe primero y falla; después se editan las 13 cadenas del diccionario hasta que pasa. No cambia ninguna clave, así que la paridad con en/ca no se toca.
 
 **Tech Stack:** Vitest, JSON, Playwright (solo para verificar).
 
@@ -100,7 +100,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 
 Editar con la herramienta Edit, un reemplazo por cadena. Cada `old_string` de abajo es único en el archivo salvo donde se indica. No tocar nada más (ni claves, ni «Hablemos», ni `closing.email`).
 
-- [ ] **Step 1: Aplicar los 12 reemplazos**
+- [ ] **Step 1: Aplicar los 13 reemplazos**
 
 | # | old_string | new_string |
 |---|---|---|
@@ -115,6 +115,7 @@ Editar con la herramienta Edit, un reemplazo por cadena. Cada `old_string` de ab
 | 9 | `"invalid_phone": "Revisá el número. Si no es de España, empezá con el prefijo del país (+54…).",` | `"invalid_phone": "Revisa el número. Si no es de España, empieza con el prefijo del país (+54…).",` |
 | 10 | `"need_one": "Dejanos un mail o un WhatsApp para poder responderte.",` | `"need_one": "Déjanos un email o un WhatsApp para poder responderte.",` |
 | 11 | `"send_failed": "No pudimos enviarlo. Probá de nuevo o",` | `"send_failed": "No pudimos enviarlo. Prueba de nuevo o",` |
+| 11b | `"sendFailedLink": "escribinos por WhatsApp."` | `"sendFailedLink": "escríbenos por WhatsApp."` |
 | 12 | `"too_fast": "Enviaste el formulario muy rápido. Probá de nuevo en un momento."` | `"too_fast": "Enviaste el formulario muy rápido. Prueba de nuevo en un momento."` |
 
 - [ ] **Step 2: Comprobar que no queda voseo ni se rompió el JSON**
@@ -123,7 +124,7 @@ Run: `node -e "JSON.parse(require('fs').readFileSync('app/[lang]/dictionaries/es
 Expected: `json ok`
 
 Run: `git diff --stat app/\[lang\]/dictionaries/es.json`
-Expected: `1 file changed, 12 insertions(+), 12 deletions(-)`
+Expected: `1 file changed, 13 insertions(+), 13 deletions(-)`
 
 - [ ] **Step 3: Correr el test nuevo y la paridad**
 

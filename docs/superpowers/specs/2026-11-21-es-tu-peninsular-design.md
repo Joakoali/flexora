@@ -35,6 +35,7 @@ a poner el chip de IA del hero, seguimiento xvi) se brainstormea aparte y ya esc
 | `closing.form.errors.invalid_phone` | Revisá el número. Si no es de España, empezá con el prefijo del país (+54…). | Revisa el número. Si no es de España, empieza con el prefijo del país (+54…). |
 | `closing.form.errors.need_one` | Dejanos un mail o un WhatsApp para poder responderte. | Déjanos un email o un WhatsApp para poder responderte. |
 | `closing.form.errors.send_failed` | No pudimos enviarlo. Probá de nuevo o | No pudimos enviarlo. Prueba de nuevo o |
+| `closing.form.errors.sendFailedLink` | escribinos por WhatsApp. | escríbenos por WhatsApp. |
 | `closing.form.errors.too_fast` | Enviaste el formulario muy rápido. Probá de nuevo en un momento. | Enviaste el formulario muy rápido. Prueba de nuevo en un momento. |
 
 `closing.email` (`info@flexoradesign.com`) y `closing.emailLabel` («o por mail a») no son voseo: `emailLabel` pasa a
