@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { effectiveOpacity } from "./helpers";
 
 const SECTIONS = ["hero", "services", "work", "process", "contact"];
 
@@ -165,4 +166,60 @@ test("las anclas dejan la sección al ras del borde superior, sin sumar el scrol
     const top = () => page.locator(`#${id}`).evaluate((el) => Math.abs(Math.round(el.getBoundingClientRect().top)));
     await expect.poll(top, { message: `borde superior de #${id}` }).toBe(0);
   }
+});
+
+// Rótulo de sección (SectionTag) sobre cada h2. Tras saltar a un ancla la sección queda al ras del borde
+// (test de arriba) y el header le tapa la parte de arriba: el padding superior de la sección tiene que dejar
+// el rótulo entero debajo. --section-y baja hasta 64 px en mobile y el header mide 72 px.
+const TAGGED = ["services", "work", "process", "contact"];
+
+async function tagAndTitle(page: Page, id: string) {
+  const tag = page.locator(`#${id} .section-tag`);
+  const title = page.locator(`#${id} h2`);
+  // Reveal sube el bloque 12 px mientras aparece: hasta que termina, las cajas no son las finales (y el
+  // rótulo se vería más abajo de donde queda).
+  await expect.poll(() => effectiveOpacity(tag)).toBe(1);
+  await expect.poll(() => effectiveOpacity(title)).toBe(1);
+  return page.evaluate((id) => {
+    const header = document.querySelector("header")!.getBoundingClientRect();
+    const tag = document.querySelector(`#${id} .section-tag`)!.getBoundingClientRect();
+    const title = document.querySelector(`#${id} h2`)!.getBoundingClientRect();
+    return { headerBottom: header.bottom, tagTop: tag.top, gap: title.top - tag.bottom };
+  }, id);
+}
+
+for (const { width, height } of [
+  { width: 360, height: 640 },
+  { width: 412, height: 915 },
+  { width: 768, height: 1024 },
+  { width: 1280, height: 720 },
+]) {
+  test.describe(`rótulo de sección a ${width}x${height}`, () => {
+    test.use({ viewport: { width, height } });
+
+    test("al saltar a un ancla, el header no tapa el rótulo", async ({ page }) => {
+      await page.goto("/es");
+      await page.evaluate(() => document.fonts.ready);
+      for (const id of TAGGED) {
+        await page.evaluate((hash) => {
+          location.hash = hash;
+        }, id);
+        const top = () => page.locator(`#${id}`).evaluate((el) => Math.abs(Math.round(el.getBoundingClientRect().top)));
+        await expect.poll(top, { message: `borde superior de #${id}` }).toBe(0);
+        const { headerBottom, tagTop } = await tagAndTitle(page, id);
+        expect(tagTop, `rótulo de #${id} debajo del header`).toBeGreaterThanOrEqual(headerBottom);
+      }
+    });
+  });
+}
+
+test("la separación rótulo→título es la misma en las cuatro secciones", async ({ page }) => {
+  await page.goto("/es");
+  await page.evaluate(() => document.fonts.ready);
+  const gaps: Record<string, number> = {};
+  for (const id of TAGGED) {
+    await page.locator(`#${id} .section-tag`).scrollIntoViewIfNeeded();
+    gaps[id] = Math.round((await tagAndTitle(page, id)).gap);
+  }
+  expect(new Set(Object.values(gaps)).size, JSON.stringify(gaps)).toBe(1);
 });

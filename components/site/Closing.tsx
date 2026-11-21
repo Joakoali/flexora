@@ -1,5 +1,6 @@
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 import type { Locale } from "@/lib/i18n";
+import { SectionTag } from "@/components/ui/SectionTag";
 import { Button } from "@/components/ui/Button";
 import { TextLink } from "@/components/ui/TextLink";
 import { FlexField } from "@/components/gl/FlexField";
@@ -21,6 +22,7 @@ export function Closing({
       <Reveal className="container-site closing__content">
         <div className="closing__intro">
           <div className="closing__head">
+            <SectionTag>{t.tag}</SectionTag>
             <h2 id="closing-title" className="h2 closing__title">{t.title}</h2>
             <p className="closing__desc measure">{t.description}</p>
           </div>

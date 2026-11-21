@@ -112,9 +112,10 @@ html {
   scroll-padding-bottom: calc(var(--fab-size) + var(--fab-offset));
 }
 /* Las anclas (#services, #work, #process, #contact) siguen aterrizando con la sección al ras del borde
-   superior, como antes del scroll-padding: el padding propio de la sección deja el título a 64–112 px
-   del borde según el ancho (el header mide 72 px), y el scroll-padding de arriba, pensado para el
-   foco, las correría ~88 px más abajo. El margen negativo lo cancela solo para el salto a ancla. */
+   superior, como antes del scroll-padding: el padding superior de la sección deja el rótulo a 88–112 px
+   del borde según el ancho (el header mide 72 px; ver .section y .closing__content), y el scroll-padding
+   de arriba, pensado para el foco, las correría ~88 px más abajo. El margen negativo lo cancela solo
+   para el salto a ancla. */
 section[id] {
   scroll-margin-top: calc(-1 * var(--scroll-clear-top));
 }
@@ -160,8 +161,12 @@ html.theme-changing *::after {
   padding-inline: var(--gutter);
 }
 
+/* Arriba, nunca menos que --scroll-clear-top (header + 1 rem): al saltar a un ancla la sección queda al ras
+   del borde y el header tapa sus primeros 72 px. Con --section-y solo (64 px en mobile) el rótulo quedaba
+   cortado por el header. Abajo no cambia. */
 .section {
   padding-block: var(--section-y);
+  padding-top: max(var(--section-y), var(--scroll-clear-top));
 }
 
 .hairline {
@@ -202,6 +207,34 @@ html.theme-changing *::after {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--fg-muted);
+}
+
+/* Rótulo de sección sobre cada h2: punto de acento, nombre y una hairline que llena el ancho. */
+.section-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+/* Punto de acento: lo comparten el rótulo de sección y los chips del hero. */
+.section-tag::before,
+.hero__chip::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-text);
+}
+.section-tag::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+/* .closing__head ya separa sus hijos con gap (1.5rem, el mismo margen que arriba). */
+.closing__head .section-tag {
+  margin-bottom: 0;
 }
 
 .measure {
@@ -948,13 +981,6 @@ body:has(#hero) {
   font-size: 0.875rem;
   color: var(--fg);
 }
-.hero__chip::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-text);
-}
 .hero__projects {
   font-size: 0.875rem;
   color: var(--fg-muted);
@@ -1382,6 +1408,8 @@ body:has(#hero) {
   position: relative;
   z-index: 1;
   padding-block: var(--section-y);
+  /* Como .section: el rótulo queda despejado del header tras saltar a #contact. */
+  padding-top: max(var(--section-y), var(--scroll-clear-top));
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: clamp(2rem, 5vw, 4rem);

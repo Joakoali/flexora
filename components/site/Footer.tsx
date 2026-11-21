@@ -11,7 +11,7 @@ export function Footer({ t, locale }: { t: Dictionary["footer"]; locale: Locale 
           <Logo id="footer-logo" title="Flexora" />
         </a>
         <p className="site-footer__legal">
-          © {year} Flexora. {t.rights} {t.madeIn}
+          © {year} Flexora. {t.rights}
         </p>
       </div>
     </footer>

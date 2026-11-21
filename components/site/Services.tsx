@@ -1,5 +1,6 @@
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 import { Label } from "@/components/ui/Label";
+import { SectionTag } from "@/components/ui/SectionTag";
 import { Reveal } from "./Reveal";
 import { AdsVisual, BrandVisual, DevVisual } from "./ServiceVisuals";
 
@@ -9,6 +10,7 @@ export function Services({ t }: { t: Dictionary["services"] }) {
   return (
     <section id="services" className="section" aria-labelledby="services-title">
       <Reveal className="container-site">
+        <SectionTag>{t.tag}</SectionTag>
         <h2 id="services-title" className="h2 services__title">{t.title}</h2>
       </Reveal>
       <div className="services__list">

@@ -1,6 +1,7 @@
 import type { Dictionary } from "@/app/[lang]/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { work } from "@/content/work";
+import { SectionTag } from "@/components/ui/SectionTag";
 import { Reveal } from "./Reveal";
 import { WorkCard } from "./WorkCard";
 
@@ -8,6 +9,7 @@ export function Work({ t, locale }: { t: Dictionary["work"]; locale: Locale }) {
   return (
     <section id="work" className="section hairline" aria-labelledby="work-title">
       <Reveal className="container-site">
+        <SectionTag>{t.tag}</SectionTag>
         <h2 id="work-title" className="h2 work__title">{t.title}</h2>
       </Reveal>
       <div className="container-site work__grid">

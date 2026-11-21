@@ -242,7 +242,7 @@ layout queda:
 > ```
 >
 > - **≥1100px:** dos columnas `5fr / 7fr`. La introducción toma el alto del formulario y lo reparte
->   (`align-content: space-between`): `.closing__head` (título + frase) arriba y `.closing__actions`
+>   (`align-content: space-between`): `.closing__head` (título + frase; desde la PR #5, 2026-11-20, con el rótulo de sección arriba) arriba y `.closing__actions`
 >   (WhatsApp, y el mail debajo) abajo, al ras del panel.
 > - **<1100px:** apilado: título → frase → WhatsApp/mail → formulario a todo el ancho.
 > - **Nombre y Email en una fila** cuando el panel tiene 30rem o más de ancho interno: container query
