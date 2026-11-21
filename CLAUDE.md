@@ -50,7 +50,7 @@ Single-page trilingual (es/en/ca) marketing site (Next.js 16 App Router). Read `
 
 **Component layers**:
 - `components/site/` — page sections and layout chrome (Header, Footer, Hero, etc.), most locale/content-aware.
-- `components/ui/` — generic presentational primitives (Button, Label, LangSwitch, ThemeSwitch, TextLink).
+- `components/ui/` — generic presentational primitives (Button, Label, LangSwitch, ThemeSwitch, TextLink, SectionTag — the decorative `aria-hidden` tag above each section's h2, built on Label).
 - `components/gl/` — WebGL background (`FlexField` + `flex-field.shaders.ts`, via `ogl`), gated by `lib/gl.ts` capability checks (`canUseWebGL`, `prefersReducedMotion`, `isCoarsePointer`, `clampDpr`).
 
 **Shared scroll state**: `HeroScrollProvider` (in `components/site/`) wraps the app in `layout.tsx` and exposes a single `useScroll` so `Header` and `HeroProgress` don't each attach their own scroll listener.

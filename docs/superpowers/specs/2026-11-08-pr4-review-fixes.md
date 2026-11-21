@@ -149,7 +149,7 @@ Esfuerzo: S = menos de una hora, M = una tarea chica con verificación, L = requ
 | # | Seguimiento | Impacto | Esfuerzo |
 |---|---|---|---|
 | i | `og-es.png` y `og-en.png` muestran el hero viejo (se generaron el 2026-09-08, `485a04c`); solo `og-ca.png` refleja el actual y pesa 358 KB contra ~110 KB. | Vista previa al compartir en es/en desactualizada. `node scripts/capture-og.mjs` con la app corriendo regenera los tres; revisar el peso. | S |
-| ii | Traducciones al catalán sin revisión de nativo. Dudas: infinitivo en botones, anglicismos ("landings"), "Fet!" como éxito, y "Fet a l'Argentina?" con signo de pregunta que viene de `main` en los tres idiomas. | Copy. | S, con un revisor nativo |
+| ii | Traducciones al catalán sin revisión de nativo. Dudas: infinitivo en botones, anglicismos ("landings"), "Fet!" como éxito, y "Fet a l'Argentina?" con signo de pregunta que viene de `main` en los tres idiomas (**2026-11-20, PR #5:** se quitó del footer en los tres idiomas). | Copy. | S, con un revisor nativo |
 | iii | Hero a 568×320: la nota del CTA queda cortada ~15 px. Con zoom 400 % (~320×256) y en portrait diminutos el CTA queda fuera de la escena (`overflow: hidden` sobre un sticky `100dvh`). El e2e cubre seis viewports bajos (`SHORT_VIEWPORTS` en `e2e/home.spec.ts`), no estos. | Pantallas extremas; accesibilidad de reflow. | M |
 | iv | El botón flotante tapa el tercer chip del hero a 360×640 y parte del botón Enviar. | Visual y de uso en celulares chicos. | S |
 | v | Contraste del botón flotante en hover/foco (1,98:1) y `backdrop-filter` de las ventanas del hero (hallazgos 11 y 14). | Contraste WCAG; rendimiento a medir. | S (contraste), M (blur) |
@@ -163,6 +163,7 @@ Esfuerzo: S = menos de una hora, M = una tarea chica con verificación, L = requ
 | xiii | `d8e62a7` está etiquetado `chore:` pero solo cambia un test y dos comentarios; `b09abf1` tiene otro email de autor. | Cosmético; no vale reescribir historia ya pusheada. | — |
 | xiv | Sin JS en celulares apaisados (844×390, 667×375) el error de campo aterriza 83–88 px bajo el borde inferior (el éxito sí se ve), porque el permalink apunta a la sección y ahí el título y el copy gastan el alto antes del formulario. Arreglo posible: `id` en `<div className="contact-form">` y permalink a ese id (obliga a cambiar los 6 asserts `#contact$` del e2e). **2026-11-11:** con Nombre y Email en una fila (recomposición del cierre) el error pasó a quedar 11 px (844×390) y 5 px (667×375) bajo el borde: el texto se ve cortado, ya no fuera de pantalla. Sigue abierto. | Solo sin JS y en pantallas bajas. | S |
 | xv | `.env.example` dice que `CONTACT_DRY_RUN` es "solo e2e, nunca en producción"; sigue siendo cierto, pero no aclara que el bloqueo automático solo existe en Vercel. | Documentación. | S |
+| xvi | Chip «IA» en el hero (PR #5, 2026-11-20): se sacó antes de mergear porque Servicios dice «Tres disciplinas, un solo equipo», con tres bloques, y la meta description no menciona IA. Vuelve cuando se defina ese copy en es/en/ca. Con cuatro chips hay que compactarlos en mobile (la PR lo hacía con un `@media (max-width: 640px)`, `413d7ad`) y aun así el cuarto baja a una segunda línea en catalán a 390 px y en todos los idiomas a 360–375 px. | Contenido: el sitio no menciona IA. | M, con copy nuevo |
 
 ### Endurecimiento del formulario (tarea 7)
 
