@@ -23,13 +23,13 @@
     "ca": "Català"
   },
   "whatsappFab": {
-    "label": "Escribinos por WhatsApp"
+    "label": "Escríbenos por WhatsApp"
   },
   "hero": {
     "eyebrow": "Estudio digital · Barcelona",
     "tagline": "Soluciones digitales para hacer crecer tu negocio y tu equipo.",
     "subcopy": "Diseñamos y desarrollamos webs, apps, herramientas internas y estrategias digitales para que tu negocio destaque, funcione mejor y crezca.",
-    "primary": "Contanos tu proyecto",
+    "primary": "Cuéntanos tu proyecto",
     "primaryNote": "Te respondemos por WhatsApp en el día.",
     "secondary": "Ver trabajos",
     "disciplines": ["Desarrollo", "Marketing", "Marca"],
@@ -93,7 +93,7 @@
     "steps": [
       {
         "title": "Escuchamos",
-        "description": "Una charla para entender qué necesitás, a quién le hablás y qué tiene que pasar."
+        "description": "Una charla para entender qué necesitas, a quién le hablas y qué tiene que pasar."
       },
       {
         "title": "Proponemos",
@@ -112,9 +112,9 @@
   "closing": {
     "title": "Hablemos",
     "tag": "Contacto",
-    "description": "Contanos qué querés lograr. Te respondemos el mismo día.",
+    "description": "Cuéntanos qué quieres lograr. Te respondemos el mismo día.",
     "primary": "Escribir por WhatsApp",
-    "emailLabel": "o por mail a",
+    "emailLabel": "o por email a",
     "email": "info@flexoradesign.com",
     "form": {
       "formLabel": "Formulario de contacto",
@@ -124,10 +124,10 @@
       "whatsappPlaceholder": "+34 600 000 000",
       "reachLegend": "¿Cómo te contactamos?",
       "reachHint": "(uno o los dos)",
-      "projectLegend": "¿Qué necesitás?",
+      "projectLegend": "¿Qué necesitas?",
       "optional": "(opcional)",
       "messageLabel": "Mensaje",
-      "messagePlaceholder": "Contanos un poco del proyecto",
+      "messagePlaceholder": "Cuéntanos un poco del proyecto",
       "submit": "Enviar",
       "sending": "Enviando…",
       "successTitle": "¡Listo!",
@@ -144,13 +144,13 @@
       },
       "errors": {
         "required": "Este campo es obligatorio.",
-        "invalid": "Ingresá un email válido.",
-        "invalid_phone": "Revisá el número. Si no es de España, empezá con el prefijo del país (+54…).",
-        "need_one": "Dejanos un mail o un WhatsApp para poder responderte.",
+        "invalid": "Introduce un email válido.",
+        "invalid_phone": "Revisa el número. Si no es de España, empieza con el prefijo del país (+54…).",
+        "need_one": "Déjanos un email o un WhatsApp para poder responderte.",
         "too_long": "Es demasiado largo.",
-        "send_failed": "No pudimos enviarlo. Probá de nuevo o",
-        "sendFailedLink": "escribinos por WhatsApp.",
-        "too_fast": "Enviaste el formulario muy rápido. Probá de nuevo en un momento."
+        "send_failed": "No pudimos enviarlo. Prueba de nuevo o",
+        "sendFailedLink": "escríbenos por WhatsApp.",
+        "too_fast": "Enviaste el formulario muy rápido. Prueba de nuevo en un momento."
       }
     }
   },
